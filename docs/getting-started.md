@@ -1,7 +1,7 @@
 # Getting Started
 
 # Sandbox
-Before you install FUME, you can play with the mapping language in our inteactive public sandbox: [https://try.fume.health](https://try.fume.health).
+Before you install FUME, you can play with the mapping language in our interactive public sandbox: [https://try.fume.health](https://try.fume.health).
 
 ## Initial Setup
 
@@ -25,7 +25,7 @@ Then go to the 'serve' folder, and start the server:
 
 ## API instructions:
 POST to the base address of the server a JSON object with input data in 'input' and a mapping (as string) in 'fume'.
-If you have a FHIR server, you can store mappings as StructureMap resources (see an example in the root of the project). When the server initializes, all the mapping found on the server become an endpoint where you can just POST the input data and recieve the results. The endpoint is in the pattern [FUME Server]/Mapping/[StructureMap ID].
+If you have a FHIR server, you can store mappings as StructureMap resources (see an example in the root of the project). When the FUME server initializes, all the mappings found on the FHIR server become an endpoint where you can just POST the input data and recieve the results. The endpoint is in the pattern [FUME Server]/Mapping/[StructureMap ID].
 
 # Deployment
 
@@ -37,7 +37,7 @@ This section describes how to deploy the server
 
 Stateless means no FHIR server connection. 
 Copy the `.env.example.stateless` file to `.env` and edit it to set the environment variables.
-**NOTE:** In stateless mode, you can run mappings you pass to the API, but you cannot load mappings from a FHIR server. Needless to say, mappings that use try to fetch data from a FHIR server using functions like $search, $resolve, $literal etc will throw an error.
+**NOTE:** In stateless mode, you can run mappings you pass to the API, but you cannot load mappings from a FHIR server. Needless to say, mappings that try to fetch data from a FHIR server using functions like $search, $resolve, $literal etc will throw an error.
 
 ### Stateful deployment
 
@@ -46,7 +46,7 @@ Copy the `.env.example.stateful` file to `.env` and edit it to set the environme
 **NOTE:** You _MUST_ edit the `FHIR_SERVER_BASE` environment variable to point to your FHIR server
 
 # In a Node.js application
-Install the module into you project:
+Install the module into your project:
 - `npm install fume-fhir-converter --save`
 
 Then you can import the module and start using it.
@@ -65,6 +65,7 @@ Additional options you may find useful:
 - fhirServerTimeout: (number) In milliseconds
 - searchBundleSize: (number) How many resources the server should put in a single search result page
 - logger: (object) Override the default logger (console.log) with an external one. The object need to contain three keys: info, warn and error. Each key needs to be a function that can handle inputs of all types.
+- additionalBindings: (object) Extend the functionality of FUME by passing key-value pairs that will become accesible as paramerters (including function) inside FUME expressions. E.g. if you pass an object containig a JS function with the key "someFunc", you can call this function from any FUME expressiin using $someFunc($someArgument)
 
 After init, you can start transforming data using the transform() function. For example, a blood pressure profile:
 
@@ -87,6 +88,10 @@ const res = await fume.transform(input, map);
 
 The results will be an Observation resource populated according to the official HL7 Blood Pressure Profile.
 
+**NOTE:** Expressions undergo a compilation process when run for the first time. This process may be slow for some complex mappings, but after the first time the compiled function is cached and then reused in subsequent calls, so compilation only happens once per expression.
+
+If you don't want FUME to evaluate your expression against an input immediatly, you can use fume.toFunction(expr). This will return an async JS function that you can pass downstreem and call later with different inputs, as many times as you wish (Just remember to use the 'await' keyword)
+
 # Further Documenttation
-You can watch our [video tutorials](https://www.youtue.com/playlist?list=PL44ht-s6WWPfgVNkibzMj_UB-ex41rl49).
+You can watch our [video tutorials](https://youtube.com/playlist?list=PL44ht-s6WWPfgVNkibzMj_UB-ex41rl49).
 
