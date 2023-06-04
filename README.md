@@ -90,7 +90,7 @@ const input = {
   "systolic": 140,
   "diastolic": 80
 };
-const res = fume.transform(input, map)
+const res = await fume.transform(input, map);
 ```
 
 The results will be an Observation resource populated according to the official HL7 Blood Pressure Profile.
