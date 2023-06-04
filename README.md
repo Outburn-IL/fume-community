@@ -1,6 +1,7 @@
 # FUME - FHIR Utilized Mapping Engine
 
 FUME is a sophisticated FHIR convertion tool.
+Made by Outburn with :heart:
 
 The engine has the following main parts:
 
@@ -14,3 +15,6 @@ You are welcome to play with the mapping language in our inteactive public sandb
 Installation & deployment instructions can be found at our [getting started](docs/getting-started.md) page.
 
 For further documentation & examples you can watch our [video tutorials](https://www.youtue.com/playlist?list=PL44ht-s6WWPfgVNkibzMj_UB-ex41rl49).
+
+---
+&copy; 2022-2023 Outburn Ltd. All Rights Reserved.
