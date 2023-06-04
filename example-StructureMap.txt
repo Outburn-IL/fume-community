@@ -1,0 +1,74 @@
+{
+  "resourceType": "StructureMap",
+  "id": "exampleForRepo",
+  "meta": {
+    "versionId": "1",
+    "lastUpdated": "2023-06-04T06:19:38.086+00:00",
+    "source": "#WgyJo3aTzRslVKEM"
+  },
+  "url": "http://example.fume.health/StructureMap/exampleForRepo",
+  "identifier": [
+    {
+      "use": "official",
+      "type": {
+        "text": "Canonical URL"
+      },
+      "system": "urn:ietf:rfc:3986",
+      "value": "http://example.fume.health/StructureMap/exampleForRepo"
+    }
+  ],
+  "name": "exampleForRepo",
+  "title": "exampleForRepo",
+  "status": "active",
+  "date": "2023-06-04T06:19:37.942Z",
+  "useContext": [
+    {
+      "code": {
+        "system": "http://snomed.info/sct",
+        "code": "706594005",
+        "display": "Information system software"
+      },
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "http://codes.fume.health",
+            "code": "fume",
+            "display": "FUME"
+          }
+        ],
+        "text": "FUME"
+      }
+    }
+  ],
+  "group": [
+    {
+      "name": "fumeMapping",
+      "typeMode": "none",
+      "input": [
+        {
+          "name": "input",
+          "mode": "source"
+        }
+      ],
+      "rule": [
+        {
+          "extension": [
+            {
+              "url": "http://fhir.fume.health/StructureDefinition/mapping-expression",
+              "valueExpression": {
+                "language": "application/vnd.outburn.fume",
+                "expression": "  Instance: $uuid()\n  InstanceOf: bp\n  * effectiveDateTime = $now()\n  * subject.identifier.value = mrn\n  * component[SystolicBP].valueQuantity.value = systolic\n  * component[DiastolicBP].valueQuantity.value = diastolic"
+              }
+            }
+          ],
+          "name": "evaluate",
+          "source": [
+            {
+              "context": "input"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
