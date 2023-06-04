@@ -1,0 +1,49 @@
+{
+  "name": "fume-fhir-converter",
+  "version": "1.0.0",
+  "description": "FHIR-Utilized Mapping Engine - Community",
+  "main": "dist/fume.js",
+  "scripts": {
+    "build": "tsc -b",
+    "lint": "eslint src"
+  },
+  "author": "Outburn Ltd.",
+  "license": "AGPL-3.0",
+  "keywords": ["FHIR", "FHIR Converter", "Mapper", "Mapping Engine", "HL7", "V2 to FHIR", "CSV to FHIR"],
+  "homepage": "https://fume.health",
+  "repository": {
+    "type": "git", 
+    "url": "https://github.com/Outburn-IL/fume-community"
+  },
+  "dependencies": {
+    "axios": "^1.1.3",
+    "csvtojson": "^2.0.10",
+    "fhir-package-loader": "^0.2.0",
+    "fs-extra": "^11.1.1",
+    "hl7-dictionary": "^1.0.1",
+    "hl7js": "^0.0.6",
+    "js-sha256": "^0.9.0",
+    "jsonata": "^2.0.2",
+    "uuid-by-string": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.12",
+    "@types/express": "^4.17.14",
+    "@types/fs-extra": "^11.0.1",
+    "@typescript-eslint/eslint-plugin": "^5.44.0",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.28.0",
+    "eslint-config-standard-with-typescript": "^23.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-n": "^15.5.1",
+    "eslint-plugin-promise": "^6.1.1",
+    "nodemon": "^2.0.20",
+    "typescript": "^4.9.3"
+  },
+  "nodemonConfig": {
+    "watch": [
+      "src"
+    ],
+    "ext": "mjs,js,ts,json,env"
+  }
+}
