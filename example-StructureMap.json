@@ -1,11 +1,6 @@
 {
   "resourceType": "StructureMap",
   "id": "exampleForRepo",
-  "meta": {
-    "versionId": "1",
-    "lastUpdated": "2023-06-04T06:19:38.086+00:00",
-    "source": "#WgyJo3aTzRslVKEM"
-  },
   "url": "http://example.fume.health/StructureMap/exampleForRepo",
   "identifier": [
     {
