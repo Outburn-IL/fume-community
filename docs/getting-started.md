@@ -25,7 +25,7 @@ Then go to the 'serve' folder, and start the server:
 
 ## API instructions:
 POST to the base address of the server a JSON object with input data in 'input' and a mapping (as string) in 'fume'.
-If you have a FHIR server, you can store mappings as StructureMap resources (see an example in the root of the project). When the FUME server initializes, all the mappings found on the FHIR server become an endpoint where you can just POST the input data and recieve the results. The endpoint is in the pattern [FUME Server]/Mapping/[StructureMap ID].
+If you have a FHIR server, you can store mappings as StructureMap resources (see an example in the root of the project). When FUME initializes, all the mappings found on the FHIR server become endpoints where you can just POST the input data and recieve the results. The endpoint is in the pattern [FumeServerBase]/Mapping/[StructureMapId].
 
 # Deployment
 
@@ -64,8 +64,8 @@ Additional options you may find useful:
 - fhirPackages: (string) Comma delimited list of packages to import. For example: il.core.fhir.r4@0.11.0,hl7.fhir.us.core@6.0.0.
 - fhirServerTimeout: (number) In milliseconds
 - searchBundleSize: (number) How many resources the server should put in a single search result page
-- logger: (object) Override the default logger (console.log) with an external one. The object need to contain three keys: info, warn and error. Each key needs to be a function that can handle inputs of all types.
-- additionalBindings: (object) Extend the functionality of FUME by passing key-value pairs that will become accesible as paramerters (including function) inside FUME expressions. E.g. if you pass an object containig a JS function with the key "someFunc", you can call this function from any FUME expressiin using $someFunc($someArgument)
+- logger: (object) Override the default logger (console.log) with an external one. The object needs to contain three keys: info, warn and error. Each key needs to be a function that can handle inputs of all types.
+- additionalBindings: (object) Extend the functionality of FUME by passing key-value pairs that will become accessible as named paramerters (including functions) inside FUME expressions. E.g. if you pass an object containig a JS function with the key "someFunc", you can call this function from any FUME expression using $someFunc($someArgument)
 
 After init, you can start transforming data using the transform() function. For example, a blood pressure profile:
 
@@ -80,7 +80,7 @@ const map = `
 `;
 const input = {
   "mrn": "PP875023983",
-  "systolic": 140,
+  "systolic": 120,
   "diastolic": 80
 };
 const res = await fume.transform(input, map);
@@ -90,8 +90,10 @@ The results will be an Observation resource populated according to the official 
 
 **NOTE:** Expressions undergo a compilation process when run for the first time. This process may be slow for some complex mappings, but after the first time the compiled function is cached and then reused in subsequent calls, so compilation only happens once per expression.
 
-If you don't want FUME to evaluate your expression against an input immediatly, you can use fume.toFunction(expr). This will return an async JS function that you can pass downstreem and call later with different inputs, as many times as you wish (Just remember to use the 'await' keyword)
+If you don't want FUME to evaluate your expression against an input immediatly, you can use fume.toFunction(expr). This will return an async JS function that you can pass downstream and call later with different inputs, as many times as you wish (Just remember to use the 'await' keyword)
 
-# Further Documenttation
-You can watch our [video tutorials](https://youtube.com/playlist?list=PL44ht-s6WWPfgVNkibzMj_UB-ex41rl49).
+# Further Documentation
+## Read the docs at our [documentation website](https://www.fume.health/). 
+## Watch our [video tutorials](https://youtube.com/playlist?list=PL44ht-s6WWPfgVNkibzMj_UB-ex41rl49).
+
 
