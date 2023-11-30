@@ -8,7 +8,7 @@
     "importHelpers": true,
     "strict": true,
     "noImplicitAny": false,
-    "strictNullChecks": true,
+    "strictNullChecks": false,
     "noImplicitThis": true,
     "alwaysStrict": true,
     "noUnusedLocals": true,
@@ -25,5 +25,6 @@
   },
   "include": [
     "src/**/*"
-  ]
+, "communitySRC/types"    // ,"src/hl7.fhir.r4.core/StructureDefinition*.json"
+, "logic/cache.ts", "logic/cacheHandler.ts", "logic/config.ts", "logic/logFunctions.ts", "logic/throwErrors.ts", "engine/hl7v2.ts", "engine/stringFunctions.ts", "engine/jsonataFunctions.ts", "engine/jsonataExpression.ts", "engine/objectFunctions.ts", "engine/parser.ts", "engine/fhirFunctions.ts"  ]
 }

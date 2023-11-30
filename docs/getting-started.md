@@ -90,7 +90,7 @@ The results will be an Observation resource populated according to the official 
 
 **NOTE:** Expressions undergo a compilation process when run for the first time. This process may be slow for some complex mappings, but after the first time the compiled function is cached and then reused in subsequent calls, so compilation only happens once per expression.
 
-If you don't want FUME to evaluate your expression against an input immediatly, you can use fume.toFunction(expr). This will return an async JS function that you can pass downstream and call later with different inputs, as many times as you wish (Just remember to use the 'await' keyword)
+If you don't want FUME to evaluate your expression against an input immediatly, you can use jsonataFunctions.appingToJsFunction(expr). This will return an async JS function that you can pass downstream and call later with different inputs, as many times as you wish (Just remember to use the 'await' keyword)
 
 # Further Documentation
 ## Read the docs at our [documentation website](https://www.fume.health/). 

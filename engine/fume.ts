@@ -2,12 +2,12 @@
  * © Copyright Outburn Ltd. 2022-2023 All Rights Reserved
  *   Project name: FUME
  */
-import { fhirCorePackages } from './constants';
+import { fhirCorePackages } from '../logic/cache';
 import conformance from './conformance';
-import config from './config';
-import client from './client';
-import cache from './cache';
-import transpiler from './transpiler';
+import config from '../logic/config';
+import client from '../logic/dataAccess/fhirCruds';
+import cache from '../logic/cache';
+import parser from './parser';
 import objectFuncs from './objectFunctions';
 import stringFuncs, { parseCsv } from './stringFunctions';
 import v2 from './hl7v2';
@@ -79,9 +79,9 @@ export default {
   fhirClient: client,
   cache,
   conformance,
-  toFunction: transpiler.toFunction,
-  transform: transpiler.transform,
-  getSnapshot: transpiler.getSnapshot,
+  mappingToJsFunction: parser.mappingToJsFunction,
+  transform: parser.transform,
+  getSnapshot: parser.getSnapshot,
   fhirCorePackages,
   objectFuncs,
   stringFuncs,
