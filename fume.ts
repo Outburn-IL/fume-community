@@ -2,15 +2,15 @@
  * © Copyright Outburn Ltd. 2022-2023 All Rights Reserved
  *   Project name: FUME
  */
-import { fhirCorePackages } from './cache';
-import conformance from '../engine/conformance';
-import config from './config';
-import client from './dataAccess/fhirCruds';
-import cache from './cache';
-import parser from '../engine/parser';
-import objectFuncs from '../engine/objectFunctions';
-import stringFuncs, { parseCsv } from '../engine/stringFunctions';
-import v2 from '../engine/hl7v2';
+import { fhirCorePackages } from './logic/cache';
+import conformance from './engine/conformance';
+import config from './logic/config';
+import client from './logic/dataAccess/fhirCruds';
+import cache from './logic/cache';
+import parser from './engine/parser';
+import objectFuncs from './engine/objectFunctions';
+import stringFuncs, { parseCsv } from './engine/stringFunctions';
+import v2 from './engine/hl7v2';
 
 const init = async (options) => {
   console.log('FUME initializing...');

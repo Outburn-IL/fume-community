@@ -24,7 +24,9 @@
     "allowJs": true
   },
   "include": [
-    "src/**/*"
+    "logic/**/*",
+    "engine/**/*",
+    "fume.ts"
 , "communitySRC/types"    // ,"src/hl7.fhir.r4.core/StructureDefinition*.json"
 , "logic/cache.ts", "logic/cacheHandler.ts", "logic/config.ts", "logic/logFunctions.ts", "logic/throwErrors.ts", "engine/hl7v2.ts", "engine/stringFunctions.ts", "engine/jsonataFunctions.ts", "engine/jsonataExpression.ts", "engine/objectFunctions.ts", "engine/parser.ts", "engine/fhirFunctions.ts"  ]
 }

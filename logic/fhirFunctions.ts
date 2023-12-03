@@ -3,12 +3,12 @@
  *   Project name: FUME
  */
 
-import stringFuncs from './stringFunctions';
-import expressions from './jsonataExpression';
-import thrower from '../logic/throwErrors';
-import params from '../logic/cache';
-import logger from '../logic/logFunctions';
-import utils from '../logic/dataAccess/utils';
+import stringFuncs from '../engine/stringFunctions';
+import expressions from '../engine/jsonataExpression';
+import thrower from './throwErrors';
+import params from './cache';
+import logger from './logFunctions';
+import conformance from '../engine/conformance';
 import { read, search as fhirSearch } from '../logic/dataAccess/fhirCruds';
 import addFumeFuncs from '../logic/additionalJsonataFunctions'
 
@@ -28,11 +28,11 @@ export const fhirVersionToMinor = (fhirVersion: string) => {
 export const translateCode = async (input: string, tableId: string) => {
   // fork: os
   try {
-    let map = params.tableCache[tableId];
+    let map = params.tables[tableId];
     if (map === undefined) {
       logger.info(`Table ${tableId} not cached, trying to fetch from server...`);
-      map = (await utils.getTable(tableId))[tableId];
-      params.tableCache[tableId] = map;
+      map = (await conformance.getTable(tableId))[tableId];
+      params.tables[tableId] = map;
     };
 
     const mapFiltered = map[input];
@@ -55,7 +55,7 @@ export const translateCode = async (input: string, tableId: string) => {
 export const translateCoding = async (input, tableId) => {
   // fork: os
   try {
-    const map = params.tableCache[tableId];
+    const map = params.tables[tableId];
     const mapFiltered = map[input];
     let result;
 

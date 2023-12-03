@@ -916,7 +916,7 @@ const toJsonataString = async (inExpr: string): Promise<string | undefined> => {
   return res;
 };
 
-const transform = async (input, expression: string, bindingsFuncsToAdd, bindingsCacheToAdd) => {
+const transform = async (input, expression: string, bindingsFuncsToAdd = [], bindingsCacheToAdd = []) => {
   // fork: os
   try {
     logger.info('Running transformation...');

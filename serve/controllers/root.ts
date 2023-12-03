@@ -72,7 +72,7 @@ const recache = async (req, res) => {
       const response = {
         message: 'The following Tables & Mappings were loaded to cache',
         tables: fume.cache.tables,
-        mappings: fume.cache.mappings
+        mappings: fume.cache.mappingCacheCompiled
       };
       return res.status(200).json(response);
     } else {

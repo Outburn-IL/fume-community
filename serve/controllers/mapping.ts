@@ -10,7 +10,7 @@ const get = async (req, res) => {
     const mappingId: string = req.params.mappingId;
 
     // get mapping expression from cache
-    const mappingObj = fume.cache.mappings[mappingId];
+    const mappingObj = fume.cache.mappingCacheCompiled[mappingId];
     const mapping: string = mappingObj.expression;
 
     if (mapping) {
@@ -28,7 +28,7 @@ const get = async (req, res) => {
 const transform = async (req, res) => {
   try {
     const mappingId = req.params.mappingId;
-    const mappingFromCache = fume.cache.mappings[mappingId];
+    const mappingFromCache = fume.cache.mappingCacheCompiled[mappingId];
     const contentType = req.get('Content-Type');
     let inputJson;
 
