@@ -6,9 +6,10 @@
 import express from 'express';
 import mapping from './mapping';
 import root from './root';
+import swaggerApi from '../swagger';
 
 const routes = express.Router();
-
+swaggerApi(routes);
 routes.use('/Mapping/', mapping);
 
 routes.use('/', root);

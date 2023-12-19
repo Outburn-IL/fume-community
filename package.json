@@ -9,10 +9,18 @@
   },
   "author": "Outburn Ltd.",
   "license": "AGPL-3.0",
-  "keywords": ["FHIR", "FHIR Converter", "Mapper", "Mapping Engine", "HL7", "V2 to FHIR", "CSV to FHIR"],
+  "keywords": [
+    "FHIR",
+    "FHIR Converter",
+    "Mapper",
+    "Mapping Engine",
+    "HL7",
+    "V2 to FHIR",
+    "CSV to FHIR"
+  ],
   "homepage": "https://fume.health",
   "repository": {
-    "type": "git", 
+    "type": "git",
     "url": "https://github.com/Outburn-IL/fume-community"
   },
   "dependencies": {
@@ -24,6 +32,8 @@
     "hl7js": "^0.0.6",
     "js-sha256": "^0.9.0",
     "jsonata": "^2.0.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0",
     "uuid-by-string": "^4.0.0"
   },
   "devDependencies": {
