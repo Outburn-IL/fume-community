@@ -19,7 +19,7 @@ root.get('/', rootControl.get);
  *   post:
  *     tags: 
  *      - Evaluation
- *     description: Evaluating an input according to a specific mapping. "input" - The input data - json/hl7v2/csv, "fume" - The mapping string.
+ *     description: Evaluating an input according to a specific mapping.
  *     produces:
  *       - application/json
  *     requestBody:
@@ -31,8 +31,17 @@ root.get('/', rootControl.get);
  *            properties:
  *              input:      
  *                type: string
+ *                description: The input data - json/hl7v2/csv.
+ *              contentType:   
+ *                type: string
+ *                description: The type of the input.
+ *                enum: 
+ *                  - 'x-application/hl7-v2+er7'
+ *                  - 'text/csv'
+ *                  - 'application/json'
  *              fume:   
  *                type: string
+ *                description: The mapping string.
  *            required:
  *              - input
  *              - fume
