@@ -5,14 +5,24 @@
   "main": "dist/fume.js",
   "scripts": {
     "build": "tsc -b",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "release": "standard-version",
+    "postrelease": "node scripts/append-commit-hash.js && git commit --amend --no-edit && git push --follow-tags origin main"
   },
   "author": "Outburn Ltd.",
   "license": "AGPL-3.0",
-  "keywords": ["FHIR", "FHIR Converter", "Mapper", "Mapping Engine", "HL7", "V2 to FHIR", "CSV to FHIR"],
+  "keywords": [
+    "FHIR",
+    "FHIR Converter",
+    "Mapper",
+    "Mapping Engine",
+    "HL7",
+    "V2 to FHIR",
+    "CSV to FHIR"
+  ],
   "homepage": "https://fume.health",
   "repository": {
-    "type": "git", 
+    "type": "git",
     "url": "https://github.com/Outburn-IL/fume-community"
   },
   "dependencies": {
@@ -38,6 +48,7 @@
     "eslint-plugin-n": "^15.5.1",
     "eslint-plugin-promise": "^6.1.1",
     "nodemon": "^2.0.20",
+    "standard-version": "^9.5.0",
     "typescript": "^4.9.3"
   },
   "nodemonConfig": {
