@@ -1,13 +1,13 @@
 {
   "name": "fume-fhir-converter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "FHIR-Utilized Mapping Engine - Community",
   "main": "dist/fume.js",
   "scripts": {
     "build": "tsc -b",
     "lint": "eslint src",
-    "release": "standard-version",
-    "postrelease": "node scripts/append-commit-hash.js && git commit --amend --no-edit && git push --follow-tags origin main"
+    "release": "standard-version && node scripts/append-commit-hash.js && git commit --amend --reuse-message=HEAD",
+    "postrelease": "git push --follow-tags origin main"
   },
   "author": "Outburn Ltd.",
   "license": "AGPL-3.0",
