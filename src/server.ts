@@ -93,6 +93,13 @@ export class FumeServer implements IFumeServer {
     }
 
     /**
+     * @returns express application
+     */
+    public getApp() {
+        return this.app;
+    }
+
+    /**
      * Register a logger to replace the default logger
      * @param logger 
      */
