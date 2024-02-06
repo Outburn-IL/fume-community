@@ -27,7 +27,7 @@ import {
 import thrower from './helpers/thrower';
 import runtime, { CastToFhirOptions, FlashMergeOptions } from './helpers/runtime';
 import { getStructureDefinition } from './helpers/conformance';
-import v2 from './helpers/hl7v2';
+import { v2json } from './helpers/hl7v2';
 import cache from './helpers/cache';
 import config from './config';
 import { getLogger } from './helpers/logger';
@@ -991,7 +991,7 @@ export const transform = async (input: any, expression: string) => {
     bindings.warning = logger.warn;
     bindings.info = logger.info;
     bindings.parseCsv = parseCsv;
-    bindings.v2json = v2.v2json;
+    bindings.v2json = v2json;
     bindings.isNumeric = isNumeric;
 
     // add aliases from cache, and any additional bindings

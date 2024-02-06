@@ -4,7 +4,6 @@
  */
 
 import z from 'zod';
-
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -20,5 +19,4 @@ export const configSchema = z.object({
 });
 
 export const config = configSchema.parse(process.env);
-
 export default config;

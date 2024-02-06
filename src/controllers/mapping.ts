@@ -3,14 +3,16 @@
  *   Project name: FUME
  */
 
-import fume from '../../dist/fume';
+import cache from "../helpers/cache";
+import { v2json } from "../helpers/hl7v2";
+import { parseCsv } from "../helpers/stringFunctions";
 
 const get = async (req, res) => {
   try {
     const mappingId: string = req.params.mappingId;
 
     // get mapping expression from cache
-    const mappingObj = fume.cache.mappings[mappingId];
+    const mappingObj = cache.mappings[mappingId];
     const mapping: string = mappingObj.expression;
 
     if (mapping) {
@@ -28,7 +30,7 @@ const get = async (req, res) => {
 const transform = async (req, res) => {
   try {
     const mappingId = req.params.mappingId;
-    const mappingFromCache = fume.cache.mappings[mappingId];
+    const mappingFromCache = cache.mappings[mappingId];
     const contentType = req.get('Content-Type');
     let inputJson;
 
@@ -36,10 +38,10 @@ const transform = async (req, res) => {
       console.log('Content-Type header suggests HL7 V2.x message');
       const bodyString = req.body;
       console.log('Trying to parse V2 message as JSON...');
-      inputJson = await fume.v2json(bodyString);
+      inputJson = await v2json(bodyString);
     } else {
       if (contentType.startsWith('text/csv')) {
-        inputJson = fume.parseCsv(req.body);
+        inputJson = parseCsv(req.body);
       } else {
         inputJson = req.body;
       }

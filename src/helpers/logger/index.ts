@@ -1,19 +1,15 @@
-export interface Logger {
-    info: Function
-    warn: Function
-    error: Function
-};
+import type { ILogger } from "../../types";
 
-let logger: Logger = {
+let logger: ILogger = {
   info: (msg: any) => console.log(msg),
   warn: (msg: any) => console.warn(msg),
   error: (msg: any) => console.error(msg)
 };
 
-export const setLogger = (loggerObj: Logger): void => {
+export const setLogger = (loggerObj: ILogger): void => {
   logger = loggerObj;
 };
 
-export const getLogger = (): Logger => {
+export const getLogger = (): ILogger => {
   return logger;
 };

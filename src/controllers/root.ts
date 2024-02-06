@@ -3,7 +3,11 @@
  *   Project name: FUME
  */
 
-import fume from '../../dist/fume';
+import cache from "../helpers/cache";
+import conformance from "../helpers/conformance";
+import { v2json } from "../helpers/hl7v2";
+import { parseCsv } from "../helpers/stringFunctions";
+import { transform } from "../transpiler";
 
 const get = async (req, res) => {
   return res.status(200).json(
@@ -25,20 +29,20 @@ const evaluate = async (req, res) => {
     if (req.body.contentType === 'x-application/hl7-v2+er7') {
       console.log('Content-Type suggests HL7 V2.x message');
       console.log('Trying to parse V2 message as JSON...');
-      inputJson = await fume.v2json(req.body.input);
+      inputJson = await v2json(req.body.input);
       console.log('Parsed V2 message');
     } else {
       if (req.body.contentType === 'text/csv') {
         console.log('Content-Type suggests CSV input');
         console.log('Trying to parse CSV to JSON...');
-        inputJson = await fume.parseCsv(req.body.input);
+        inputJson = await parseCsv(req.body.input);
         console.log('Parsed CSV to JSON');
       } else {
         inputJson = req.body.input;
       }
     };
 
-    const response = await fume.transform(inputJson, req.body.fume);
+    const response = await transform(inputJson, req.body.fume);
     if (typeof response === 'undefined' || response === null) {
       console.warn('Evaluation result is empty');
       console.log({
@@ -66,13 +70,13 @@ const evaluate = async (req, res) => {
 
 const recache = async (req, res) => {
   try {
-    const recacheSuccess = await fume.conformance.recacheFromServer();
+    const recacheSuccess = await conformance.recacheFromServer();
 
     if (recacheSuccess) {
       const response = {
         message: 'The following Tables & Mappings were loaded to cache',
-        tables: fume.cache.tables,
-        mappings: fume.cache.mappings
+        tables: cache.tables,
+        mappings: cache.mappings
       };
       return res.status(200).json(response);
     } else {

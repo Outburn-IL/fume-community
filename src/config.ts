@@ -4,9 +4,6 @@
  */
 import { fhirCorePackages } from './constants';
 
-
-
-let fumeInitialized: boolean = false;
 let fhirServerBase: string = 'http://hapi-fhir.outburn.co.il/fhir';
 let fhirServerTimeout: number = 10000;
 let fhirVersion: string = '4.0.1';
@@ -15,14 +12,6 @@ let statelessMode: boolean;
 let additionalBindings = {}; // additional functions to bind when running transformations
 
 let searchBundleSize: number = 20;
-
-const setFumeInitialized = (): void => {
-  fumeInitialized = true;
-};
-
-const getFumeInitialized = (): boolean => {
-  return fumeInitialized;
-};
 
 const setFhirServerBase = (url: string): void => {
   if (url === undefined || url === null || (typeof url === 'string' && url === '')) {
@@ -76,9 +65,9 @@ const isStatelessMode = (): boolean => {
   return false;
 };
 
-const setAdditionalBindings = (bindings): void => {
-  additionalBindings = bindings;
-};
+const setBinding = (name, binding): void => {
+  additionalBindings[name] = binding;
+}
 
 const getAdditionalBindings = () => {
   return additionalBindings;
@@ -93,11 +82,9 @@ export default {
   setFhirServerBase,
   getFhirServerTimeout,
   setFhirServerTimeout,
-  getFumeInitialized,
-  setFumeInitialized,
   setSearchBundleSize,
   getSearchBundleSize,
   isStatelessMode,
-  setAdditionalBindings,
+  setBinding,
   getAdditionalBindings
 };
