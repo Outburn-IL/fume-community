@@ -1,5 +1,5 @@
 import cache from "../cache";
-import config from "../config";
+import config from "../../config";
 import conformance from "../conformance";
 import thrower from "../thrower";
 

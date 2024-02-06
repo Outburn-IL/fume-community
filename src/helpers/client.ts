@@ -4,7 +4,7 @@
  */
 
 import { getLogger } from './logger';
-import config from './config';
+import config from '../config';
 import axios, { AxiosInstance } from 'axios';
 
 const logger = getLogger();

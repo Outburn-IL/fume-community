@@ -3,15 +3,15 @@
  *   Project name: FUME
  */
 import { fhirCorePackages } from './constants';
-import conformance from './conformance';
+import conformance from './helpers/conformance';
 import config from './config';
-import { getLogger, setLogger } from './logger';
-import client from './client';
-import cache from './cache';
+import client from './helpers/client';
+import cache from './helpers/cache';
 import transpiler from './transpiler';
-import objectFuncs from './objectFunctions';
-import * as stringFuncs from './stringFunctions';
-import v2 from './hl7v2';
+import objectFuncs from './helpers/objectFunctions';
+import { getLogger, setLogger } from './helpers/logger';
+import * as stringFuncs from './helpers/stringFunctions';
+import v2 from './helpers/hl7v2';
 
 const init = async (options) => {
   console.log('FUME initializing...');

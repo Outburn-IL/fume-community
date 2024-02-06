@@ -7,8 +7,8 @@ import {
   read
   , search
 } from './client';
-import transpiler from './transpiler';
-import config from './config';
+import transpiler from '../transpiler';
+import config from '../config';
 import expressions from './jsonataExpression';
 import cache from './cache';
 import objectFuncs from './objectFunctions';

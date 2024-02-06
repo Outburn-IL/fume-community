@@ -6,9 +6,9 @@
  */
 
 import jsonata from 'jsonata';
-import expressions from './jsonataExpression';
-import fhirFuncs from './fhirFunctions';
-import objectFuncs from './objectFunctions';
+import expressions from './helpers/jsonataExpression';
+import fhirFuncs from './helpers/fhirFunctions';
+import objectFuncs from './helpers/objectFunctions';
 import { 
   parseCsv, 
   splitToLines, 
@@ -23,14 +23,14 @@ import {
   matches,
   uuid,
   isNumeric,
-} from './stringFunctions';
-import thrower from './thrower';
-import runtime, { CastToFhirOptions, FlashMergeOptions } from './runtime';
-import { getStructureDefinition } from './conformance';
-import v2 from './hl7v2';
-import cache from './cache';
+} from './helpers/stringFunctions';
+import thrower from './helpers/thrower';
+import runtime, { CastToFhirOptions, FlashMergeOptions } from './helpers/runtime';
+import { getStructureDefinition } from './helpers/conformance';
+import v2 from './helpers/hl7v2';
+import cache from './helpers/cache';
 import config from './config';
-import { getLogger } from './logger';
+import { getLogger } from './helpers/logger';
 // TODO: add support for multiline contexts and values
 // TODO: support single line comments using "//"
 
