@@ -25,7 +25,6 @@ import {
   isNumeric,
 } from './stringFunctions';
 import thrower from './thrower';
-import logFuncs from './logFunctions';
 import runtime, { CastToFhirOptions, FlashMergeOptions } from './runtime';
 import { getStructureDefinition } from './conformance';
 import v2 from './hl7v2';
@@ -141,7 +140,7 @@ const funcs: PreCompilerFunctions = {
   )`),
   getDescendantElementDef: async (fhirType: string, path: string): Promise<any> => {
     if (fhirType === 'BackboneElement' && !['id', 'extension', 'modifierExtension'].includes(path)) return undefined;
-    return await funcs.getDescendantElementDefExpr.evaluate({}, { info: logFuncs.info, fhirType, path, getSnapshot, getStructureDefinition, getChildOfBaseType: funcs.getDescendantElementDef, initCap: initCapOnce, endsWith: endsWith });
+    return await funcs.getDescendantElementDefExpr.evaluate({}, { info: getLogger().info, fhirType, path, getSnapshot, getStructureDefinition, getChildOfBaseType: funcs.getDescendantElementDef, initCap: initCapOnce, endsWith: endsWith });
   },
   buildSnapshotExpr: jsonata(`
   /* this script builds a snapshot of a StructureDefinition */
@@ -336,7 +335,15 @@ const funcs: PreCompilerFunctions = {
   
     $count($sortedElements)>0 ? $merge([$getStructureDefinition($rootType),{'snapshot': {'element': $sortedElements}}]) : $error('Failed building snapshot for ' & $rootType);
   )`),
-  buildSnapshot: async (rootType: string, path: string): Promise<any> => await funcs.buildSnapshotExpr.evaluate({}, { info: logFuncs.info, rootType, path, getStructureDefinition, initCap: initCapOnce, startsWith, endsWith, getChildOfBaseType: funcs.getDescendantElementDef }),
+  buildSnapshot: async (rootType: string, path: string): Promise<any> => await funcs.buildSnapshotExpr.evaluate({}, { 
+    info: getLogger().info, 
+    rootType, path, 
+    getStructureDefinition, 
+    initCap: initCapOnce, 
+    startsWith, 
+    endsWith, 
+    getChildOfBaseType: funcs.getDescendantElementDef 
+  }),
   getElementDefinitionExpr: jsonata(`(
     
     $snapshot := $getSnapshot($rootType);
@@ -384,7 +391,16 @@ const funcs: PreCompilerFunctions = {
       )
     ) : $throwError('Failed to get snapshot for '&$rootType);  
   )`),
-  getElementDefinition: async (rootType: string, path: string): Promise<any> => await funcs.getElementDefinitionExpr.evaluate({}, { info: logFuncs.info, throwError: thrower.throwParseError, getSnapshot, rootType, path, getDescendantElementDef: funcs.getDescendantElementDef, endsWith: endsWith, initCap: initCapOnce }),
+  getElementDefinition: async (rootType: string, path: string): Promise<any> => await funcs.getElementDefinitionExpr.evaluate({}, { 
+    info: getLogger().info, 
+    throwError: thrower.throwParseError, 
+    getSnapshot, 
+    rootType, 
+    path, 
+    getDescendantElementDef: funcs.getDescendantElementDef, 
+    endsWith, 
+    initCap: initCapOnce 
+  }),
   getMandatoriesOfStructureExpr: jsonata(`(
     $snapshot := $getSnapshot($structId);
     $rootMandatories := $snapshot.snapshot.element[min>0 and $contains(__fshPath, '.')=false];
@@ -466,7 +482,16 @@ const funcs: PreCompilerFunctions = {
     $res != {} and $count($res) > 0 ? $res
     )
   )`),
-  getMandatoriesOfElement: async (structId: string, relativePath: string, structureFunction: Function): Promise<any> => await funcs.getMandatoriesOfElementExpr.evaluate({}, { info: logFuncs.info, structId, relativePath, getMandatoriesOfElement: funcs.getMandatoriesOfElement, structureFunction, getSnapshot, startsWith: startsWith, initCap: initCapOnce })
+  getMandatoriesOfElement: async (structId: string, relativePath: string, structureFunction: Function): Promise<any> => await funcs.getMandatoriesOfElementExpr.evaluate({}, { 
+    info: getLogger().info, 
+    structId, 
+    relativePath, 
+    getMandatoriesOfElement: funcs.getMandatoriesOfElement, 
+    structureFunction, 
+    getSnapshot, 
+    startsWith, 
+    initCap: initCapOnce 
+  })
 };
 
 const getSnapshot = async (rootType: string) => {
@@ -963,8 +988,8 @@ export const transform = async (input: any, expression: string) => {
     bindings.searchSingle = fhirFuncs.searchSingle;
     bindings.literal = fhirFuncs.literal;
     bindings.resolve = fhirFuncs.resolve;
-    bindings.warning = logFuncs.warn;
-    bindings.info = logFuncs.info;
+    bindings.warning = logger.warn;
+    bindings.info = logger.info;
     bindings.parseCsv = parseCsv;
     bindings.v2json = v2.v2json;
     bindings.isNumeric = isNumeric;
