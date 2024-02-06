@@ -12,7 +12,7 @@ import config from './config';
 import expressions from './jsonataExpression';
 import cache from './cache';
 import objectFuncs from './objectFunctions';
-import stringFuncs from './stringFunctions';
+import { isNumeric } from './stringFunctions';
 import os from 'os';
 import path from 'path';
 import fs from 'fs-extra';
@@ -115,11 +115,11 @@ const buildFhirCacheIndex = async () => {
         throw (e);
       }
     },
-    isNumeric: stringFuncs.isNumeric
+    isNumeric
   };
   const packageIndexObject = await expressions.createRawPackageIndexObject.evaluate(packageIndexArray, bindings);
 
-  const fixedIndex = await expressions.fixPackageIndexObject.evaluate(packageIndexObject, { isNumeric: stringFuncs.isNumeric });
+  const fixedIndex = await expressions.fixPackageIndexObject.evaluate(packageIndexObject, { isNumeric });
   return fixedIndex;
 };
 

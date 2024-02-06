@@ -9,7 +9,7 @@ import client from './client';
 import cache from './cache';
 import transpiler from './transpiler';
 import objectFuncs from './objectFunctions';
-import stringFuncs, { parseCsv } from './stringFunctions';
+import * as stringFuncs from './stringFunctions';
 import v2 from './hl7v2';
 
 const init = async (options) => {
@@ -87,6 +87,6 @@ export default {
   stringFuncs,
   setLogger: config.setLogger,
   v2json: v2.v2json,
-  parseCsv,
+  parseCsv: stringFuncs.parseCsv,
   config
 };

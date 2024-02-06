@@ -9,7 +9,21 @@ import jsonata from 'jsonata';
 import expressions from './jsonataExpression';
 import fhirFuncs from './fhirFunctions';
 import objectFuncs from './objectFunctions';
-import stringFuncs, { parseCsv, splitToLines, hashKey } from './stringFunctions';
+import { 
+  parseCsv, 
+  splitToLines, 
+  hashKey,
+  startsWith,
+  endsWith,
+  initCapOnce,
+  substringBefore,
+  substringAfter,
+  duplicate,
+  initCap,
+  matches,
+  uuid,
+  isNumeric,
+} from './stringFunctions';
 import thrower from './thrower';
 import logFuncs from './logFunctions';
 import runtime, { CastToFhirOptions, FlashMergeOptions } from './runtime';
@@ -126,7 +140,7 @@ const funcs: PreCompilerFunctions = {
   )`),
   getDescendantElementDef: async (fhirType: string, path: string): Promise<any> => {
     if (fhirType === 'BackboneElement' && !['id', 'extension', 'modifierExtension'].includes(path)) return undefined;
-    return await funcs.getDescendantElementDefExpr.evaluate({}, { info: logFuncs.info, fhirType, path, getSnapshot, getStructureDefinition, getChildOfBaseType: funcs.getDescendantElementDef, initCap: stringFuncs.initCapOnce, endsWith: stringFuncs.endsWith });
+    return await funcs.getDescendantElementDefExpr.evaluate({}, { info: logFuncs.info, fhirType, path, getSnapshot, getStructureDefinition, getChildOfBaseType: funcs.getDescendantElementDef, initCap: initCapOnce, endsWith: endsWith });
   },
   buildSnapshotExpr: jsonata(`
   /* this script builds a snapshot of a StructureDefinition */
@@ -321,7 +335,7 @@ const funcs: PreCompilerFunctions = {
   
     $count($sortedElements)>0 ? $merge([$getStructureDefinition($rootType),{'snapshot': {'element': $sortedElements}}]) : $error('Failed building snapshot for ' & $rootType);
   )`),
-  buildSnapshot: async (rootType: string, path: string): Promise<any> => await funcs.buildSnapshotExpr.evaluate({}, { info: logFuncs.info, rootType, path, getStructureDefinition, initCap: stringFuncs.initCapOnce, startsWith: stringFuncs.startsWith, endsWith: stringFuncs.endsWith, getChildOfBaseType: funcs.getDescendantElementDef }),
+  buildSnapshot: async (rootType: string, path: string): Promise<any> => await funcs.buildSnapshotExpr.evaluate({}, { info: logFuncs.info, rootType, path, getStructureDefinition, initCap: initCapOnce, startsWith, endsWith, getChildOfBaseType: funcs.getDescendantElementDef }),
   getElementDefinitionExpr: jsonata(`(
     
     $snapshot := $getSnapshot($rootType);
@@ -369,7 +383,7 @@ const funcs: PreCompilerFunctions = {
       )
     ) : $throwError('Failed to get snapshot for '&$rootType);  
   )`),
-  getElementDefinition: async (rootType: string, path: string): Promise<any> => await funcs.getElementDefinitionExpr.evaluate({}, { info: logFuncs.info, throwError: thrower.throwParseError, getSnapshot, rootType, path, getDescendantElementDef: funcs.getDescendantElementDef, endsWith: stringFuncs.endsWith, initCap: stringFuncs.initCapOnce }),
+  getElementDefinition: async (rootType: string, path: string): Promise<any> => await funcs.getElementDefinitionExpr.evaluate({}, { info: logFuncs.info, throwError: thrower.throwParseError, getSnapshot, rootType, path, getDescendantElementDef: funcs.getDescendantElementDef, endsWith: endsWith, initCap: initCapOnce }),
   getMandatoriesOfStructureExpr: jsonata(`(
     $snapshot := $getSnapshot($structId);
     $rootMandatories := $snapshot.snapshot.element[min>0 and $contains(__fshPath, '.')=false];
@@ -451,7 +465,7 @@ const funcs: PreCompilerFunctions = {
     $res != {} and $count($res) > 0 ? $res
     )
   )`),
-  getMandatoriesOfElement: async (structId: string, relativePath: string, structureFunction: Function): Promise<any> => await funcs.getMandatoriesOfElementExpr.evaluate({}, { info: logFuncs.info, structId, relativePath, getMandatoriesOfElement: funcs.getMandatoriesOfElement, structureFunction, getSnapshot, startsWith: stringFuncs.startsWith, initCap: stringFuncs.initCapOnce })
+  getMandatoriesOfElement: async (structId: string, relativePath: string, structureFunction: Function): Promise<any> => await funcs.getMandatoriesOfElementExpr.evaluate({}, { info: logFuncs.info, structId, relativePath, getMandatoriesOfElement: funcs.getMandatoriesOfElement, structureFunction, getSnapshot, startsWith: startsWith, initCap: initCapOnce })
 };
 
 const getSnapshot = async (rootType: string) => {
@@ -531,10 +545,10 @@ const toJsonataString = async (inExpr: string): Promise<string | undefined> => {
       flashBlockHanging = true;
       // extract the expression that comes after Instance:
       // @ts-expect-error
-      const after: string = stringFuncs.substringAfter(trimmedLine, 'Instance:');
+      const after: string = substringAfter(trimmedLine, 'Instance:');
       // the indentation in Instance: is the root indentation
       // @ts-expect-error
-      rootIndentOffset = stringFuncs.substringBefore(line, 'Instance:');
+      rootIndentOffset = substringBefore(line, 'Instance:');
       // set this so indentations of following rules can be validated
       prevRuleDepth = 0;
       prevRuleNodes = [];
@@ -553,7 +567,7 @@ const toJsonataString = async (inExpr: string): Promise<string | undefined> => {
       flashBlockHanging = true;
       // extract the InstanceOf: *** part
       // @ts-expect-error
-      const rootTypeId: string = (stringFuncs.substringAfter(line, 'InstanceOf:')).trim();
+      const rootTypeId: string = (substringAfter(line, 'InstanceOf:')).trim();
       // make sure it's a potentially valid FHIR type
       if (!(await funcs.isTypeNameValid(rootTypeId))) return thrower.throwParseError(`value after "InstanceOf:" must be a valid type name, id or URL, and cannot be an expression. Found: "${rootTypeId}"`);
       // try to fetch the type's StructureDefinition resource
@@ -562,7 +576,7 @@ const toJsonataString = async (inExpr: string): Promise<string | undefined> => {
       if (rootStructDef === undefined) return thrower.throwParseError(`can't find definition of ${rootTypeId}!`);
       currentFshPath = rootStructDef.type;
       // the indentation of InstanceOf:
-      const indent: string | undefined = stringFuncs.substringBefore(line, 'InstanceOf:');
+      const indent: string | undefined = substringBefore(line, 'InstanceOf:');
       // might need to put a semicolon at the beginning of this line, this var will hold it
       let prefix: string;
       if (rootIndentOffset === undefined) {
@@ -614,7 +628,7 @@ const toJsonataString = async (inExpr: string): Promise<string | undefined> => {
       // when indentation is higher than previous one it can only be by 2 spaces - no need to close previous rule
       // when indentation is the same - close previous rule
       // @ts-expect-error
-      const indent: string = stringFuncs.substringBefore(line, '* '); // the indentation of this rule in actual spaces
+      const indent: string = substringBefore(line, '* '); // the indentation of this rule in actual spaces
       const ruleDepth: number = (indent.length - rootIndentOffset.length) + 2; // any root rule is 2, so all rules are shifted by 2
       if (ruleDepth < 2) return thrower.throwParseError(`expected indentation of at least ${rootIndentOffset.length} spaces, got ${indent.length} instead. Rule: ${line}`);
       if (ruleDepth > prevRuleDepth + 2) return thrower.throwParseError(`expected indentation of max ${rootIndentOffset.length + prevRuleDepth} spaces, got ${indent.length} instead. Rule: ${line}`);
@@ -633,14 +647,14 @@ const toJsonataString = async (inExpr: string): Promise<string | undefined> => {
         prevRuleNodes.push(0);
       };
       // this will prefix the jsonata line
-      ruleClosureString = rulesToClose === 0 ? '' : await stringFuncs.duplicate(')));', rulesToClose);
+      ruleClosureString = rulesToClose === 0 ? '' : await duplicate(')));', rulesToClose);
       // update current path
       currentFshPath = climbFshPath(currentFshPath, rulesToClose);
       // update prevRuleDepth to current value
       prevRuleDepth = ruleDepth;
       // check if rule starts with a (context) expression
       // @ts-expect-error
-      const isContextStart = (stringFuncs.substringAfter(trimmedLine, '* ')).trim().charAt(0) === '(';
+      const isContextStart = (substringAfter(trimmedLine, '* ')).trim().charAt(0) === '(';
       if (isContextStart) {
         const openingIndex = line.indexOf('(');
         // check if context ends on this line
@@ -652,10 +666,10 @@ const toJsonataString = async (inExpr: string): Promise<string | undefined> => {
           // check a period comes after closing bracket
           if (restOfLine.trimStart()[0] !== '.') return thrower.throwParseError(`expected a period between the context and the path. Rule: '${line}'`);
           // @ts-expect-error
-          const afterPeriod = (stringFuncs.substringAfter(restOfLine, '.')).trim();
+          const afterPeriod = (substringAfter(restOfLine, '.')).trim();
           // @ts-expect-error
-          const pathOnly = (stringFuncs.substringBefore(afterPeriod, '=')).trim();
-          let valueOnly = (stringFuncs.substringAfter(afterPeriod, '='));
+          const pathOnly = (substringBefore(afterPeriod, '=')).trim();
+          let valueOnly = (substringAfter(afterPeriod, '='));
           // when there is no assigned value, the result of valueOnly will be equal to the whole line after the period
           // @ts-expect-error
           valueOnly = valueOnly === afterPeriod ? '' : valueOnly.trim();
@@ -669,9 +683,9 @@ const toJsonataString = async (inExpr: string): Promise<string | undefined> => {
       } else {
         // regular rule without context
         // @ts-expect-error
-        const pathPart: string = (stringFuncs.substringBefore(stringFuncs.substringAfter(line, '* '), '=')).trim();
+        const pathPart: string = (substringBefore(substringAfter(line, '* '), '=')).trim();
         // @ts-expect-error
-        let valuePart: string = (stringFuncs.substringAfter(line, '='));
+        let valuePart: string = (substringAfter(line, '='));
         valuePart = valuePart === line ? '' : valuePart.trim();
         // trace hanging parenthesis
         const hangingBracketDiff = await funcs.calcBracketDiff(trimmedLine);
@@ -693,7 +707,7 @@ const toJsonataString = async (inExpr: string): Promise<string | undefined> => {
       let closure: string = ''; // = (await duplicate(')));', rulesToClose)) + '$__flashInstance := $__finalize($__flashInstance);';
       if (rulesToClose !== 0) {
         // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-        closure = (await stringFuncs.duplicate(')));', rulesToClose)) + '$__flashInstance := $__finalize($__flashInstance);';
+        closure = (await duplicate(')));', rulesToClose)) + '$__flashInstance := $__finalize($__flashInstance);';
       };
       resetVariables();
       currentBracketDepth = currentBracketDepth - hangingBracketDiff;
@@ -749,8 +763,8 @@ const toJsonataString = async (inExpr: string): Promise<string | undefined> => {
       expr,
       splitLineFunc: splitToLines,
       lineParser,
-      startsWith: stringFuncs.startsWith,
-      endsWith: stringFuncs.endsWith
+      startsWith: startsWith,
+      endsWith: endsWith
     };
     const parsed = await expressions.parseFumeExpression.evaluate({}, bindings);
     return parsed;
@@ -824,7 +838,7 @@ const toJsonataString = async (inExpr: string): Promise<string | undefined> => {
         const jsonPrimitiveProfile: string = chosenTypeEntry?.extension?.filter((ext: any) => ext?.url === 'http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type')[0]?.valueUrl;
 
         const typeForFixed = jsonPrimitiveProfile ?? baseType;
-        const fixed: any = eDef['fixed' + stringFuncs.initCapOnce(typeForFixed)] ?? eDef['pattern' + stringFuncs.initCapOnce(typeForFixed)];
+        const fixed: any = eDef['fixed' + initCapOnce(typeForFixed)] ?? eDef['pattern' + initCapOnce(typeForFixed)];
         const mandatoryObj = await funcs.getMandatoriesOfElement(rootStructDef.id, eDef?.__fshPath, funcs.getMandatoriesOfStructure);
 
         // create cast options object
@@ -931,16 +945,16 @@ export const transform = async (input: any, expression: string) => {
     bindings.reference = fhirFuncs.reference;
     bindings.resourceId = fhirFuncs.resourceId;
     bindings.registerTable = fhirFuncs.registerTable;
-    bindings.initCap = stringFuncs.initCap;
-    bindings.initCapSingle = stringFuncs.initCapOnce;
+    bindings.initCap = initCap;
+    bindings.initCapSingle = initCapOnce;
     bindings.isEmpty = objectFuncs.isEmpty;
-    bindings.matches = stringFuncs.matches;
+    bindings.matches = matches;
     bindings.stringify = JSON.stringify;
     bindings.selectKeys = objectFuncs.selectKeys;
     bindings.omitKeys = objectFuncs.omitKeys;
-    bindings.startsWith = stringFuncs.startsWith;
-    bindings.endsWith = stringFuncs.endsWith;
-    bindings.uuid = stringFuncs.uuid;
+    bindings.startsWith = startsWith;
+    bindings.endsWith = endsWith;
+    bindings.uuid = uuid;
     bindings.translateCode = fhirFuncs.translateCode;
     bindings.translate = fhirFuncs.translateCode;
     bindings.translateCoding = fhirFuncs.translateCoding;
@@ -952,7 +966,7 @@ export const transform = async (input: any, expression: string) => {
     bindings.info = logFuncs.info;
     bindings.parseCsv = parseCsv;
     bindings.v2json = v2.v2json;
-    bindings.isNumeric = stringFuncs.isNumeric;
+    bindings.isNumeric = isNumeric;
 
     // add aliases from cache, and any additional bindings
     // additonal bindings may override existing ones

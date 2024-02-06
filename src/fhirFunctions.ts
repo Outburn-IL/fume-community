@@ -4,7 +4,7 @@
  */
 
 import config from './config';
-import stringFuncs from './stringFunctions';
+import { uuid } from './stringFunctions';
 import expressions from './jsonataExpression';
 import thrower from './thrower';
 import cache from './cache';
@@ -17,7 +17,7 @@ const reference = (resource: any): string | undefined => {
   // takes a resource generated in the current expression and returns
   // its urn:uuid hash that represents its identity inside a bundle
   if (typeof resource === 'object' && Object.keys(resource).length > 0 && !Array.isArray(resource)) {
-    return 'urn:uuid:' + stringFuncs.uuid(JSON.stringify(resource));
+    return 'urn:uuid:' + uuid(JSON.stringify(resource));
   }
   return undefined;
 };
