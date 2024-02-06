@@ -3,7 +3,7 @@ import { test } from '@jest/globals';
 import conformance from '../conformance';
 import cache from '../cache';
 
-jest.mock('../config', () => ({
+jest.mock('../logger', () => ({
     getLogger: jest.fn().mockReturnValue({
         info: jest.fn(),
         error: jest.fn()

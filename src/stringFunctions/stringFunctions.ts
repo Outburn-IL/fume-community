@@ -8,9 +8,9 @@ import { sha256 } from 'js-sha256';
 import { randomUUID } from 'crypto';
 import uuidByString from 'uuid-by-string';
 import csvToJson from 'csvtojson';
-import config from '../config';
+import { getLogger } from '../logger';
 
-const logger = config.getLogger();
+const logger = getLogger();
 
 export const startsWith = (str: string, startStr: string): boolean => str.startsWith(startStr);
 

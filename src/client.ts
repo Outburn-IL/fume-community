@@ -3,17 +3,17 @@
  *   Project name: FUME
  */
 
-import config, { Logger } from './config';
+import { getLogger } from './logger';
+import config from './config';
 import axios, { AxiosInstance } from 'axios';
 
-let contentType: string;
+const logger = getLogger();
 
-let logger: Logger;
+let contentType: string;
 
 let fhirServer: AxiosInstance;
 
 const init = (): void => {
-  logger = config.getLogger();
   contentType = `application/fhir+json;fhirVersion=${config.getFhirVersionWithoutPatch()}`;
   if (config.getFhirServerBase() === undefined || (typeof config.getFhirServerBase() === 'string' && config.getFhirServerBase() === '')) {
     isStateless = true;

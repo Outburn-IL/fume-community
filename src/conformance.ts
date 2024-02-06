@@ -17,9 +17,10 @@ import os from 'os';
 import path from 'path';
 import fs from 'fs-extra';
 import { fpl } from 'fhir-package-loader';
+import { getLogger } from './logger';
 
 export const getStructureDefinition = async (definitionId: string): Promise<any> => {
-  const logger = config.getLogger();
+  const logger = getLogger();
   const indexed = cache.fhirCacheIndex[config.getFhirVersionWithoutPatch()].structureDefinitions.byId[definitionId] ??
     cache.fhirCacheIndex[config.getFhirVersionWithoutPatch()].structureDefinitions.byUrl[definitionId] ??
     cache.fhirCacheIndex[config.getFhirVersionWithoutPatch()].structureDefinitions.byName[definitionId];
@@ -41,7 +42,7 @@ export const getStructureDefinition = async (definitionId: string): Promise<any>
 };
 
 const createPackageIndexFile = (packagePath: string) => {
-  const logger = config.getLogger();
+  const logger = getLogger();
   try {
     const fileList = fs.readdirSync(path.join(packagePath, 'package'));
     const files = fileList.flatMap((file: string) => {
@@ -71,7 +72,7 @@ const createPackageIndexFile = (packagePath: string) => {
 };
 
 export const loadPackage = async (fhirPackage: string | string[]) => {
-  const logger = config.getLogger();
+  const logger = getLogger();
   return await fpl(fhirPackage, {
     log: (level: string, message: string) => {
       if (level === 'error') {
@@ -84,7 +85,7 @@ export const loadPackage = async (fhirPackage: string | string[]) => {
 };
 
 const buildFhirCacheIndex = async () => {
-  const logger = config.getLogger();
+  const logger = getLogger();
   logger.info('Building global package index (this might take some time...)');
   const cachePath = path.join(os.homedir(), '.fhir', 'packages');
   const dirList: string[] = fs.readdirSync(cachePath, { withFileTypes: true }).filter(entry => entry.isDirectory()).map(dir => dir.name);
@@ -124,7 +125,7 @@ const buildFhirCacheIndex = async () => {
 };
 
 const getFhirCacheIndex = async () => {
-  const logger = config.getLogger();
+  const logger = getLogger();
   const cachePath = path.join(os.homedir(), '.fhir');
   const fumeIndexPath = path.join(cachePath, 'fume.index.json');
   if (fs.existsSync(fumeIndexPath)) {
@@ -149,7 +150,7 @@ const getFhirCacheIndex = async () => {
 };
 
 export const loadFhirCacheIndex = async () => {
-  const logger = config.getLogger();
+  const logger = getLogger();
   try {
     logger.info('Trying to load global package index...');
     const index = await getFhirCacheIndex();
@@ -196,7 +197,7 @@ const getTable = async (tableId: string) => {
 };
 
 const getAllMappings = async () => {
-  const logger = config.getLogger();
+  const logger = getLogger();
   if (config.isStatelessMode()) {
     logger.error('FUME running in stateless mode. Cannot fetch mappings from server.');
     return undefined;
@@ -210,7 +211,7 @@ const getAllMappings = async () => {
 };
 
 const getAliasResource = async () => {
-  const logger = config.getLogger();
+  const logger = getLogger();
   if (config.isStatelessMode()) {
     logger.error('FUME running in stateless mode. Cannot fetch aliases from server.');
     return undefined;
@@ -236,7 +237,7 @@ const getAliasResource = async () => {
 };
 
 const getAliases = async (createFunc?: Function) => {
-  const logger = config.getLogger();
+  const logger = getLogger();
   if (config.isStatelessMode()) {
     logger.error('FUME running in stateless mode. Cannot fetch mappings from server.');
     return undefined;
@@ -294,7 +295,7 @@ export const cacheMapping = (mappingId: string, mappingExpr: string) => {
 
 export const recacheFromServer = async (): Promise<boolean> => {
   // load tables, aliases and mappings
-  const logger = config.getLogger();
+  const logger = getLogger();
   if (config.isStatelessMode()) {
     logger.error('FUME running in stateless mode. Cannot recache from server.');
     return false;

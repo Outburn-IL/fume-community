@@ -3,9 +3,9 @@
  *   Project name: FUME
  */
 
-import config from './config';
+import { getLogger } from './logger';
 
-const logger = config.getLogger();
+const logger = getLogger();
 
 const info = (message: any): undefined => {
   logger.info(message);

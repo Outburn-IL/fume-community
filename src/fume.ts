@@ -5,6 +5,7 @@
 import { fhirCorePackages } from './constants';
 import conformance from './conformance';
 import config from './config';
+import { getLogger, setLogger } from './logger';
 import client from './client';
 import cache from './cache';
 import transpiler from './transpiler';
@@ -16,13 +17,13 @@ const init = async (options) => {
   console.log('FUME initializing...');
   // override logger object if provided
   if (typeof options?.logger !== 'undefined') {
-    config.setLogger(options.logger);
+    setLogger(options.logger);
   }
   // override default fhir version if provided
   if (typeof options?.fhirVersion === 'string') {
     config.setFhirVersion(options.fhirVersion);
   };
-  const logger = config.getLogger();
+  const logger = getLogger();
   logger.info(`Default FHIR version is set to ${config.getFhirVersion()}`);
   // translate fhir version to package id
   const fhirVersionCorePackageId = fhirCorePackages[config.getFhirVersion()];
@@ -85,7 +86,7 @@ export default {
   fhirCorePackages,
   objectFuncs,
   stringFuncs,
-  setLogger: config.setLogger,
+  setLogger,
   v2json: v2.v2json,
   parseCsv: stringFuncs.parseCsv,
   config

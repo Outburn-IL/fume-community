@@ -4,11 +4,7 @@
  */
 import { fhirCorePackages } from './constants';
 
-export interface Logger {
-  info: Function
-  warn: Function
-  error: Function
-};
+
 
 let fumeInitialized: boolean = false;
 let fhirServerBase: string = 'http://hapi-fhir.outburn.co.il/fhir';
@@ -18,11 +14,6 @@ let fhirVersionWithoutPatch: string = '4.0';
 let statelessMode: boolean;
 let additionalBindings = {}; // additional functions to bind when running transformations
 
-let logger: Logger = {
-  info: (msg: any) => console.log(msg),
-  warn: (msg: any) => console.warn(msg),
-  error: (msg: any) => console.error(msg)
-};
 let searchBundleSize: number = 20;
 
 const setFumeInitialized = (): void => {
@@ -45,14 +36,6 @@ const setFhirServerBase = (url: string): void => {
 
 const getFhirServerBase = (): string => {
   return fhirServerBase;
-};
-
-const setLogger = (loggerObj: Logger): void => {
-  logger = loggerObj;
-};
-
-const getLogger = (): Logger => {
-  return logger;
 };
 
 const setFhirServerTimeout = (millis: number): void => {
@@ -102,8 +85,6 @@ const getAdditionalBindings = () => {
 };
 
 export default {
-  getLogger,
-  setLogger,
   fhirCorePackages,
   getFhirVersion,
   setFhirVersion,

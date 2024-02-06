@@ -31,6 +31,7 @@ import { getStructureDefinition } from './conformance';
 import v2 from './hl7v2';
 import cache from './cache';
 import config from './config';
+import { getLogger } from './logger';
 // TODO: add support for multiline contexts and values
 // TODO: support single line comments using "//"
 
@@ -907,7 +908,7 @@ const toFunction = (mapping: string) => {
 };
 
 const compileExpression = async (expression: string): Promise<jsonata.Expression> => {
-  const logger = config.getLogger();
+  const logger = getLogger();
   // takes a fume expression string and compiles it into a jsonata expression
   // or returns the already compiled expression from cache
   const key = hashKey(expression); // turn expression string to a key
@@ -923,7 +924,7 @@ const compileExpression = async (expression: string): Promise<jsonata.Expression
 };
 
 export const transform = async (input: any, expression: string) => {
-  const logger = config.getLogger();
+  const logger = getLogger();
   const additionalBindings = config.getAdditionalBindings();
   try {
     const expr = await compileExpression(expression);

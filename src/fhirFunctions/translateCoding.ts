@@ -1,9 +1,9 @@
 
 import cache from "../cache";
 import expressions from "../jsonataExpression";
-import config from "../config";
+import { getLogger } from "../logger";
 
-const logger = config.getLogger();
+const logger = getLogger();
 
 export const translateCoding = async (input, tableId) => {
   // fork: os

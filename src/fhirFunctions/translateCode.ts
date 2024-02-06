@@ -2,9 +2,9 @@
 import expressions from '../jsonataExpression';
 import cache from '../cache';
 import conformance from '../conformance';
-import config from '../config';
+import { getLogger } from '../logger';
 
-const logger = config.getLogger();
+const logger = getLogger();
 
 export const translateCode = async (input: string, tableId: string) => {
   // fork: os
