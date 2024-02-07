@@ -33,12 +33,12 @@ export class FumeServer implements IFumeServer {
     }
   }
 
-  public async warmUp (options: any = undefined): Promise<void> {
-    const initOptions = options || defaultConfig;
+  public async warmUp (serverOptions: any = undefined): Promise<void> {
+    const options = serverOptions || defaultConfig;
 
     const logger = getLogger();
 
-    logger.info({ initOptions });
+    logger.info(options);
     logger.info('FUME initializing...');
 
     // override default fhir version if provided
