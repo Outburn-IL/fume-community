@@ -88,8 +88,8 @@ export class FumeServer implements IFumeServer {
       config.setFhirServerBase('');
     };
 
-    this.server = this.app.listen(initOptions.SERVER_PORT);
-    logger.info(`FUME server is running on port ${initOptions.SERVER_PORT}`);
+    this.server = this.app.listen(options.SERVER_PORT);
+    logger.info(`FUME server is running on port ${options.SERVER_PORT}`);
   }
 
   /**
