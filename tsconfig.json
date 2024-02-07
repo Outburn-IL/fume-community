@@ -24,10 +24,11 @@
     "allowJs": true
   },
   "include": [
+    "tests/**/*",
     "src/**/*"
     // ,"src/hl7.fhir.r4.core/StructureDefinition*.json"
   ],
   "exclude": [
-    "**/*.test.ts"
+    "dist/**/*"
   ]
 }

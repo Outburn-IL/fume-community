@@ -34,7 +34,7 @@ export class FumeServer implements IFumeServer {
   }
 
   public async warmUp (serverOptions: IConfig | undefined = undefined): Promise<void> {
-    const options = serverOptions || defaultConfig;
+    const options = serverOptions ?? defaultConfig;
     const { SERVER_PORT, FHIR_SERVER_BASE, FHIR_VERSION, FHIR_PACKAGES, SEARCH_BUNDLE_PAGE_SIZE, FHIR_SERVER_TIMEOUT, SERVER_STATELESS } = options;
 
     const logger = getLogger();

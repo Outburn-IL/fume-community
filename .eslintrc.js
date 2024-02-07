@@ -15,7 +15,10 @@ module.exports = {
         '@typescript-eslint/semi': ['error', 'always'],
         '@typescript-eslint/quotes': ['error', 'single'],
         '@typescript-eslint/indent': ['error', 2],
-        '@typescript-eslint/explicit-function-return-type': 'off'
+        '@typescript-eslint/explicit-function-return-type': 'off',
+        '@typescript-eslint/prefer-nullish-coalescing': 'off',
+        '@typescript-eslint/restrict-template-expressions': 'off',
+        '@typescript-eslint/no-non-null-assertion': 'off'
       }
     }
   ],

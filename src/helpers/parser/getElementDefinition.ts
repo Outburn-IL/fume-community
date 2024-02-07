@@ -3,6 +3,8 @@
  *   Project name: FUME
  */
 
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
+
 import _ from 'lodash';
 import { getSnapshot } from './getSnapshot';
 import cache from '../cache';

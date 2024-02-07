@@ -52,7 +52,9 @@ export const flashMerge = (options: FlashMergeOptions, baseObj: any, ruleObj: an
         amountOfElements = JSON.parse(ruleObj[options.key]).length;
       } catch (e) {}
     }
-    if (amountOfElements < Number(options.min)) throw thrower.throwRuntimeError(`Element '${options.path}' has a minimum cardinality of ${options?.min}, got ${amountOfElements} instead`);
+    if (amountOfElements < Number(options.min)) {
+      thrower.throwRuntimeError(`Element '${options.path ?? ''}' has a minimum cardinality of ${options.min ?? ''}, got ${amountOfElements} instead`);
+    }
   }
   // this function merges key:value into an existing object
   // taking into account cardinality and children of primitives

@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-
 /**
  * © Copyright Outburn Ltd. 2022-2023 All Rights Reserved
  *   Project name: FUME
  */
-import _ from 'lodash';
+
 import expressions from '../jsonataExpression';
 import thrower from '../thrower';
 import { funcs } from './jsonataFuncs';
@@ -121,11 +119,9 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
       prevRuleNodes = [];
 
       // set resourceType if it's an instance of a resource or resource profile
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       const resourceType = rootStructDef?.kind === 'resource' ? `'${rootStructDef?.type}'` : 'undefined';
 
       // set meta with profile tag if it's a resource profile
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       const meta = rootStructDef?.kind === 'resource' && rootStructDef?.derivation === 'constraint' ? `{'profile': ['${rootStructDef?.url}']}` : 'undefined';
       // create a regex test expression for the id if it's a resource
       const testId = resourceType === 'undefined' ? '$__flashInstanceId' : '$__checkResourceId($__flashInstanceId)';
@@ -150,9 +146,15 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
       // when indentation is the same - close previous rule
       const indent: string | undefined = substringBefore(line, '* '); // the indentation of this rule in actual spaces
       const ruleDepth: number = (indent!.length - rootIndentOffset!.length) + 2; // any root rule is 2, so all rules are shifted by 2
-      if (ruleDepth < 2) return thrower.throwParseError(`expected indentation of at least ${rootIndentOffset!.length} spaces, got ${indent!.length} instead. Rule: ${line}`);
-      if (ruleDepth > prevRuleDepth + 2) return thrower.throwParseError(`expected indentation of max ${rootIndentOffset!.length + prevRuleDepth} spaces, got ${indent!.length} instead. Rule: ${line}`);
-      if (ruleDepth % 2 !== 0) return thrower.throwParseError(`rule indentation must be in increments of two spaces. Rule: ${line}`);
+      if (ruleDepth < 2) {
+        return thrower.throwParseError(`expected indentation of at least ${rootIndentOffset!.length} spaces, got ${indent!.length} instead. Rule: ${line}`);
+      }
+      if (ruleDepth > prevRuleDepth + 2) {
+        return thrower.throwParseError(`expected indentation of max ${rootIndentOffset!.length + prevRuleDepth} spaces, got ${indent!.length} instead. Rule: ${line}`);
+      }
+      if (ruleDepth % 2 !== 0) {
+        return thrower.throwParseError(`rule indentation must be in increments of two spaces. Rule: ${line}`);
+      }
       // indentation correct
       let rulesToClose: number; // how many rules we need to close at the beginning of this line
       if (ruleDepth < prevRuleDepth) {

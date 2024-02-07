@@ -7,6 +7,7 @@
     "build": "tsc -b",
     "lint": "eslint src",
     "start": "npm run build && node dist/app.js",
+    "eslint:fix": "npx eslint --fix .",
     "test:debug": "node --inspect-brk --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.integration.js --runInBand"
