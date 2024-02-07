@@ -65,17 +65,17 @@ export class FumeServer implements IFumeServer {
     // load index of all packages found in global fhir cache (on disk)
     await conformance.loadFhirCacheIndex();
     // if fhir server defined, load mappings and aliases from it
-    if (SERVER_STATELESS === true || FHIR_SERVER_BASE === '') {
+    if (SERVER_STATELESS || FHIR_SERVER_BASE === '') {
       logger.info('Running in stateless mode');
       config.setFhirServerBase('');
     } else {
       config.setFhirServerBase(FHIR_SERVER_BASE);
       logger.info(`Setting bundle search size: ${SEARCH_BUNDLE_PAGE_SIZE}`);
       config.setSearchBundleSize(SEARCH_BUNDLE_PAGE_SIZE);
-      
+
       config.setFhirServerTimeout(FHIR_SERVER_TIMEOUT);
       logger.info({ fhirServerTimeout: config.getFhirServerTimeout() });
-      
+
       logger.info(`Loading FUME resources from FHIR server ${config.getFhirServerBase()} into cache...`);
       client.init();
       conformance.recacheFromServer().then(_result => {
