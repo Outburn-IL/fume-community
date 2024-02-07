@@ -3,9 +3,9 @@
  *   Project name: FUME
  */
 
-import cache from "../helpers/cache";
-import { v2json } from "../helpers/hl7v2";
-import { parseCsv } from "../helpers/stringFunctions";
+import cache from '../helpers/cache';
+import { v2json } from '../helpers/hl7v2';
+import { parseCsv } from '../helpers/stringFunctions';
 
 const get = async (req, res) => {
   try {

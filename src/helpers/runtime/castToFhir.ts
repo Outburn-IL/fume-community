@@ -9,23 +9,23 @@ import _ from 'lodash';
 import uuidByString from 'uuid-by-string';
 
 export interface CastToFhirOptions {
-    name: string // name of the element
-    path: string // the path of the element - needed for error messages
-    baseType: string // the type.code from eDef. Would be a FHIR type name or a primitive's System URI
-    kind?: string // the kind of element as defined in the type's StructureDefinition
-    jsonPrimitiveProfile?: string // when baseType is a System primitive, the fhirtype to take contraints from
-    fixed?: any // the fixed[x] or pattern[x] from edef
-  };
+  name: string // name of the element
+  path: string // the path of the element - needed for error messages
+  baseType: string // the type.code from eDef. Would be a FHIR type name or a primitive's System URI
+  kind?: string // the kind of element as defined in the type's StructureDefinition
+  jsonPrimitiveProfile?: string // when baseType is a System primitive, the fhirtype to take contraints from
+  fixed?: any // the fixed[x] or pattern[x] from edef
+};
 
 const primitiveParsers = {}; // cache for primitive value testing functions
 
 const getPrimitiveParser = async (typeName: string): Promise<Function | undefined> => {
 // returns a function that tests primitives agaist their regex
 // returned functions are cached in memory so they are only compiled once
-if (primitiveParsers[typeName]) {
+  if (primitiveParsers[typeName]) {
     // exists in cache, return from there
     return primitiveParsers[typeName];
-} else {
+  } else {
     // generate and compile the function
     let resFn: Function;
     const sDef = await getStructureDefinition(typeName);
@@ -35,17 +35,16 @@ if (primitiveParsers[typeName]) {
     const regexStr: string = valueElementDef?.type[0]?.extension?.filter((ext: any) => ext?.url === 'http://hl7.org/fhir/StructureDefinition/regex')[0]?.valueString;
     if (regexStr) {
     // found regex, compile it
-    const fn = new RegExp(`^${regexStr}$`);
-    resFn = (value: string): boolean => fn.test(value);
+      const fn = new RegExp(`^${regexStr}$`);
+      resFn = (value: string): boolean => fn.test(value);
     } else {
     // no regex - function will just test for empty strings
-    resFn = (value: string): boolean => value.trim() !== '';
+      resFn = (value: string): boolean => value.trim() !== '';
     }
     primitiveParsers[typeName] = resFn; // cache the function
     return resFn;
-}
+  }
 };
-  
 
 export const castToFhir = async (options: CastToFhirOptions, input: any) => {
   // this is the function that is called from parsed flash rules. it only runs
@@ -119,7 +118,7 @@ export const castToFhir = async (options: CastToFhirOptions, input: any) => {
     let extension;
     try {
       // @ts-expect-error
-       extension = input?.extension || input[Object.keys(input).find(key => key.includes('extension'))]; // any element extensions
+      extension = input?.extension || input[Object.keys(input).find(key => key.includes('extension'))]; // any element extensions
     } catch (e) {}
     if (literalValue || !_.isNil(ruleValue)) { // has primitive value assigned in expression
       // fetch tester function

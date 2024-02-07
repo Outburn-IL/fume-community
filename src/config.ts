@@ -9,7 +9,7 @@ let fhirServerTimeout: number = 10000;
 let fhirVersion: string = '4.0.1';
 let fhirVersionWithoutPatch: string = '4.0';
 let statelessMode: boolean;
-let additionalBindings = {}; // additional functions to bind when running transformations
+const additionalBindings = {}; // additional functions to bind when running transformations
 
 let searchBundleSize: number = 20;
 
@@ -67,7 +67,7 @@ const isStatelessMode = (): boolean => {
 
 const setBinding = (name, binding): void => {
   additionalBindings[name] = binding;
-}
+};
 
 const getAdditionalBindings = () => {
   return additionalBindings;

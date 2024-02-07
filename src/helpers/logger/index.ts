@@ -1,4 +1,4 @@
-import type { ILogger } from "../../types";
+import type { ILogger } from '../../types';
 
 let logger: ILogger = {
   info: (msg: any) => console.log(msg),

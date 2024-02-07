@@ -3,40 +3,40 @@
  *   Project name: FUME
  */
 
-import { duplicate } from "./duplicate";
-import { initCap } from "./initCap";
-import { replaceColonsWithBrackets } from "./replaceColonsWithBrackets";
+import { duplicate } from './duplicate';
+import { initCap } from './initCap';
+import { replaceColonsWithBrackets } from './replaceColonsWithBrackets';
 import {
-    startsWith,
-    endsWith,
-    substringBefore,
-    substringAfter,
-    removeEmptyLines,
-    initCapOnce,
-    hashKey,
-    uuid,
-    isNumeric,
-    matches,
-    splitToLines,
-    parseCsv,
-    removeComments,
-} from "./stringFunctions";
+  startsWith,
+  endsWith,
+  substringBefore,
+  substringAfter,
+  removeEmptyLines,
+  initCapOnce,
+  hashKey,
+  uuid,
+  isNumeric,
+  matches,
+  splitToLines,
+  parseCsv,
+  removeComments
+} from './stringFunctions';
 
 export {
-    duplicate,
-    initCap,
-    startsWith,
-    endsWith,
-    substringBefore,
-    substringAfter,
-    removeEmptyLines,
-    initCapOnce,
-    hashKey,
-    uuid,
-    isNumeric,
-    matches,
-    splitToLines,
-    parseCsv,
-    removeComments,
-    replaceColonsWithBrackets
+  duplicate,
+  initCap,
+  startsWith,
+  endsWith,
+  substringBefore,
+  substringAfter,
+  removeEmptyLines,
+  initCapOnce,
+  hashKey,
+  uuid,
+  isNumeric,
+  matches,
+  splitToLines,
+  parseCsv,
+  removeComments,
+  replaceColonsWithBrackets
 };

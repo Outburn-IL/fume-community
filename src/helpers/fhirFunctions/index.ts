@@ -10,14 +10,14 @@ import { reference } from './reference';
 import { registerTable } from './registerTable';
 
 export default {
-    literal,
-    resourceId,
-    resolve,
-    search,
-    searchSingle,
-    translateCoding,
-    translateCode,
-    fhirVersionToMinor,
-    reference,
-    registerTable,
+  literal,
+  resourceId,
+  resolve,
+  search,
+  searchSingle,
+  translateCoding,
+  translateCode,
+  fhirVersionToMinor,
+  reference,
+  registerTable
 };

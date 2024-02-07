@@ -3,7 +3,7 @@
  *   Project name: FUME
  */
 
-import { initCapOnce } from "./stringFunctions";
+import { initCapOnce } from './stringFunctions';
 import expressions from '../jsonataExpression';
 
 export const initCap = async (str: string): Promise<string> => {

@@ -9,9 +9,9 @@ import jsonata from 'jsonata';
 import expressions from './helpers/jsonataExpression';
 import fhirFuncs from './helpers/fhirFunctions';
 import objectFuncs from './helpers/objectFunctions';
-import { 
-  parseCsv, 
-  splitToLines, 
+import {
+  parseCsv,
+  splitToLines,
   hashKey,
   startsWith,
   endsWith,
@@ -22,7 +22,7 @@ import {
   initCap,
   matches,
   uuid,
-  isNumeric,
+  isNumeric
 } from './helpers/stringFunctions';
 import thrower from './helpers/thrower';
 import runtime, { CastToFhirOptions, FlashMergeOptions } from './helpers/runtime';
@@ -140,7 +140,7 @@ const funcs: PreCompilerFunctions = {
   )`),
   getDescendantElementDef: async (fhirType: string, path: string): Promise<any> => {
     if (fhirType === 'BackboneElement' && !['id', 'extension', 'modifierExtension'].includes(path)) return undefined;
-    return await funcs.getDescendantElementDefExpr.evaluate({}, { info: getLogger().info, fhirType, path, getSnapshot, getStructureDefinition, getChildOfBaseType: funcs.getDescendantElementDef, initCap: initCapOnce, endsWith: endsWith });
+    return await funcs.getDescendantElementDefExpr.evaluate({}, { info: getLogger().info, fhirType, path, getSnapshot, getStructureDefinition, getChildOfBaseType: funcs.getDescendantElementDef, initCap: initCapOnce, endsWith });
   },
   buildSnapshotExpr: jsonata(`
   /* this script builds a snapshot of a StructureDefinition */
@@ -335,14 +335,15 @@ const funcs: PreCompilerFunctions = {
   
     $count($sortedElements)>0 ? $merge([$getStructureDefinition($rootType),{'snapshot': {'element': $sortedElements}}]) : $error('Failed building snapshot for ' & $rootType);
   )`),
-  buildSnapshot: async (rootType: string, path: string): Promise<any> => await funcs.buildSnapshotExpr.evaluate({}, { 
-    info: getLogger().info, 
-    rootType, path, 
-    getStructureDefinition, 
-    initCap: initCapOnce, 
-    startsWith, 
-    endsWith, 
-    getChildOfBaseType: funcs.getDescendantElementDef 
+  buildSnapshot: async (rootType: string, path: string): Promise<any> => await funcs.buildSnapshotExpr.evaluate({}, {
+    info: getLogger().info,
+    rootType,
+    path,
+    getStructureDefinition,
+    initCap: initCapOnce,
+    startsWith,
+    endsWith,
+    getChildOfBaseType: funcs.getDescendantElementDef
   }),
   getElementDefinitionExpr: jsonata(`(
     
@@ -391,15 +392,15 @@ const funcs: PreCompilerFunctions = {
       )
     ) : $throwError('Failed to get snapshot for '&$rootType);  
   )`),
-  getElementDefinition: async (rootType: string, path: string): Promise<any> => await funcs.getElementDefinitionExpr.evaluate({}, { 
-    info: getLogger().info, 
-    throwError: thrower.throwParseError, 
-    getSnapshot, 
-    rootType, 
-    path, 
-    getDescendantElementDef: funcs.getDescendantElementDef, 
-    endsWith, 
-    initCap: initCapOnce 
+  getElementDefinition: async (rootType: string, path: string): Promise<any> => await funcs.getElementDefinitionExpr.evaluate({}, {
+    info: getLogger().info,
+    throwError: thrower.throwParseError,
+    getSnapshot,
+    rootType,
+    path,
+    getDescendantElementDef: funcs.getDescendantElementDef,
+    endsWith,
+    initCap: initCapOnce
   }),
   getMandatoriesOfStructureExpr: jsonata(`(
     $snapshot := $getSnapshot($structId);
@@ -482,15 +483,15 @@ const funcs: PreCompilerFunctions = {
     $res != {} and $count($res) > 0 ? $res
     )
   )`),
-  getMandatoriesOfElement: async (structId: string, relativePath: string, structureFunction: Function): Promise<any> => await funcs.getMandatoriesOfElementExpr.evaluate({}, { 
-    info: getLogger().info, 
-    structId, 
-    relativePath, 
-    getMandatoriesOfElement: funcs.getMandatoriesOfElement, 
-    structureFunction, 
-    getSnapshot, 
-    startsWith, 
-    initCap: initCapOnce 
+  getMandatoriesOfElement: async (structId: string, relativePath: string, structureFunction: Function): Promise<any> => await funcs.getMandatoriesOfElementExpr.evaluate({}, {
+    info: getLogger().info,
+    structId,
+    relativePath,
+    getMandatoriesOfElement: funcs.getMandatoriesOfElement,
+    structureFunction,
+    getSnapshot,
+    startsWith,
+    initCap: initCapOnce
   })
 };
 
@@ -789,8 +790,8 @@ const toJsonataString = async (inExpr: string): Promise<string | undefined> => {
       expr,
       splitLineFunc: splitToLines,
       lineParser,
-      startsWith: startsWith,
-      endsWith: endsWith
+      startsWith,
+      endsWith
     };
     const parsed = await expressions.parseFumeExpression.evaluate({}, bindings);
     return parsed;

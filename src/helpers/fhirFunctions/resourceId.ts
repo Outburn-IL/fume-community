@@ -1,4 +1,4 @@
-import { searchSingle } from "./searchSingle";
+import { searchSingle } from './searchSingle';
 
 export const resourceId = async (query: string, params?: Record<string, any>): Promise<string | undefined> => {
   // fork: os

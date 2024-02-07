@@ -18,41 +18,41 @@ export interface FlashMergeOptions {
 };
 
 const deleteEntriesWithSamePath = (obj, path) => {
-  let tempObj = Object.fromEntries(Object.entries(obj).filter(([key, value]) => value === path || (path.includes('[x]') && String(value).includes(path.slice(0, -3)))));
+  const tempObj = Object.fromEntries(Object.entries(obj).filter(([key, value]) => value === path || (path.includes('[x]') && String(value).includes(path.slice(0, -3)))));
   if (!_.isEmpty(tempObj)) {
-    let keyName = _.keys(tempObj)[0].split('__path_')[1];
+    const keyName = _.keys(tempObj)[0].split('__path_')[1];
     return Object.fromEntries(Object.entries(obj).filter(([key, value]) => !key.includes(keyName)));
   } else {
     return obj;
   }
-}
-  
+};
+
 const sliceByMax = (arr, max) => {
-    return arr.length ? arr.slice(-1 * Number(max))[0] : null;
+  return arr.length ? arr.slice(-1 * Number(max))[0] : null;
 };
 
 const addToArr = (arr, value) => {
-if (Array.isArray(value)) {
+  if (Array.isArray(value)) {
     arr = arr.concat(value);
-} else {
+  } else {
     arr.push(value);
-}
-return arr;
-}
-  
+  }
+  return arr;
+};
+
 export const flashMerge = (options: FlashMergeOptions, baseObj: any, ruleObj: any): any => {
   if (options?.min === 0) {
     if (_.isEmpty(ruleObj)) return baseObj;
   } else {
     let amountOfElements = 1;
     if (_.isEmpty(ruleObj)) {
-      amountOfElements = 0
+      amountOfElements = 0;
     } else {
       try {
         amountOfElements = JSON.parse(ruleObj[options.key]).length;
       } catch (e) {}
     }
-    if (amountOfElements < Number(options.min)) throw thrower.throwRuntimeError(`Element '${options.path}' has a minimum cardinality of ${options?.min}, got ${amountOfElements} instead`)
+    if (amountOfElements < Number(options.min)) throw thrower.throwRuntimeError(`Element '${options.path}' has a minimum cardinality of ${options?.min}, got ${amountOfElements} instead`);
   }
   // this function merges key:value into an existing object
   // taking into account cardinality and children of primitives
@@ -88,7 +88,7 @@ export const flashMerge = (options: FlashMergeOptions, baseObj: any, ruleObj: an
       arr = addToArr(arr, baseValue);
     };
     if (ruleObj[key]) {
-      let addValue = ruleObj[key];
+      const addValue = ruleObj[key];
       let finalObject = addValue;
       if (mandatoryObj) {
         if (Array.isArray(addValue)) {
@@ -132,14 +132,14 @@ export const flashMerge = (options: FlashMergeOptions, baseObj: any, ruleObj: an
     if (arr1.length === arr2.length) {
       if (ruleObj[key]) {
         try {
-            const parsedVal = JSON.parse(ruleObj[key]);
-            ruleObj[key] = typeof parsedVal === 'number' ? ruleObj[key] : parsedVal;
+          const parsedVal = JSON.parse(ruleObj[key]);
+          ruleObj[key] = typeof parsedVal === 'number' ? ruleObj[key] : parsedVal;
         } catch (e) {}
 
         if (Array.isArray(ruleObj[key]) && options.max !== '*') {
-          ruleObj[key] = ruleObj[key].slice(Number(options.max) * -1)
+          ruleObj[key] = ruleObj[key].slice(Number(options.max) * -1);
         }
-        
+
         const newValue = ruleObj[key];
         arr1 = addToArr(arr1, newValue);
       };
@@ -167,7 +167,7 @@ export const flashMerge = (options: FlashMergeOptions, baseObj: any, ruleObj: an
       }
       if (ruleObj['_' + key]) { // children object array
         const newValue = ruleObj['_' + key];
-       arr2 =  addToArr(arr2, newValue);
+        arr2 = addToArr(arr2, newValue);
       }
     }
     const resObj = { ...newBaseObj };

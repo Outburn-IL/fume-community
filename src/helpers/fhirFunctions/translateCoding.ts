@@ -1,7 +1,7 @@
 
-import cache from "../cache";
-import expressions from "../jsonataExpression";
-import { getLogger } from "../logger";
+import cache from '../cache';
+import expressions from '../jsonataExpression';
+import { getLogger } from '../logger';
 
 const logger = getLogger();
 

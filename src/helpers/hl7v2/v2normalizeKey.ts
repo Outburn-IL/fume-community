@@ -1,6 +1,6 @@
-import { initCap } from "../stringFunctions";
+import { initCap } from '../stringFunctions';
 import expressions from '../jsonataExpression';
-import { registerV2key } from "./registerV2key";
+import { registerV2key } from './registerV2key';
 import cache from '../cache';
 
 export const v2normalizeKey = async (key: string) => {

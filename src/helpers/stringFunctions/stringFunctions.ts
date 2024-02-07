@@ -83,7 +83,6 @@ export const parseCsv = async (csv: string) => {
   return json;
 };
 
-
 export const matches = (str: string, regex: string) => {
   /* match whole string (like fhirpath) */
   const fn = new RegExp(`^${regex}$`);
