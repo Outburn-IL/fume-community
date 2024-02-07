@@ -10,7 +10,6 @@ export const translateCode = async (input: string, tableId: string) => {
   // fork: os
   try {
     let map = cache.tables[tableId];
-    debugger;
     if (map === undefined) {
       logger.info(`Table ${tableId} not cached, trying to fetch from server...`);
       map = (await conformance.getTable(tableId))[tableId];

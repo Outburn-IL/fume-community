@@ -7,7 +7,7 @@ import cache from '../helpers/cache';
 import conformance from '../helpers/conformance';
 import { v2json } from '../helpers/hl7v2';
 import { parseCsv } from '../helpers/stringFunctions';
-import { transform } from '../transpiler';
+import jsonataFuncs from '../helpers/jsonataFunctions';
 
 const get = async (req, res) => {
   return res.status(200).json(
@@ -42,7 +42,7 @@ const evaluate = async (req, res) => {
       }
     };
 
-    const response = await transform(inputJson, req.body.fume);
+    const response = await jsonataFuncs.transform(inputJson, req.body.fume);
     if (typeof response === 'undefined' || response === null) {
       console.warn('Evaluation result is empty');
       console.log({

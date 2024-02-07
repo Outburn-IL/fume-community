@@ -7,17 +7,17 @@ import {
   read
   , search
 } from './client';
-import transpiler from '../transpiler';
 import config from '../config';
 import expressions from './jsonataExpression';
 import cache from './cache';
-import objectFuncs from './objectFunctions';
+import { omitKeys } from './objectFunctions';
 import { isNumeric } from './stringFunctions';
 import os from 'os';
 import path from 'path';
 import fs from 'fs-extra';
 import { fpl } from 'fhir-package-loader';
 import { getLogger } from './logger';
+import jsonataFunctions from './jsonataFunctions';
 
 export const getStructureDefinition = async (definitionId: string): Promise<any> => {
   const logger = getLogger();
@@ -104,7 +104,7 @@ const buildFhirCacheIndex = async () => {
   });
 
   const bindings = {
-    omitKeys: objectFuncs.omitKeys,
+    omitKeys,
     pathJoin: path.join,
     require: (filePath: string) => {
       try {
@@ -284,8 +284,15 @@ const fullSearch = async (query, params) => {
   return resourceArray;
 };
 
+const toFunction = (mapping: string) => {
+  return async (input: any) => {
+    const res = await jsonataFunctions.transform(input, mapping);
+    return res;
+  };
+};
+
 export const cacheMapping = (mappingId: string, mappingExpr: string) => {
-  const mappingFunc = transpiler.toFunction(mappingExpr);
+  const mappingFunc = toFunction(mappingExpr);
   const cacheEntry = {
     expression: mappingExpr,
     function: mappingFunc
