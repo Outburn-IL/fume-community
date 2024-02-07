@@ -1,6 +1,6 @@
 import express, { RequestHandler } from 'express';
 import cors from 'cors';
-import defaultConfig from './serverConfig';
+import defaultConfig, { IConfig } from './serverConfig';
 import { fhirCorePackages } from './constants';
 import config from './config';
 import routes from './routes';
@@ -33,8 +33,9 @@ export class FumeServer implements IFumeServer {
     }
   }
 
-  public async warmUp (serverOptions: any = undefined): Promise<void> {
+  public async warmUp (serverOptions: IConfig | undefined = undefined): Promise<void> {
     const options = serverOptions || defaultConfig;
+    const { SERVER_PORT, FHIR_SERVER_BASE, FHIR_VERSION, FHIR_PACKAGES, SEARCH_BUNDLE_PAGE_SIZE, FHIR_SERVER_TIMEOUT, SERVER_STATELESS } = options;
 
     const logger = getLogger();
 
@@ -42,9 +43,7 @@ export class FumeServer implements IFumeServer {
     logger.info('FUME initializing...');
 
     // override default fhir version if provided
-    if (typeof options?.fhirVersion === 'string') {
-      config.setFhirVersion(options.fhirVersion);
-    };
+    config.setFhirVersion(FHIR_VERSION);
 
     logger.info(`Default FHIR version is set to ${config.getFhirVersion()}`);
     // translate fhir version to package id
@@ -59,23 +58,24 @@ export class FumeServer implements IFumeServer {
       throw new Error(`FHIR version ${config.getFhirVersion()} is unsupported/invalid!`);
     };
     // load additional packages, if defined
-    if (typeof options?.fhirPackages !== 'undefined' && options?.fhirPackages !== '') {
-      await conformance.loadPackage(options.fhirPackages);
+    if (FHIR_PACKAGES !== '') {
+      await conformance.loadPackage(FHIR_PACKAGES);
     };
 
     // load index of all packages found in global fhir cache (on disk)
     await conformance.loadFhirCacheIndex();
     // if fhir server defined, load mappings and aliases from it
-    if (options?.fhirServer !== undefined && options?.fhirServer !== null && typeof options.fhirServer === 'string' && options.fhirServer !== '') {
-      config.setFhirServerBase(options.fhirServer);
-      if (options?.searchBundleSize !== undefined && typeof options?.searchBundleSize === 'number') {
-        logger.info(`Setting bundle search size: ${JSON.stringify(options.searchBundleSize)}`);
-        config.setSearchBundleSize(options.searchBundleSize);
-      };
-      if (options?.fhirServerTimeout !== undefined && options?.fhirServerTimeout !== null && typeof options.fhirServerTimeout === 'number') {
-        config.setFhirServerTimeout(options.fhirServerTimeout);
-        logger.info({ fhirServerTimeout: config.getFhirServerTimeout() });
-      };
+    if (SERVER_STATELESS === true || FHIR_SERVER_BASE === '') {
+      logger.info('Running in stateless mode');
+      config.setFhirServerBase('');
+    } else {
+      config.setFhirServerBase(FHIR_SERVER_BASE);
+      logger.info(`Setting bundle search size: ${SEARCH_BUNDLE_PAGE_SIZE}`);
+      config.setSearchBundleSize(SEARCH_BUNDLE_PAGE_SIZE);
+      
+      config.setFhirServerTimeout(FHIR_SERVER_TIMEOUT);
+      logger.info({ fhirServerTimeout: config.getFhirServerTimeout() });
+      
       logger.info(`Loading FUME resources from FHIR server ${config.getFhirServerBase()} into cache...`);
       client.init();
       conformance.recacheFromServer().then(_result => {
@@ -83,13 +83,10 @@ export class FumeServer implements IFumeServer {
       }).catch(_notFound => {
         logger.info('Error loading cache');
       });
-    } else {
-      logger.info('Running in stateless mode');
-      config.setFhirServerBase('');
-    };
+    }
 
-    this.server = this.app.listen(options.SERVER_PORT);
-    logger.info(`FUME server is running on port ${options.SERVER_PORT}`);
+    this.server = this.app.listen(SERVER_PORT);
+    logger.info(`FUME server is running on port ${SERVER_PORT}`);
   }
 
   /**

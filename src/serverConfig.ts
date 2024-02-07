@@ -8,6 +8,16 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
+export interface IConfig {
+  SERVER_PORT: number;
+  SERVER_STATELESS: boolean;
+  FHIR_SERVER_BASE: string;
+  FHIR_SERVER_TIMEOUT: number;
+  FHIR_VERSION: string;
+  SEARCH_BUNDLE_PAGE_SIZE: number;
+  FHIR_PACKAGES: string;
+}
+
 export const configSchema = z.object({
   SERVER_PORT: z.preprocess((a) => typeof a === 'string' ? parseInt(a) : a, z.number().int('Must be an integer').positive('Must be positive').default(42420)),
   SERVER_STATELESS: z.preprocess((a) => a === 'true', z.boolean().default(false)),
@@ -18,5 +28,5 @@ export const configSchema = z.object({
   FHIR_PACKAGES: z.string().default('')
 });
 
-export const config = configSchema.parse(process.env);
+export const config: IConfig = configSchema.parse(process.env);
 export default config;
