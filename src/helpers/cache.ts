@@ -26,9 +26,9 @@ class SimpleCache implements ICache {
 }
 
 export const tables: Record<string, any> = {};
-export const snapshots = {}; // cache for generated StructureDefinition snapshots
+export const snapshots: Record<string, any> = {}; // cache for generated StructureDefinition snapshots
 export const aliases: Record<string, any> = {};
-export const v2keyMap = {};
+export const v2keyMap: Record<string, any> = {};
 
 export const expressions = {}; // previously parsed expressions
 export const compiledExpressions = new SimpleCache();
