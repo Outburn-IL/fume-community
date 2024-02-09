@@ -297,7 +297,7 @@ export const cacheMapping = (mappingId: string, mappingExpr: string) => {
     expression: mappingExpr,
     function: mappingFunc
   };
-  cache.mappings[mappingId] = cacheEntry;
+  cache.compiledMappings.set(mappingId, cacheEntry);
 };
 
 export const recacheFromServer = async (): Promise<boolean> => {
