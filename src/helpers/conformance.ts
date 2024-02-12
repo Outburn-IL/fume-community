@@ -19,8 +19,9 @@ import { fpl } from 'fhir-package-loader';
 import { getLogger } from './logger';
 import jsonataFunctions from './jsonataFunctions';
 
+const logger = getLogger();
+
 export const getStructureDefinition = async (definitionId: string): Promise<any> => {
-  const logger = getLogger();
   const indexed = cache.fhirCacheIndex[config.getFhirVersionWithoutPatch()].structureDefinitions.byId[definitionId] ??
     cache.fhirCacheIndex[config.getFhirVersionWithoutPatch()].structureDefinitions.byUrl[definitionId] ??
     cache.fhirCacheIndex[config.getFhirVersionWithoutPatch()].structureDefinitions.byName[definitionId];
@@ -42,7 +43,6 @@ export const getStructureDefinition = async (definitionId: string): Promise<any>
 };
 
 const createPackageIndexFile = (packagePath: string) => {
-  const logger = getLogger();
   try {
     const fileList = fs.readdirSync(path.join(packagePath, 'package'));
     const files = fileList.flatMap((file: string) => {
@@ -72,16 +72,20 @@ const createPackageIndexFile = (packagePath: string) => {
 };
 
 export const loadPackage = async (fhirPackage: string | string[]) => {
-  const logger = getLogger();
-  return await fpl(fhirPackage, {
-    log: (level: string, message: string) => {
-      if (level === 'error') {
-        logger.error(message);
-      } else {
-        logger.info({ level, message });
+  try {
+    return await fpl(fhirPackage, {
+      log: (level: string, message: string) => {
+        if (level === 'error') {
+          logger.error(message);
+        } else {
+          logger.info({ level, message });
+        }
       }
-    }
-  });
+    });
+  } catch (e) {
+    logger.error(e);
+    return null;
+  }
 };
 
 const buildFhirCacheIndex = async () => {
