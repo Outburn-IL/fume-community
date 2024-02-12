@@ -16,6 +16,7 @@ export interface IConfig {
   FHIR_VERSION: string
   SEARCH_BUNDLE_PAGE_SIZE: number
   FHIR_PACKAGES: string
+  EXCLUDE_FHIR_PACKAGES: string
 }
 
 export const configSchema = z.object({
@@ -25,7 +26,8 @@ export const configSchema = z.object({
   FHIR_SERVER_TIMEOUT: z.preprocess((a) => typeof a === 'string' ? parseInt(a) : a, z.number().int('Must be an integer').positive('Must be positive').default(30000)),
   FHIR_VERSION: z.string().min(1).default('4.0.1'),
   SEARCH_BUNDLE_PAGE_SIZE: z.preprocess((a) => typeof a === 'string' ? parseInt(a) : a, z.number().int('Must be an integer').positive('Must be positive').default(20)),
-  FHIR_PACKAGES: z.string().default('')
+  FHIR_PACKAGES: z.string().default(''),
+  EXCLUDE_FHIR_PACKAGES: z.string().default('')
 });
 
 export const config: IConfig = configSchema.parse(process.env);

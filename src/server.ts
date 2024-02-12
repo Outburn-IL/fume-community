@@ -35,31 +35,30 @@ export class FumeServer implements IFumeServer {
 
   public async warmUp (serverOptions: IConfig | undefined = undefined): Promise<void> {
     const options = serverOptions ?? defaultConfig;
-    const { SERVER_PORT, FHIR_SERVER_BASE, FHIR_VERSION, FHIR_PACKAGES, SEARCH_BUNDLE_PAGE_SIZE, FHIR_SERVER_TIMEOUT, SERVER_STATELESS } = options;
+    const { SERVER_PORT, FHIR_SERVER_BASE, FHIR_VERSION, EXCLUDE_FHIR_PACKAGES, FHIR_PACKAGES, SEARCH_BUNDLE_PAGE_SIZE, FHIR_SERVER_TIMEOUT, SERVER_STATELESS } = options;
 
     const logger = getLogger();
 
     logger.info(options);
     logger.info('FUME initializing...');
 
-    // override default fhir version if provided
     config.setFhirVersion(FHIR_VERSION);
 
-    logger.info(`Default FHIR version is set to ${config.getFhirVersion()}`);
+    logger.info(`Default FHIR version is set to ${FHIR_VERSION}`);
     // translate fhir version to package id
-    const fhirVersionCorePackageId = fhirCorePackages[config.getFhirVersion()];
+    const fhirVersionCorePackageId = fhirCorePackages[FHIR_VERSION];
     // load package or throw error
-    if (fhirVersionCorePackageId !== undefined && fhirVersionCorePackageId !== null) {
+    if (fhirVersionCorePackageId) {
       const loadRes = await conformance.loadPackage(fhirVersionCorePackageId);
-      if (loadRes?.errors?.length > 0) {
-        throw new Error(`Errors loading package for FHIR version ${config.getFhirVersion()}: ${loadRes.errors.join(', ')}`);
+      if (loadRes && loadRes?.errors?.length > 0) {
+        throw new Error(`Errors loading package for FHIR version ${FHIR_VERSION}: ${loadRes.errors.join(', ')}`);
       }
     } else {
-      throw new Error(`FHIR version ${config.getFhirVersion()} is unsupported/invalid!`);
+      throw new Error(`FHIR version ${FHIR_VERSION} is unsupported/invalid!`);
     };
     // load additional packages, if defined
     if (FHIR_PACKAGES !== '') {
-      await conformance.loadPackage(FHIR_PACKAGES);
+      await conformance.loadPackages(FHIR_PACKAGES.split(','), FHIR_PACKAGES.split(','), EXCLUDE_FHIR_PACKAGES.split(','));
     };
 
     // load index of all packages found in global fhir cache (on disk)
@@ -74,16 +73,16 @@ export class FumeServer implements IFumeServer {
       config.setSearchBundleSize(SEARCH_BUNDLE_PAGE_SIZE);
 
       config.setFhirServerTimeout(FHIR_SERVER_TIMEOUT);
-      logger.info({ fhirServerTimeout: config.getFhirServerTimeout() });
+      logger.info({ fhirServerTimeout: FHIR_SERVER_TIMEOUT });
 
-      logger.info(`Loading FUME resources from FHIR server ${config.getFhirServerBase()} into cache...`);
+      logger.info(`Loading FUME resources from FHIR server ${FHIR_SERVER_BASE} into cache...`);
       client.init();
       conformance.recacheFromServer().then(_result => {
         logger.info('Successfully loaded cache');
       }).catch(_notFound => {
         logger.info('Error loading cache');
       });
-    }
+    };
 
     this.server = this.app.listen(SERVER_PORT);
     logger.info(`FUME server is running on port ${SERVER_PORT}`);
