@@ -238,14 +238,11 @@ export const loadFhirCacheIndex = async () => {
 };
 
 const getTable = async (tableId: string) => {
-  if (config.isStatelessMode()) {
-    throw new Error('FUME running in stateless mode. Cannot perform $registerTable()');
-  };
   if (tableId === undefined || tableId.trim() === '') {
     // exit if no id provided
     throw new Error('First argument to function getTable must be a table id, url or name');
   };
-  const err = new Error(`Failed to fetch ConceptMap whose id, url or name is: '${tableId}'`);
+  const err = `Failed to fetch ConceptMap whose id, url or name is: '${tableId}'`;
   let response;
   try {
     // try to fetch by id
@@ -260,11 +257,13 @@ const getTable = async (tableId: string) => {
         response = await search('ConceptMap', { name: tableId });
         if (typeof response === 'object' && typeof response.total === 'number' && response.total !== 1) {
           // coudn't find
-          throw err;
+          logger.error(err);
+          throw new Error(err);
         }
       }
     } catch {
-      throw err;
+      logger.error(err);
+      throw new Error(err);
     }
   };
   const table = await expressions.conceptMapToTable.evaluate(response);
