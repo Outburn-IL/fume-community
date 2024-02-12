@@ -127,6 +127,10 @@ const compiledExpression = async (expression: string): Promise<jsonata.Expressio
   return compiled;
 };
 
+const registerTable = (tableId: string): string => {
+  return 'No need to register tables anymore. You may use $translate() with any ConceptMap that exists on your FHIR server. The $registerTable function has been depricated.';
+};
+
 const transform = async (input, expression: string) => {
   // fork: os
   try {
@@ -161,6 +165,7 @@ const transform = async (input, expression: string) => {
     bindings.startsWith = stringFuncs.startsWith;
     bindings.endsWith = stringFuncs.endsWith;
     bindings.uuid = stringFuncs.uuid;
+    bindings.registerTable = registerTable;
     bindings.translateCode = fhirFuncs.translateCode;
     bindings.translate = fhirFuncs.translateCode;
     bindings.translateCoding = fhirFuncs.translateCoding;
