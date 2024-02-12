@@ -9,8 +9,6 @@ import cache from './cache';
 import thrower from './thrower';
 import * as stringFuncs from './stringFunctions';
 import fhirFuncs from './fhirFunctions';
-import { search as fhirSearch } from './client';
-
 import jsonata from 'jsonata';
 import { getLogger } from './logger';
 import compiler from './parser';
@@ -22,58 +20,6 @@ import * as v2 from './hl7v2';
 import * as objectFuncs from './objectFunctions';
 
 const logger = getLogger();
-
-const flashTemplate = async (fhirType: string) => {
-  // fork: ent.
-  /* compile has to run twice! don't touch this until you solve it! */
-  await compileComplex(fhirType, false, false);
-  await compileComplex(fhirType, false, false);
-
-  return await jsonata(`(
-    $instanceOf := '${fhirType}';
-    
-    $not($exists($compiled.compiled)) or $compiled.compiled = false ? $error('Definition of ' & $instanceOf & ' is not compiled!');
-
-    /*$ids := $compiled.elements.id;*/
-    /*$sortedIds := $ids@$base[$count($split($,'.'))=2].([$base,$ids[$startsWith($, $base & '.')]]);*/
-    /*$sortedElements := $sortedIds@$sid.($compiled.elements[id=$sid]);*/
-    /* sort has been moved to snapshot generation, so it is skipped here */
-    $compiledSorted := $compiled;
-
-    $fshArray := (
-      $compiledSorted.elements[
-        $not(id=%.fhirType & '.id') 
-        and $not($contains(id,'[x]'))
-      ].{
-        'id':id,
-        'primitive':primitive,
-        'fhirType':fhirType,
-        'short':short
-      }
-    ){id: $[-1]}.$spread().(
-      $id := $keys($)[0];
-      $obj := $lookup($, $id);
-      $route := $split($id,'.');
-      $fshId := (
-        $contains($route[-1],':')?(
-          $slice := $split($route[-1], ':');
-          $slice[0]&'['&$slice[1]&']'
-        ):$route[-1]
-      );
-      $indent := $join($route#$i[$i>0 and $i<$count($route)-1].('  '));
-      $line := $indent & '* ' & $fshId & ($obj.primitive ? ' = undefined') & ' /* <' & $obj.fhirType & '> ' & $obj.short & ' */';
-    );
-    $fshArray := $append(['Instance: undefined /* Logical id of this artifact */', 'InstanceOf: ' & $instanceOf], $fshArray);
-    $join($fshArray, '\r\n')
-  )`).evaluate({}, { compiled: cache.compiledDefinitions[fhirType], startsWith: stringFuncs.startsWith });
-};
-
-const getMappingListExpr = jsonata('$keys($mappingCacheCompiled).{"id": $}');
-
-const getMappingList = async () => {
-  const res = getMappingListExpr.evaluate({}, { mappingCacheCompiled: cache.compiledMappings });
-  return await res;
-};
 
 // TODO: get from app instance
 const fhirVersionMinor = fhirFuncs.fhirVersionToMinor(config.FHIR_VERSION);
@@ -106,45 +52,7 @@ export const getStructureDefinition = (definitionId: string): any => {
     // logger.info(`Definition loaded: ${path}`);
     return fullDef;
   } catch (e) {
-    return thrower.throwParseError(`A Problem occured while getting the structure definition of ${definitionId}. The error is: ${e}`);
-  }
-};
-
-const registerTable = async (conceptMapId: string) => {
-  // fork: ent.
-  const bundle = await fhirSearch('ConceptMap?_id=' + conceptMapId);
-  const conceptMapBundleToCacheExpr = `(
-    $cm := entry.resource[0][];
-  
-    $merge(
-      $cm#$i.id.{
-        $: $merge(
-          $distinct($cm[$i].group.element.code).(
-            $code := $;
-            {
-              $code: $cm[$i].group.element[code=$code].target[
-                equivalence='equivalent' 
-                or equivalence='equal' 
-                or equivalence='wider' 
-                or equivalence='subsumes'
-                or equivalence='relatedto'
-              ].code.{
-                "code": $, 
-                "source": %.%.%.source, 
-                "target": %.%.%.target
-              }[]
-            }
-          )
-        )
-      }
-    )
-  )`;
-  const toMerge = await jsonata(conceptMapBundleToCacheExpr).evaluate(bundle);
-  cache.tables[conceptMapId] = toMerge[conceptMapId];
-  if (cache.tables[conceptMapId] === undefined) {
-    return 'Failed to register ConceptMap with id: "' + conceptMapId + '"';
-  } else {
-    return 'ConceptMap with id "' + conceptMapId + '" has been registered successfully';
+    return thrower.throwParseError(`A Problem occured while getting the structure definition of '${definitionId}'. The error is: ${e}`);
   }
 };
 
@@ -244,13 +152,11 @@ const transform = async (input, expression: string) => {
     bindings.__flashMerge = runtime.flashMerge;
     bindings.reference = fhirFuncs.reference;
     bindings.resourceId = fhirFuncs.resourceId;
-    bindings.registerTable = registerTable;
     bindings.initCap = stringFuncs.initCap;
     bindings.isEmpty = isEmpty;
     bindings.matches = stringFuncs.matches;
     bindings.stringify = JSON.stringify;
     bindings.selectKeys = objectFuncs.selectKeys;
-    bindings.getMappingList = getMappingList;
     bindings.omitKeys = objectFuncs.omitKeys;
     bindings.startsWith = stringFuncs.startsWith;
     bindings.endsWith = stringFuncs.endsWith;
@@ -302,195 +208,6 @@ const mappingToJsFunction = (mapping) => {
     const res = await transform(input, mapping);
     return res;
   };
-};
-
-const compileComplex = async (typeId: string, reCompileHCR: boolean, reCompileResource: boolean) => {
-  // fork: ent.
-  /* compile a complex type definition */
-  // NOTES:
-  // 1. This is an iterative process! should run until all dependent types are compiled
-  // 2. When the type is fully compiled, the compiled version will be returned
-  // TODO: Special handling is needed for polymorphic elements
-
-  // This flag is for Handling Circual References (Identifier & Reference in R4)
-
-  const HCR = reCompileHCR ? 'HCR' : '';
-
-  let status: boolean;
-  const definition = await compiler.getSnapshot(typeId);
-
-  if (!definition) {
-    status = false;
-    logger.error(`Couldn't find definition for '${typeId}' in R4 files...`);
-  } else {
-    const iterationExpression = `(
-        /************** < Handling circular references (HCR) > **************/
-        /* This is a tricky issue. Identifier.assigner is a Reference*/ 
-        /* and Reference.identifier is, well... an Identifier...*/ 
-        /* we solve it this way:*/ 
-        /*1. In first iteration, identifier is compiled without assigner */ 
-        /*2. In second interation, we re-compile identifier with the assigner*/  
-        /**** The implementation is spread accross the project, marked with 'HCR'*/
-    
-    /* try to fetch the compiled version of this definition */
-    $compiledFromCache := $lookup($compiledDefinitions, $def.id); 
-
-    /* check if definition is fully compiled already */
-    $alreadyCompiled := $exists($compiledFromCache.compiled) and $compiledFromCache.compiled=true;
-
-    /* if not fully compiled, do a compile iteration */  
-    $alreadyCompiled=false ?
-    
-    (  
-      /* take snapshot element definitions */
-      $elements := $def.snapshot.element#$i[
-        $i>0 /* exclude the root element */
-        and ($exists(max)=false or max != '0') /* exclude removed elements */
-        and ( /* **HCR**: keep Identifier.assigner in 2nd iteration */
-          ('${HCR}'='HCR' and base.path='Identifier.assigner') 
-          or ($def.type = 'Extension' and base.path = 'Element.extension')
-          or $exists(base.path)=false or $not(
-            base.path in [ /* exclude those inherited from the basic element type */
-            'Element.id', 
-            'Element.extension',
-            'BackboneElement.modifierExtension',
-            "Resource.meta",
-            "Resource.implicitRules",
-            "Resource.language",
-            "DomainResource.text",
-            "DomainResource.contained",
-            "DomainResource.extension",
-            "DomainResource.modifierExtension",
-            "Identifier.assigner" /* **HCR**: skip Identifier.assigner in 1st iteration */
-            ]
-        )) 
-      ];
-
-      /* duplicate plymorphic elements by their specific types */
-      $elements := $elements.type#$typeIndex.%.(
-        $merge(
-          [
-            $,
-            {
-              "type": [
-                type[$typeIndex]
-              ]
-            }
-          ]
-        );
-      );
-      
-      /* actual element compilation */
-      $compiledElements := $elements@$element.(
-        $type:=(
-          /* set type by fhir-type extension, else by code */
-          $ext := $element.type.extension[
-            url='http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type'
-          ].valueUrl;
-          $ext ? $ext : $element.type.code
-        );
-        /* force resource logical id to be of type 'id' instead of string */
-        $element.base.path = 'Resource.id' ? $type := 'id';
-        /* try to fetch element type's compiled definition */
-        $compiledType := $lookup($compiledDefinitions, $type);
-        
-        $compiledFlag = $exists($compiledType.compiled) 
-        ? $compiledType.compiled 
-        : ($element.base.path = 'Element.extension' ? true : false);
-        
-        /* if type is compiled, create a compiled element definition */
-        $compiledType ? 
-            /* append type's children elements */
-            $append($merge([$compiledType, { "short": $element.short, "isTypeRoot": true }]),$compiledType.elements[$count($split(id, 'extension'))<2]).(
-              /* check if polymorphic */
-              $isPoly := $substring($element.id, $length($element.id)-3) ='[x]';
-              /* set id (basically - the path) according to current context */
-              $id := (
-                /* change element id if polymorphic type */
-                $isPoly ? $substringBefore($element.id,'[x]') & $uppercase($substring($compiledType.fhirType, 0, 1)) & $substring($compiledType.fhirType, 1)
-                : $element.id
-              ) & (
-                  $endOfId := $substringAfter(id,'.');
-                  $endOfId = id ? '' :
-                  '.' & $endOfId
-                );
-              $path := (
-                /* change element path if polymorphic type */
-                $isPoly ? $substringBefore($element.path,'[x]') & $uppercase($substring($compiledType.fhirType, 0, 1)) & $substring($compiledType.fhirType, 1)
-                : $element.path
-              ) & (
-                  $endOfPath := $substringAfter(path,'.');
-                  $endOfPath = path ? '' :
-                  '.' & $endOfPath
-                );
-              $targetProfile := (
-                isTypeRoot ? type.targetProfile : $element.type.targetProfile
-              );
-            
-              {
-                "id": $id,
-                "path": $path,
-                "short": short, /* root short from element, children from type */
-                "primitive": primitive, /* primitive from type */
-                "complex": complex, /* complex from type */
-                "fhirType": fhirType, /* fhirType from type */
-                "type": type, /* type from type */
-                "regex": regex, /* regex from type */
-                "compiled": compiled, /* compiled flag from type */
-                "mandatory": isTypeRoot = true 
-                    ? $element.min = 1 : min = 1, 
-                "array": isTypeRoot = true 
-                    ? $element.base.max != "1" : (base.max != "1" or array=true),
-                "removed": isTypeRoot = true 
-                    ? $element.max = "0" : max = "0",
-                "targetProfile": $targetProfile,
-                "fixed": {
-                  "type": $fixedTypeKey:=$keys($element)[$substring($, 0, 5)='fixed'],
-                  "value": $lookup($element, $fixedTypeKey)
-                } /* fixed from element */
-              }
-            )              
-          
-          /* if type isn't compiled, leave element definition as-is, just add compiled=false */
-          : $merge([$element,{"compiled": false}])
-      );
-
-      /* check if all elements have been compiled */
-      $allCompiled := $count($compiledElements[$exists(compiled)=false or compiled=false]) = 0 
-        ? true 
-        : ($compiledElements[compiled=false].id='Extension.extension'?true:false);
-
-      /* full result structure */
-      {
-        "id": $def.id,
-        "url": $def.url,
-        "name": $def.name,
-        "short": $def.snapshot.element[0].short, /* take short from root element */
-        "primitive": $def.kind='primitive-type',
-        "complex": $def.kind='complex-type',
-        "resource": $def.kind='resource',
-        "isProfile": $def.type != $def.id,
-        "fhirType": $def.type,
-        "derivation": $def.derivation,
-        "basedOn": $def.baseDefinition,
-        "compiled": $allCompiled,
-        "elements": $compiledElements
-      };
-    ) 
-    /* if it was fully compiled from the beginning, return it as-is */
-    : $compiledFromCache;
-  )`;
-    const result = await jsonata(iterationExpression).evaluate({}, { def: definition, compiledDefinitions: cache.compiledDefinitions });
-    if (result.compiled) {
-      logger.info(`Definition for complex type '${typeId}' compiled successfully`);
-    }
-    cache.compiledDefinitions[typeId] = result;
-    status = result.compiled;
-    if ((!status) && definition.kind === 'resource' && !reCompileResource) {
-      status = await compileComplex(typeId, false, true);
-    }
-  }
-  return status;
 };
 
 const cacheMapping = (mappingId: string, mappingExpr: string) => {
@@ -582,7 +299,6 @@ export const pretty = async (expression: string): Promise<string> => {
 
 export default {
   transform,
-  flashTemplate,
   mappingToJsFunction,
   cacheMapping,
   getStructureDefinition,

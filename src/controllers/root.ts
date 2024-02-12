@@ -43,15 +43,6 @@ const evaluate = async (req, res) => {
     };
 
     const response = await jsonataFuncs.transform(inputJson, req.body.fume);
-    if (typeof response === 'undefined' || response === null) {
-      console.warn('Evaluation result is empty');
-      console.log({
-        contentType: req.body.contentType,
-        fumeExpression: req.body.fume,
-        inputJson,
-        httpRequestObject: req
-      });
-    }
     return res.status(200).json(response);
   } catch (error: any) {
     const data = {
@@ -76,7 +67,7 @@ const recache = async (req, res) => {
       const response = {
         message: 'The following Tables & Mappings were loaded to cache',
         tables: cache.tables,
-        mappings: cache.mappings
+        mappings: cache.compiledMappings.keys()
       };
       return res.status(200).json(response);
     } else {
