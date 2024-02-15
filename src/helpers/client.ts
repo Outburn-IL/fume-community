@@ -10,28 +10,26 @@ import axios, { AxiosInstance } from 'axios';
 const logger = getLogger();
 
 let contentType: string;
-
 let fhirServer: AxiosInstance;
+
+const serverConfig = config.getServerConfig();
+const isStateless: boolean = serverConfig.SERVER_STATELESS;
 
 const init = (): void => {
   contentType = `application/fhir+json;fhirVersion=${config.getFhirVersionWithoutPatch()}`;
-  if (config.getFhirServerBase() === undefined || (typeof config.getFhirServerBase() === 'string' && config.getFhirServerBase() === '')) {
-    isStateless = true;
-  } else {
+  if (!isStateless) {
     const server = axios.create({
-      baseURL: config.getFhirServerBase(),
-      timeout: config.getFhirServerTimeout(),
+      baseURL: serverConfig.FHIR_SERVER_BASE,
+      timeout: serverConfig.FHIR_SERVER_TIMEOUT,
       headers: {
         'Content-Type': contentType,
         Accept: contentType
       }
     });
-    logger.info(`Using FHIR server: ${config.getFhirServerBase()}`);
+    logger.info(`Using FHIR server: ${serverConfig.FHIR_SERVER_BASE}`);
     fhirServer = server;
   }
 };
-
-let isStateless: boolean;
 
 export const read = async (url: string) => {
   if (isStateless) {
@@ -49,8 +47,8 @@ export const search = async (query: string, params?: object) => {
     return undefined;
   };
 
-  let queryConfigParams = { _count: config.getSearchBundleSize() };
-  logger.info(`Performing search, page size: ${config.getSearchBundleSize()}`);
+  let queryConfigParams = { _count: serverConfig.SEARCH_BUNDLE_PAGE_SIZE };
+  logger.info(`Performing search, page size: ${serverConfig.SEARCH_BUNDLE_PAGE_SIZE}`);
   if (params) {
     queryConfigParams = { ...queryConfigParams, ...params };
   };
