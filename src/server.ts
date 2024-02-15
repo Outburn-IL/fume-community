@@ -1,6 +1,6 @@
 import express, { RequestHandler } from 'express';
 import cors from 'cors';
-import defaultConfig, { IConfig } from './serverConfig';
+import defaultConfig from './serverConfig';
 import { fhirCorePackages } from './constants';
 import config from './config';
 import routes from './routes';
@@ -9,7 +9,7 @@ import conformance from './helpers/conformance';
 import client from './helpers/client';
 
 import type { Server } from 'http';
-import type { IFumeServer, ILogger, ICache } from './types';
+import type { IFumeServer, ILogger, ICache, IConfig } from './types';
 
 export class FumeServer implements IFumeServer {
   private readonly app: express.Application;
