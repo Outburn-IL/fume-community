@@ -7,7 +7,6 @@ import { translateCoding } from './translateCoding';
 import { translateCode } from './translateCode';
 import { fhirVersionToMinor } from './fhirVersionToMinor';
 import { reference } from './reference';
-import { registerTable } from './registerTable';
 
 export default {
   literal,
@@ -18,6 +17,5 @@ export default {
   translateCoding,
   translateCode,
   fhirVersionToMinor,
-  reference,
-  registerTable
+  reference
 };
