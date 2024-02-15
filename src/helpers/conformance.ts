@@ -22,6 +22,7 @@ import axios from 'axios';
 import _ from 'lodash';
 
 const logger = getLogger();
+const serverConfig = config.getServerConfig();
 
 export const getStructureDefinition = async (definitionId: string): Promise<any> => {
   const indexed = cache.fhirCacheIndex[config.getFhirVersionWithoutPatch()].structureDefinitions.byId[definitionId] ??
@@ -271,7 +272,7 @@ const getTable = async (tableId: string) => {
 };
 
 const getAllMappings = async () => {
-  if (config.isStatelessMode()) {
+  if (serverConfig.SERVER_STATELESS) {
     logger.error('FUME running in stateless mode. Cannot fetch mappings from server.');
     return undefined;
   };
@@ -284,7 +285,7 @@ const getAllMappings = async () => {
 };
 
 const getAliasResource = async () => {
-  if (config.isStatelessMode()) {
+  if (serverConfig.SERVER_STATELESS) {
     logger.error('FUME running in stateless mode. Cannot fetch aliases from server.');
     return undefined;
   };
@@ -309,7 +310,7 @@ const getAliasResource = async () => {
 };
 
 const getAliases = async (createFunc?: Function) => {
-  if (config.isStatelessMode()) {
+  if (serverConfig.SERVER_STATELESS) {
     logger.error('FUME running in stateless mode. Cannot fetch mappings from server.');
     return undefined;
   };
@@ -330,7 +331,7 @@ const getAliases = async (createFunc?: Function) => {
 };
 
 const getNextBundle = async (bundle) => {
-  if (config.isStatelessMode()) {
+  if (serverConfig.SERVER_STATELESS) {
     throw new Error('FUME running in stateless mode. Cannot get next page of search results budle.');
   };
   let nextBundle;
@@ -342,7 +343,7 @@ const getNextBundle = async (bundle) => {
 };
 
 const fullSearch = async (query, params) => {
-  if (config.isStatelessMode()) {
+  if (serverConfig.SERVER_STATELESS) {
     throw new Error('FUME running in stateless mode. Cannot perform search.');
   };
   const bundleArray: any[] = [];
@@ -373,7 +374,7 @@ export const cacheMapping = (mappingId: string, mappingExpr: string) => {
 
 export const recacheFromServer = async (): Promise<boolean> => {
   // load tables, aliases and mappings
-  if (config.isStatelessMode()) {
+  if (serverConfig.SERVER_STATELESS) {
     logger.error('FUME running in stateless mode. Cannot recache from server.');
     return false;
   };
