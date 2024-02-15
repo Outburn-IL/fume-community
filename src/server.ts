@@ -11,6 +11,8 @@ import client from './helpers/client';
 import type { Server } from 'http';
 import type { IFumeServer, ILogger, ICache, IConfig } from './types';
 
+const logger = getLogger();
+
 export class FumeServer implements IFumeServer {
   private readonly app: express.Application;
   private server: Server | undefined;
@@ -34,15 +36,12 @@ export class FumeServer implements IFumeServer {
   }
 
   public async warmUp (serverOptions: IConfig | undefined = undefined): Promise<void> {
-    const options = serverOptions ?? defaultConfig;
-    const { SERVER_PORT, FHIR_SERVER_BASE, FHIR_VERSION, EXCLUDE_FHIR_PACKAGES, FHIR_PACKAGES, SEARCH_BUNDLE_PAGE_SIZE, FHIR_SERVER_TIMEOUT, SERVER_STATELESS } = options;
-
-    const logger = getLogger();
-
-    logger.info(options);
+    const options: IConfig = serverOptions ?? defaultConfig;
     logger.info('FUME initializing...');
-
-    config.setFhirVersion(FHIR_VERSION);
+    config.setServerConfig(options);
+    const serverConfig: IConfig = config.getServerConfig();
+    const { SERVER_PORT, FHIR_SERVER_BASE, FHIR_VERSION, EXCLUDE_FHIR_PACKAGES, FHIR_PACKAGES, SEARCH_BUNDLE_PAGE_SIZE, FHIR_SERVER_TIMEOUT, SERVER_STATELESS } = serverConfig;
+    logger.info(serverConfig);
 
     logger.info(`Default FHIR version is set to ${FHIR_VERSION}`);
     // translate fhir version to package id
@@ -57,24 +56,18 @@ export class FumeServer implements IFumeServer {
       throw new Error(`FHIR version ${FHIR_VERSION} is unsupported/invalid!`);
     };
     // load additional packages, if defined
-    if (FHIR_PACKAGES !== '') {
+    if (FHIR_PACKAGES.trim() !== '') {
       await conformance.loadPackages(FHIR_PACKAGES.split(','), FHIR_PACKAGES.split(','), EXCLUDE_FHIR_PACKAGES.split(','));
     };
 
     // load index of all packages found in global fhir cache (on disk)
     await conformance.loadFhirCacheIndex();
     // if fhir server defined, load mappings and aliases from it
-    if (SERVER_STATELESS || FHIR_SERVER_BASE === '') {
+    if (SERVER_STATELESS) {
       logger.info('Running in stateless mode');
-      config.setFhirServerBase('');
     } else {
-      config.setFhirServerBase(FHIR_SERVER_BASE);
-      logger.info(`Setting bundle search size: ${SEARCH_BUNDLE_PAGE_SIZE}`);
-      config.setSearchBundleSize(SEARCH_BUNDLE_PAGE_SIZE);
-
-      config.setFhirServerTimeout(FHIR_SERVER_TIMEOUT);
-      logger.info({ fhirServerTimeout: FHIR_SERVER_TIMEOUT });
-
+      logger.info(`Bundle search size: ${SEARCH_BUNDLE_PAGE_SIZE}`);
+      logger.info(`FHIR Server Timeout: ${FHIR_SERVER_TIMEOUT}`);
       logger.info(`Loading FUME resources from FHIR server ${FHIR_SERVER_BASE} into cache...`);
       client.init();
       conformance.recacheFromServer().then(_result => {
@@ -126,6 +119,6 @@ export class FumeServer implements IFumeServer {
      * @param binding
      */
   public registerBinding (key: string, binding: any) {
-    config.setBinding(key, binding);
+    config.setBindings(key, binding);
   }
 }
