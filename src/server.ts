@@ -84,7 +84,7 @@ export class FumeServer implements IFumeServer {
   /**
      * @returns express application
      */
-  public getApp () {
+  public getExpressApp () {
     return this.app;
   }
 

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "FHIR-Utilized Mapping Engine - Community",
   "main": "dist/src/index.js",
-  "types": "index.d.ts",
+  "types": "dist/src/index.d.ts",
   "scripts": {
     "build": "tsc -b",
     "lint": "eslint src",
