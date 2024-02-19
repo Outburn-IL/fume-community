@@ -5,7 +5,7 @@
  *   Project name: FUME
  */
 
-import cache from './cache';
+import { getCache } from './cache/cache';
 import thrower from './thrower';
 import * as stringFuncs from './stringFunctions';
 import fhirFuncs from './fhirFunctions';
@@ -26,9 +26,11 @@ const fhirVersionMinor = fhirFuncs.fhirVersionToMinor(config.FHIR_VERSION);
 
 const getStructureDefinitionPath = (definitionId: string): any => {
   // fork: os
-  const indexed = cache.fhirCacheIndex[fhirVersionMinor].structureDefinitions.byId[definitionId] ?? 
-    cache.fhirCacheIndex[fhirVersionMinor].structureDefinitions.byUrl[definitionId] ?? 
-    cache.fhirCacheIndex[fhirVersionMinor].structureDefinitions.byName[definitionId];
+  const fhirPackageIndex = conformance.getFhirPackageIndex();
+  const cached = fhirPackageIndex[fhirVersionMinor];
+  const indexed = cached.structureDefinitions.byId[definitionId] ?? 
+    cached.structureDefinitions.byUrl[definitionId] ?? 
+    cached.structureDefinitions.byName[definitionId];
 
   if (!indexed) { // if not indexed, throw warning and return nothing
     const msg = 'Definition "' + definitionId + '" not found!';
@@ -114,15 +116,16 @@ const isEmpty = async (value) => {
 };
 
 const compiledExpression = async (expression: string): Promise<jsonata.Expression> => {
+  const { compiledExpressions } = getCache();
   // takes a fume expression string and compiles it into a jsonata expression
   // or returns the already compiled expression from cache
   const key = stringFuncs.hashKey(expression); // turn expression string to a key
-  let compiled: any = cache.compiledExpressions.get(key); // get from cache
+  let compiled: any = compiledExpressions.get(key); // get from cache
   if (compiled === undefined) { // not cached
     logger.info('expression not cached, compiling it...');
     const parsedAsJsonataStr = await compiler.toJsonataString(expression);
     compiled = jsonata(parsedAsJsonataStr!);
-    cache.compiledExpressions.set(key, compiled);
+    compiledExpressions.set(key, compiled);
   };
   return compiled;
 };
@@ -141,10 +144,11 @@ const transform = async (input, expression: string) => {
     let bindings: Record<string, Function | Record<string, any>> = {};
 
     // bind all mappings from cache
-    const mappingIds: any[] = Array.from(cache.compiledMappings.keys());
+    const { compiledMappings } = getCache();
+    const mappingIds: any[] = Array.from(compiledMappings.keys());
     if (mappingIds) {
       mappingIds.forEach((mappingId) => {
-        const mapping: any = cache.compiledMappings.get(mappingId);
+        const mapping: any = compiledMappings.get(mappingId);
         bindings[mappingId] = mapping?.function;
       });
     }
@@ -180,8 +184,9 @@ const transform = async (input, expression: string) => {
     bindings.v2json = v2.v2json;
     bindings.isNumeric = stringFuncs.isNumeric;
 
+    const { compiledDefinitions, aliases } = getCache();
     // these are debug functions, should be removed in production versions
-    bindings.fhirCacheIndex = cache.fhirCacheIndex;
+    bindings.fhirCacheIndex = conformance.getFhirPackageIndex();
     bindings.getSnapshot = compiler.getSnapshot;
     bindings.getStructureDefinition = getStructureDefinition;
     bindings.getTable = conformance.getTable;
@@ -189,7 +194,7 @@ const transform = async (input, expression: string) => {
     bindings.v2codeLookup = v2.v2codeLookup;
     bindings.v2tableUrl = v2.v2tableUrl;
     bindings.toJsonataString = compiler.toJsonataString;
-    bindings.compiledDefinitions = cache.compiledDefinitions;
+    bindings.compiledDefinitions = compiledDefinitions.getDict();
     bindings.getMandatoriesOfElement = compiler.getMandatoriesOfElement;
     bindings.getMandatoriesOfStructure = compiler.getMandatoriesOfStructure;
     bindings.getElementDefinition = compiler.getElementDefinition;
@@ -197,7 +202,10 @@ const transform = async (input, expression: string) => {
     // end of debug functions
 
     // bind all aliases from cache
-    bindings = { ...cache.aliases, ...bindings };
+    bindings = { 
+      aliases: aliases.getDict(), 
+      ...bindings 
+    };
 
     const res = await expr.evaluate(input, bindings);
     return res;
@@ -217,12 +225,13 @@ const mappingToJsFunction = (mapping) => {
 
 const cacheMapping = (mappingId: string, mappingExpr: string) => {
   // fork: os
+  const { compiledMappings } = getCache();
   const mappingFunc = mappingToJsFunction(mappingExpr);
   const cacheEntry = {
     expression: mappingExpr,
     function: mappingFunc
   };
-  cache.compiledMappings.set(mappingId, cacheEntry);
+  compiledMappings.set(mappingId, cacheEntry);
 };
 
 export const pretty = async (expression: string): Promise<string> => {

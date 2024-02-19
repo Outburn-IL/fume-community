@@ -1,10 +1,14 @@
 import { v2normalizeKey } from './v2normalizeKey';
 import { test } from '@jest/globals';
-import cache from '../cache';
+import { initCache, getCache } from '../cache';
+import { ICache } from '../../types';
 
 describe('v2normalizeKey', () => {
-  afterEach(() => {
-    cache.v2keyMap = {};
+  let v2keyMap: ICache<any>;
+
+  beforeEach(() => {
+    initCache();
+    v2keyMap = getCache().v2keyMap;
   });
 
   test('normalizes key', async () => {
@@ -14,11 +18,11 @@ describe('v2normalizeKey', () => {
 
   test('stores normalized key', async () => {
     await v2normalizeKey('hello');
-    expect(cache.v2keyMap.hello).toBe('Hello');
+    expect(v2keyMap.get("hello")).toBe('Hello');
   });
 
   test('returns from cache, if exists in cache.v2keyMap', async () => {
-    cache.v2keyMap.hello = 'Hello2';
+    v2keyMap.set('hello', 'Hello2');
     const res = await v2normalizeKey('hello');
     expect(res).toBe('Hello2');
   });

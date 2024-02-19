@@ -9,7 +9,7 @@ import {
 } from './client';
 import config from '../config';
 import expressions from './jsonataExpression';
-import cache from './cache';
+import { getCache } from './cache';
 import { omitKeys } from './objectFunctions';
 import { isNumeric } from './stringFunctions';
 import os from 'os';
@@ -23,11 +23,13 @@ import _ from 'lodash';
 
 const logger = getLogger();
 const serverConfig = config.getServerConfig();
+let fhirPackageIndex: Record<string, any> = {};
 
 export const getStructureDefinition = async (definitionId: string): Promise<any> => {
-  const indexed = cache.fhirCacheIndex[config.getFhirVersionWithoutPatch()].structureDefinitions.byId[definitionId] ??
-    cache.fhirCacheIndex[config.getFhirVersionWithoutPatch()].structureDefinitions.byUrl[definitionId] ??
-    cache.fhirCacheIndex[config.getFhirVersionWithoutPatch()].structureDefinitions.byName[definitionId];
+  const packageIndex = fhirPackageIndex[config.getFhirVersionWithoutPatch()];
+  const indexed = packageIndex.structureDefinitions.byId[definitionId] ??
+  packageIndex.structureDefinitions.byUrl[definitionId] ??
+  packageIndex.structureDefinitions.byName[definitionId];
 
   if (!indexed) { // if not indexed, throw warning and return nothing
     const msg = 'Definition "' + definitionId + '" not found!';
@@ -202,7 +204,7 @@ const buildFhirCacheIndex = async () => {
   return fixedIndex;
 };
 
-const getFhirCacheIndex = async () => {
+const parseFhirPackageIndex = async () => {
   const cachePath = path.join(os.homedir(), '.fhir');
   const fumeIndexPath = path.join(cachePath, 'fume.index.json');
   if (fs.existsSync(fumeIndexPath)) {
@@ -226,11 +228,11 @@ const getFhirCacheIndex = async () => {
   return fumeIndexFile;
 };
 
-export const loadFhirCacheIndex = async () => {
+export const loadFhirPackageIndex = async () => {
   try {
     logger.info('Trying to load global package index...');
-    const index = await getFhirCacheIndex();
-    cache.fhirCacheIndex = index;
+    const index = await parseFhirPackageIndex();
+    fhirPackageIndex = index;
     return true;
   } catch (e) {
     logger.error(e);
@@ -369,7 +371,7 @@ export const cacheMapping = (mappingId: string, mappingExpr: string) => {
     expression: mappingExpr,
     function: mappingFunc
   };
-  cache.compiledMappings.set(mappingId, cacheEntry);
+  getCache().compiledMappings.set(mappingId, cacheEntry);
 };
 
 export const recacheFromServer = async (): Promise<boolean> => {
@@ -379,9 +381,11 @@ export const recacheFromServer = async (): Promise<boolean> => {
     return false;
   };
   try {
-    cache.aliases = await getAliases();
-    if (cache.aliases !== undefined && Object.keys(cache.aliases).length > 0) {
-      logger.info(`Updated cache with aliases: ${Object.keys(cache.aliases).join(', ')}.`);
+    const { aliases } = getCache();
+    aliases.reset();
+    aliases.populate(await getAliases());
+    if (aliases.keys().length > 0) {
+      logger.info(`Updated cache with aliases: ${aliases.keys().join(', ')}.`);
     };
     const mappingObject = await getAllMappings();
     Object.keys(mappingObject).forEach((key: string) => {
@@ -398,12 +402,15 @@ export const recacheFromServer = async (): Promise<boolean> => {
   return true;
 };
 
+const getFhirPackageIndex = () => fhirPackageIndex;
+
 export default {
+  getFhirPackageIndex,
   getAllMappings,
   getStructureDefinition,
   getAliasResource,
   getTable,
-  loadFhirCacheIndex,
+  loadFhirPackageIndex,
   getAliases,
   loadPackage,
   loadPackages,

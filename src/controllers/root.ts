@@ -3,7 +3,7 @@
  *   Project name: FUME
  */
 
-import cache from '../helpers/cache';
+import { getCache } from '../helpers/cache';
 import conformance from '../helpers/conformance';
 import { v2json } from '../helpers/hl7v2';
 import { parseCsv } from '../helpers/stringFunctions';
@@ -64,10 +64,11 @@ const recache = async (req, res) => {
     const recacheSuccess = await conformance.recacheFromServer();
 
     if (recacheSuccess) {
+      const { tables, compiledMappings } = getCache();
       const response = {
         message: 'The following Tables & Mappings were loaded to cache',
-        tables: cache.tables,
-        mappings: cache.compiledMappings.keys()
+        tables: tables.getDict(),
+        mappings: compiledMappings.keys()
       };
       return res.status(200).json(response);
     } else {

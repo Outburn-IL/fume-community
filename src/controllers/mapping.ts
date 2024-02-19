@@ -3,7 +3,7 @@
  *   Project name: FUME
  */
 
-import cache from '../helpers/cache';
+import { getCache } from '../helpers/cache';
 import { v2json } from '../helpers/hl7v2';
 import { parseCsv } from '../helpers/stringFunctions';
 
@@ -12,7 +12,7 @@ const get = async (req, res) => {
     const mappingId: string = req.params.mappingId;
 
     // get mapping expression from cache
-    const mappingObj = cache.mappings[mappingId];
+    const mappingObj = getCache().mappings[mappingId];
     const mapping: string = mappingObj.expression;
 
     if (mapping) {
@@ -30,7 +30,7 @@ const get = async (req, res) => {
 const transform = async (req, res) => {
   try {
     const mappingId = req.params.mappingId;
-    const mappingFromCache = cache.mappings[mappingId];
+    const mappingFromCache = getCache().mappings[mappingId];
     const contentType = req.get('Content-Type');
     let inputJson;
 

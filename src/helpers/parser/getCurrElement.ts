@@ -6,7 +6,7 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 
 import _ from 'lodash';
-import cache from '../cache';
+import { getCache } from '../cache';
 import { initCapOnce, replaceColonsWithBrackets } from '../stringFunctions';
 import { returnPathWithoutX } from './returnPathWithoutX';
 
@@ -37,8 +37,10 @@ const generateNodeIdOptions = (element: any) => {
  * 5 - A slice entry: nodeName[sliceName] = nodeName:sliceName
  **/
 export const getCurrElement = (currTypeStructureDefinition, currPath, nodes, pathNodes, rootType) => {
-  if (cache.elementDefinition.get(rootType + '-' + currPath)) {
-    return cache.elementDefinition.get(rootType + '-' + currPath);
+  const { elementDefinition } = getCache();
+  const cachedElementDefinition = elementDefinition.get(rootType + '-' + currPath);
+  if (cachedElementDefinition) {
+    return cachedElementDefinition;
   } else {
     const element = currTypeStructureDefinition.snapshot.element.find(e => {
       return ((e.id === currTypeStructureDefinition?.type + '.' + currPath) ||

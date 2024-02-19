@@ -1,7 +1,7 @@
 import { translateCode } from './translateCode';
 import { test } from '@jest/globals';
 import conformance from '../conformance';
-import cache from '../cache';
+import { initCache } from '../cache';
 
 jest.mock('../logger', () => ({
   getLogger: jest.fn().mockReturnValue({
@@ -14,12 +14,12 @@ describe('translateCode', () => {
   let mockGetTable;
 
   beforeEach(() => {
+    initCache();
     mockGetTable = jest.spyOn(conformance, 'getTable');
     mockGetTable.mockResolvedValue({ tableId: { input: [{ code: 1 }] } });
   });
 
   afterEach(() => {
-    cache.tables = {};
     mockGetTable.mockRestore();
   });
 

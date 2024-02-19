@@ -1,5 +1,5 @@
 
-import cache from '../cache';
+import { getCache } from '../cache';
 import expressions from '../jsonataExpression';
 import { getLogger } from '../logger';
 
@@ -7,8 +7,9 @@ const logger = getLogger();
 
 export const translateCoding = async (input, tableId) => {
   // fork: os
+  const { tables } = getCache();
   try {
-    const map = cache.tables[tableId];
+    const map = tables.get(tableId);
     const mapFiltered = map[input];
     let result;
 

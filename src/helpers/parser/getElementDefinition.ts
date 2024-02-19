@@ -7,7 +7,7 @@
 
 import _ from 'lodash';
 import { getSnapshot } from './getSnapshot';
-import cache from '../cache';
+import { getCache } from '../cache';
 import thrower from '../thrower';
 import { returnPathWithoutX } from './returnPathWithoutX';
 import { initCapOnce, replaceColonsWithBrackets } from '../stringFunctions';
@@ -22,6 +22,7 @@ export const getElementDefinition = async (rootType: string, path: FshPathObject
   if (typeof path === 'string') {
     path = { originPath: path, newPath: path };
   }
+  const { elementDefinition } = getCache();
   // The current root type element determains the existing paths to look out path in.
   const currTypeStructureDefinition = await getSnapshot(rootType);
   // Creating a list of all the current path nodes.
@@ -35,8 +36,9 @@ export const getElementDefinition = async (rootType: string, path: FshPathObject
     let currElement;
 
     // First checking the definition cache
-    if (cache.elementDefinition.get(rootType + '-' + currPath)) {
-      currElement = cache.elementDefinition.get(rootType + '-' + currPath);
+    const cachedElementDefinition = elementDefinition.get(rootType + '-' + currPath);
+    if (cachedElementDefinition) {
+      currElement = cachedElementDefinition;
     } else {
       // Checking if the current element path exists in the current sd
       currElement = getCurrElement(currTypeStructureDefinition, currPath, nodes, path.newPath.split('.'), rootType);
@@ -47,7 +49,7 @@ export const getElementDefinition = async (rootType: string, path: FshPathObject
           path.newPath = currElement.contentReference.split('.').slice(1).concat(path.newPath.split('.').slice(nodes)).join('.');
           return getElementDefinition(currElement.contentReference.split('.')[0].slice(1), path);
         } else {
-          cache.elementDefinition.set(rootType + '-' + currPath, currElement);
+          elementDefinition.set(rootType + '-' + currPath, currElement);
         }
       }
     }
@@ -77,8 +79,9 @@ export const getElementDefinition = async (rootType: string, path: FshPathObject
               currElement = _.cloneDeep(baseElem);
               currElement.type[0].profile = [baseElemSnapshot.url];
               currElement.id = currElement.id + ':' + currPath.split(currElement.id.split('.')[currElement.id.split('.').length - 1] + ':')[1];
-              cache.elementDefinition.set(rootType + '-' + currPath, currElement);
-              cache.elementDefinition.set(currTypeStructureDefinition.url + '-' + currPath, currElement);
+
+              elementDefinition.set(rootType + '-' + currPath, currElement);
+              elementDefinition.set(currTypeStructureDefinition.url + '-' + currPath, currElement);
             }
           } catch (e) {}
         }

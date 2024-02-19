@@ -9,13 +9,16 @@ import conformance from './helpers/conformance';
 import client from './helpers/client';
 
 import type { Server } from 'http';
-import type { IFumeServer, ILogger, ICache, IConfig } from './types';
+import type { IFumeServer, ILogger, IConfig, ICacheClass } from './types';
+import { getCache, initCache, SimpleCache } from './helpers/cache';
 
 const logger = getLogger();
 
 export class FumeServer implements IFumeServer {
   private readonly app: express.Application;
   private server: Server | undefined;
+  private cacheClass: ICacheClass = SimpleCache;
+  private cacheClassOptions: Record<string, any> = {};
 
   constructor () {
     this.app = express();
@@ -43,6 +46,10 @@ export class FumeServer implements IFumeServer {
     const { SERVER_PORT, FHIR_SERVER_BASE, FHIR_VERSION, EXCLUDE_FHIR_PACKAGES, FHIR_PACKAGES, SEARCH_BUNDLE_PAGE_SIZE, FHIR_SERVER_TIMEOUT, SERVER_STATELESS } = serverConfig;
     logger.info(serverConfig);
 
+    // initialize caches
+    initCache(this.cacheClass, this.cacheClassOptions);
+    logger.info('Caches initialized');
+
     logger.info(`Default FHIR version is set to ${FHIR_VERSION}`);
     // translate fhir version to package id
     const fhirVersionCorePackageId = fhirCorePackages[FHIR_VERSION];
@@ -61,7 +68,7 @@ export class FumeServer implements IFumeServer {
     };
 
     // load index of all packages found in global fhir cache (on disk)
-    await conformance.loadFhirCacheIndex();
+    await conformance.loadFhirPackageIndex();
     // if fhir server defined, load mappings and aliases from it
     if (SERVER_STATELESS) {
       logger.info('Running in stateless mode');
@@ -97,12 +104,23 @@ export class FumeServer implements IFumeServer {
   };
 
   /**
-     *
-     * @param cache
-     */
-  public registerCache (cache: ICache) {
-    throw new Error('Method not implemented.');
+   * Register a class to replace the default cache class
+   * Cache itself is initialized during warm up
+   * @param CacheClass 
+   * @param options 
+   */
+  public registerCacheClass (CacheClass: ICacheClass, options: Record<string, any>) {
+    this.cacheClass = CacheClass;
+    this.cacheClassOptions = options;
   };
+
+  /**
+   * 
+   * @returns cache
+   */
+  public getCache () {
+    return getCache();
+  }
 
   /**
      *

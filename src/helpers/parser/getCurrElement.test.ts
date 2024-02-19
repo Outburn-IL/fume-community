@@ -3,10 +3,15 @@
  *   Project name: FUME
  */
 
+import { initCache } from '../cache';
 import { getCurrElement } from './getCurrElement';
 import { test } from '@jest/globals';
 
 describe('getCurrElement', () => {
+  beforeEach(() => {
+    initCache();
+  });
+
   test('Returns undefined if type is empty', async () => {
     const currTypeStructureDefinition = {
       snapshot: {
