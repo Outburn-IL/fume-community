@@ -3,7 +3,7 @@
  *   Project name: FUME
  */
 
-import express from 'express';
+import express from "express";
 import config from '../config';
 
 const serverConfig = config.getServerConfig();
