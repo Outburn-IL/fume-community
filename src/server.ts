@@ -106,8 +106,8 @@ export class FumeServer implements IFumeServer {
   /**
    * Register a class to replace the default cache class
    * Cache itself is initialized during warm up
-   * @param CacheClass 
-   * @param options 
+   * @param CacheClass
+   * @param options
    */
   public registerCacheClass (CacheClass: ICacheClass, options: Record<string, any>) {
     this.cacheClass = CacheClass;
@@ -115,7 +115,7 @@ export class FumeServer implements IFumeServer {
   };
 
   /**
-   * 
+   *
    * @returns cache
    */
   public getCache () {

@@ -63,7 +63,7 @@ describe('SimpleCache', () => {
 
     const newCache = {
       key: 'apple',
-      key3: 'banana',
+      key3: 'banana'
     };
     cache.populate(newCache);
     const res = cache.getDict();

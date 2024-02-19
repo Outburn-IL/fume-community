@@ -18,7 +18,7 @@ describe('v2normalizeKey', () => {
 
   test('stores normalized key', async () => {
     await v2normalizeKey('hello');
-    expect(v2keyMap.get("hello")).toBe('Hello');
+    expect(v2keyMap.get('hello')).toBe('Hello');
   });
 
   test('returns from cache, if exists in cache.v2keyMap', async () => {
