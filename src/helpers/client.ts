@@ -13,6 +13,14 @@ let fhirServer: AxiosInstance;
 const serverConfig = config.getServerConfig();
 const isStateless: boolean = serverConfig.SERVER_STATELESS;
 
+const authHeader = (authType: string, username?: string, password?: string) => {
+  if (authType === 'BASIC' && username && password && username > '' && password > '') {
+    return `Basic ${btoa(username + ':' + password)}`;
+  } else {
+    return undefined;
+  }
+};
+
 const init = (): void => {
   contentType = `application/fhir+json;fhirVersion=${config.getFhirVersionWithoutPatch()}`;
   if (!isStateless) {
@@ -21,7 +29,8 @@ const init = (): void => {
       timeout: serverConfig.FHIR_SERVER_TIMEOUT,
       headers: {
         'Content-Type': contentType,
-        Accept: contentType
+        Accept: contentType,
+        Authorization: authHeader(serverConfig.FHIR_SERVER_AUTH_TYPE, serverConfig.FHIR_SERVER_UN, serverConfig.FHIR_SERVER_PW)
       }
     });
     getLogger().info(`Using FHIR server: ${serverConfig.FHIR_SERVER_BASE}`);
