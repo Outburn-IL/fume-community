@@ -8,8 +8,9 @@ import conformance from '../helpers/conformance';
 import { v2json } from '../helpers/hl7v2';
 import { parseCsv } from '../helpers/stringFunctions';
 import jsonataFuncs from '../helpers/jsonataFunctions';
+import type {Request, Response} from 'express';
 
-const get = async (req, res) => {
+const get = async (req: Request, res: Response) => {
   return res.status(200).json(
     {
       public_sandbox: 'https://try.fume.health',
@@ -23,7 +24,7 @@ const get = async (req, res) => {
     });
 };
 
-const evaluate = async (req, res) => {
+const evaluate = async (req: Request, res: Response) => {
   try {
     let inputJson;
     if (req.body.contentType === 'x-application/hl7-v2+er7') {
@@ -59,7 +60,7 @@ const evaluate = async (req, res) => {
   }
 };
 
-const recache = async (req, res) => {
+const recache = async (req: Request, res: Response) => {
   try {
     const recacheSuccess = await conformance.recacheFromServer();
 
