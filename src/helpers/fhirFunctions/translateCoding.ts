@@ -3,8 +3,6 @@ import { getCache } from '../cache';
 import expressions from '../jsonataExpression';
 import { getLogger } from '../logger';
 
-const logger = getLogger();
-
 export const translateCoding = async (input, tableId) => {
   // fork: os
   const { tables } = getCache();
@@ -24,7 +22,7 @@ export const translateCoding = async (input, tableId) => {
     const coding = await expressions.translateCodingExtract.evaluate({}, { result, input });
     return coding;
   } catch (error) {
-    logger.error({ error });
+    getLogger().error({ error });
     return undefined;
   }
 };

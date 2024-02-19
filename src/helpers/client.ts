@@ -7,8 +7,6 @@ import { getLogger } from './logger';
 import config from '../config';
 import axios, { AxiosInstance } from 'axios';
 
-const logger = getLogger();
-
 let contentType: string;
 let fhirServer: AxiosInstance;
 
@@ -26,14 +24,14 @@ const init = (): void => {
         Accept: contentType
       }
     });
-    logger.info(`Using FHIR server: ${serverConfig.FHIR_SERVER_BASE}`);
+    getLogger().info(`Using FHIR server: ${serverConfig.FHIR_SERVER_BASE}`);
     fhirServer = server;
   }
 };
 
 export const read = async (url: string) => {
   if (isStateless) {
-    logger.warn('Server is stateless, not reading the resource');
+    getLogger().warn('Server is stateless, not reading the resource');
     return undefined;
   }
 
@@ -43,12 +41,12 @@ export const read = async (url: string) => {
 
 export const search = async (query: string, params?: object) => {
   if (isStateless) {
-    logger.warn('Server is stateless, skipping search');
+    getLogger().warn('Server is stateless, skipping search');
     return undefined;
   };
 
   let queryConfigParams = { _count: serverConfig.SEARCH_BUNDLE_PAGE_SIZE };
-  logger.info(`Performing search, page size: ${serverConfig.SEARCH_BUNDLE_PAGE_SIZE}`);
+  getLogger().info(`Performing search, page size: ${serverConfig.SEARCH_BUNDLE_PAGE_SIZE}`);
   if (params) {
     queryConfigParams = { ...queryConfigParams, ...params };
   };
@@ -59,7 +57,7 @@ export const search = async (query: string, params?: object) => {
 
 export const create = async (resource: object, resourceType: string) => {
   if (isStateless) {
-    logger.info('Server is stateless, not posting resource');
+    getLogger().info('Server is stateless, not posting resource');
     return undefined;
   }
 
@@ -69,7 +67,7 @@ export const create = async (resource: object, resourceType: string) => {
 
 export const update = async (resourceType: string, resourceId: string, resource) => {
   if (isStateless) {
-    logger.warn('Server is stateless, not updating the resource');
+    getLogger().warn('Server is stateless, not updating the resource');
     return undefined;
   }
 
@@ -82,7 +80,7 @@ export const update = async (resourceType: string, resourceId: string, resource)
 
 export const simpleDelete = async (resourceType: string, resourceId: string) => {
   if (isStateless) {
-    logger.warn('Server is stateless, not deleting the resource');
+    getLogger().warn('Server is stateless, not deleting the resource');
     return undefined;
   }
 

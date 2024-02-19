@@ -12,8 +12,6 @@ import expressions from '../jsonataExpression';
 import { getLogger } from '../logger';
 import { getFhirPackageIndex } from './loadFhirPackageIndex';
 
-const logger = getLogger();
-
 export const getStructureDefinition = async (definitionId: string): Promise<any> => {
   const fhirPackageIndex = getFhirPackageIndex();
   const packageIndex = fhirPackageIndex[config.getFhirVersionWithoutPatch()];
@@ -23,11 +21,11 @@ export const getStructureDefinition = async (definitionId: string): Promise<any>
 
   if (!indexed) { // if not indexed, throw warning and return nothing
     const msg = 'Definition "' + definitionId + '" not found!';
-    logger.warn(msg);
+    getLogger().warn(msg);
     return undefined;
   } else if (Array.isArray(indexed)) {
     const error = new Error(`Found multiple definition with the same id "${definitionId}"!`);
-    logger.error(error);
+    getLogger().error(error);
     throw (error);
   } else {
     const path: string = indexed;
@@ -57,12 +55,12 @@ export const getTable = async (tableId: string) => {
         response = await search('ConceptMap', { name: tableId });
         if (typeof response === 'object' && typeof response.total === 'number' && response.total !== 1) {
           // coudn't find
-          logger.error(err);
+          getLogger().error(err);
           throw new Error(err);
         }
       }
     } catch {
-      logger.error(err);
+      getLogger().error(err);
       throw new Error(err);
     }
   };

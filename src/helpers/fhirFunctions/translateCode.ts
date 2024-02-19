@@ -4,15 +4,13 @@ import { getCache } from '../cache';
 import conformance from '../conformance';
 import { getLogger } from '../logger';
 
-const logger = getLogger();
-
 export const translateCode = async (input: string, tableId: string) => {
   const { tables } = getCache();
   // fork: os
   try {
     let map = tables.get(tableId);
     if (map === undefined) {
-      logger.info(`Table ${tableId} not cached, trying to fetch from server...`);
+      getLogger().info(`Table ${tableId} not cached, trying to fetch from server...`);
       map = (await conformance.getTable(tableId))[tableId];
       tables.set(tableId, map);
     };
@@ -29,7 +27,7 @@ export const translateCode = async (input: string, tableId: string) => {
     }
     return result;
   } catch (error) {
-    logger.error({ error });
+    getLogger().error({ error });
     return undefined;
   }
 };

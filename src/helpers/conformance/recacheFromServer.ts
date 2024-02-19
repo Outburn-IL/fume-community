@@ -6,7 +6,6 @@ import expressions from '../jsonataExpression';
 import jsonataFunctions from '../jsonataFunctions';
 import { getLogger } from '../logger';
 
-const logger = getLogger();
 const serverConfig = config.getServerConfig();
 
 const toFunction = (mapping: string) => {
@@ -53,32 +52,32 @@ const fullSearch = async (query, params) => {
 
 const getAliasResource = async () => {
   if (serverConfig.SERVER_STATELESS) {
-    logger.error('FUME running in stateless mode. Cannot fetch aliases from server.');
+    getLogger().error('FUME running in stateless mode. Cannot fetch aliases from server.');
     return undefined;
   };
   let resource;
   const aliasResourceSearch = await search('ConceptMap', { context: 'http://codes.fume.health|fume', name: 'FumeAliases' });
   if (typeof aliasResourceSearch === 'object' && aliasResourceSearch.resourceType === 'Bundle' && typeof aliasResourceSearch.total === 'number') {
     if (aliasResourceSearch.total === 1) {
-      logger.info(`Alias resource found: ${aliasResourceSearch.entry[0].fullUrl as string}`);
+      getLogger().info(`Alias resource found: ${aliasResourceSearch.entry[0].fullUrl as string}`);
       resource = aliasResourceSearch.entry[0].resource;
     } else {
       if (aliasResourceSearch.total === 0) {
-        logger.info('Alias resource not found');
+        getLogger().info('Alias resource not found');
         resource = {};
       } else {
-        logger.error('Multiple alias resources found on server!');
+        getLogger().error('Multiple alias resources found on server!');
       }
     }
   } else {
-    logger.error('Error fetching alias resource!');
+    getLogger().error('Error fetching alias resource!');
   };
   return resource;
 };
 
 const getAliases = async (createFunc?: Function) => {
   if (serverConfig.SERVER_STATELESS) {
-    logger.error('FUME running in stateless mode. Cannot fetch mappings from server.');
+    getLogger().error('FUME running in stateless mode. Cannot fetch mappings from server.');
     return undefined;
   };
   let aliasObject;
@@ -88,7 +87,7 @@ const getAliases = async (createFunc?: Function) => {
       aliasObject = await expressions.aliasResourceToObject.evaluate(aliasResource);
     } else {
       if (createFunc !== undefined) {
-        logger.info('Creating new alias resource...');
+        getLogger().info('Creating new alias resource...');
         aliasResource = await createFunc();
         aliasObject = await expressions.aliasResourceToObject.evaluate(aliasResource);
       }
@@ -99,13 +98,13 @@ const getAliases = async (createFunc?: Function) => {
 
 const getAllMappings = async () => {
   if (serverConfig.SERVER_STATELESS) {
-    logger.error('FUME running in stateless mode. Cannot fetch mappings from server.');
+    getLogger().error('FUME running in stateless mode. Cannot fetch mappings from server.');
     return undefined;
   };
   const allStructureMaps = await fullSearch('StructureMap/', { context: 'http://codes.fume.health|fume' });
   const mappingObject = await expressions.structureMapsToMappingObject.evaluate(allStructureMaps);
   if (typeof mappingObject === 'object' && Object.keys(mappingObject).length > 0) {
-    logger.info('Loaded the following mappings from server: ' + Object.keys(mappingObject).join(', '));
+    getLogger().info('Loaded the following mappings from server: ' + Object.keys(mappingObject).join(', '));
   };
   return mappingObject;
 };
@@ -113,7 +112,7 @@ const getAllMappings = async () => {
 export const recacheFromServer = async (): Promise<boolean> => {
   // load tables, aliases and mappings
   if (serverConfig.SERVER_STATELESS) {
-    logger.error('FUME running in stateless mode. Cannot recache from server.');
+    getLogger().error('FUME running in stateless mode. Cannot recache from server.');
     return false;
   };
   try {
@@ -121,18 +120,18 @@ export const recacheFromServer = async (): Promise<boolean> => {
     aliases.reset();
     aliases.populate(await getAliases());
     if (aliases.keys().length > 0) {
-      logger.info(`Updated cache with aliases: ${aliases.keys().join(', ')}.`);
+      getLogger().info(`Updated cache with aliases: ${aliases.keys().join(', ')}.`);
     };
     const mappingObject = await getAllMappings();
     Object.keys(mappingObject).forEach((key: string) => {
       cacheMapping(key, mappingObject[key]);
     });
     if (mappingObject !== undefined && Object.keys(mappingObject).length > 0) {
-      logger.info(`Updated cache with mappings: ${Object.keys(mappingObject).join(', ')}.`);
+      getLogger().info(`Updated cache with mappings: ${Object.keys(mappingObject).join(', ')}.`);
     };
     // TODO: clear deleted mappings from cache
   } catch (e) {
-    logger.error(e);
+    getLogger().error(e);
     return false;
   };
   return true;

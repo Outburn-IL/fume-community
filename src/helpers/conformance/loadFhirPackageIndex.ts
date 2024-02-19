@@ -7,7 +7,6 @@ import path from 'path';
 import fs from 'fs-extra';
 import { getLogger } from '../logger';
 
-const logger = getLogger();
 let fhirPackageIndex: Record<string, any> = {};
 
 const createPackageIndexFile = (packagePath: string) => {
@@ -33,21 +32,21 @@ const createPackageIndexFile = (packagePath: string) => {
     });
     fs.writeFileSync(path.join(packagePath, 'package', '.index.json'), JSON.stringify({ 'index-version': 1, files }, null, 2));
   } catch (e) {
-    logger.error(e);
+    getLogger().error(e);
     return false;
   };
   return true;
 };
 
 const buildFhirCacheIndex = async () => {
-  logger.info('Building global package index (this might take some time...)');
+  getLogger().info('Building global package index (this might take some time...)');
   const cachePath = path.join(os.homedir(), '.fhir', 'packages');
   const dirList: string[] = fs.readdirSync(cachePath, { withFileTypes: true }).filter(entry => entry.isDirectory()).map(dir => dir.name);
-  logger.info(`FHIR Packages found in global cache: ${dirList.join(', ')}`);
+  getLogger().info(`FHIR Packages found in global cache: ${dirList.join(', ')}`);
   const packageIndexArray = dirList.map(pack => {
     if (fs.existsSync(path.join(cachePath, pack, 'package', 'package.json'))) {
       if (!fs.existsSync(path.join(cachePath, pack, 'package', '.index.json'))) {
-        logger.info(`Generating .index.json for package ${pack}...`);
+        getLogger().info(`Generating .index.json for package ${pack}...`);
         createPackageIndexFile(path.join(cachePath, pack));
       };
       return {
@@ -57,7 +56,7 @@ const buildFhirCacheIndex = async () => {
         packageIndex: require(path.join(cachePath, pack, 'package', '.index.json'))
       };
     } else {
-      logger.warn(`Folder '${pack}' found in the local FHIR cache does not seem to be a FHIR package (no package.json file found). Skipping it...`);
+      getLogger().warn(`Folder '${pack}' found in the local FHIR cache does not seem to be a FHIR package (no package.json file found). Skipping it...`);
       return undefined;
     };
   });
@@ -71,7 +70,7 @@ const buildFhirCacheIndex = async () => {
         const payload = require(filePath);
         return payload;
       } catch (e) {
-        logger.error(e);
+        getLogger().error(e);
         throw (e);
       }
     },
@@ -87,20 +86,20 @@ export const parseFhirPackageIndex = async () => {
   const cachePath = path.join(os.homedir(), '.fhir');
   const fumeIndexPath = path.join(cachePath, 'fume.index.json');
   if (fs.existsSync(fumeIndexPath)) {
-    logger.info(`Found global package index file at ${fumeIndexPath}`);
+    getLogger().info(`Found global package index file at ${fumeIndexPath}`);
     const dirList: string[] = fs.readdirSync(path.join(cachePath, 'packages'), { withFileTypes: true }).filter(entry => entry.isDirectory()).map(dir => dir.name);
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const currentIndex = require(fumeIndexPath);
     const currentPackages = await expressions.extractCurrentPackagesFromIndex.evaluate(currentIndex);
     const diff: string[] = await expressions.checkPackagesMissingFromIndex.evaluate({ dirList, packages: currentPackages });
     if (diff.length === 0) {
-      logger.info('Global package index file is up-to-date');
+      getLogger().info('Global package index file is up-to-date');
       return require(fumeIndexPath);
     } else {
-      logger.info('Global package index file is outdated');
+      getLogger().info('Global package index file is outdated');
     };
   } else {
-    logger.info('Global package index file is missing');
+    getLogger().info('Global package index file is missing');
   }
   const fumeIndexFile = await buildFhirCacheIndex();
   fs.writeFileSync(fumeIndexPath, JSON.stringify(fumeIndexFile, null, 2));
@@ -111,12 +110,12 @@ export const getFhirPackageIndex = () => fhirPackageIndex;
 
 export const loadFhirPackageIndex = async () => {
   try {
-    logger.info('Trying to load global package index...');
+    getLogger().info('Trying to load global package index...');
     const index = await parseFhirPackageIndex();
     fhirPackageIndex = index;
     return true;
   } catch (e) {
-    logger.error(e);
+    getLogger().error(e);
     throw (e);
   }
 };

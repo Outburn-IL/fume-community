@@ -10,8 +10,6 @@ import uuidByString from 'uuid-by-string';
 import csvToJson from 'csvtojson';
 import { getLogger } from '../logger';
 
-const logger = getLogger();
-
 export const startsWith = (str: string, startStr: string): boolean => str.startsWith(startStr);
 
 export const endsWith = (str: string, endStr: string): boolean => str.endsWith(endStr);
@@ -73,7 +71,7 @@ export const uuid = (seed?: string): string => seed ? uuidByString(seed) : rando
 
 export const parseCsv = async (csv: string) => {
   // fork: os
-  logger.info('Parsing CSV...');
+  getLogger().info('Parsing CSV...');
   let json = {};
   try {
     json = await csvToJson().fromString(csv);

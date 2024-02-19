@@ -12,13 +12,12 @@ import type { Server } from 'http';
 import type { IFumeServer, ILogger, IConfig, ICacheClass } from './types';
 import { getCache, initCache, SimpleCache } from './helpers/cache';
 
-const logger = getLogger();
-
 export class FumeServer implements IFumeServer {
   private readonly app: express.Application;
   private server: Server | undefined;
   private cacheClass: ICacheClass = SimpleCache;
   private cacheClassOptions: Record<string, any> = {};
+  private logger = getLogger();
 
   constructor () {
     this.app = express();
@@ -40,17 +39,17 @@ export class FumeServer implements IFumeServer {
 
   public async warmUp (serverOptions: IConfig | undefined = undefined): Promise<void> {
     const options: IConfig = serverOptions ?? defaultConfig;
-    logger.info('FUME initializing...');
+    this.logger.info('FUME initializing...');
     config.setServerConfig(options);
     const serverConfig: IConfig = config.getServerConfig();
     const { SERVER_PORT, FHIR_SERVER_BASE, FHIR_VERSION, EXCLUDE_FHIR_PACKAGES, FHIR_PACKAGES, SEARCH_BUNDLE_PAGE_SIZE, FHIR_SERVER_TIMEOUT, SERVER_STATELESS } = serverConfig;
-    logger.info(serverConfig);
+    this.logger.info(serverConfig);
 
     // initialize caches
     initCache(this.cacheClass, this.cacheClassOptions);
-    logger.info('Caches initialized');
+    this.logger.info('Caches initialized');
 
-    logger.info(`Default FHIR version is set to ${FHIR_VERSION}`);
+    this.logger.info(`Default FHIR version is set to ${FHIR_VERSION}`);
     // translate fhir version to package id
     const fhirVersionCorePackageId = fhirCorePackages[FHIR_VERSION];
     // load package or throw error
@@ -71,21 +70,21 @@ export class FumeServer implements IFumeServer {
     await conformance.loadFhirPackageIndex();
     // if fhir server defined, load mappings and aliases from it
     if (SERVER_STATELESS) {
-      logger.info('Running in stateless mode');
+      this.logger.info('Running in stateless mode');
     } else {
-      logger.info(`Bundle search size: ${SEARCH_BUNDLE_PAGE_SIZE}`);
-      logger.info(`FHIR Server Timeout: ${FHIR_SERVER_TIMEOUT}`);
-      logger.info(`Loading FUME resources from FHIR server ${FHIR_SERVER_BASE} into cache...`);
+      this.logger.info(`Bundle search size: ${SEARCH_BUNDLE_PAGE_SIZE}`);
+      this.logger.info(`FHIR Server Timeout: ${FHIR_SERVER_TIMEOUT}`);
+      this.logger.info(`Loading FUME resources from FHIR server ${FHIR_SERVER_BASE} into cache...`);
       client.init();
       conformance.recacheFromServer().then(_result => {
-        logger.info('Successfully loaded cache');
+        this.logger.info('Successfully loaded cache');
       }).catch(_notFound => {
-        logger.info('Error loading cache');
+        this.logger.info('Error loading cache');
       });
     };
 
     this.server = this.app.listen(SERVER_PORT);
-    logger.info(`FUME server is running on port ${SERVER_PORT}`);
+    this.logger.info(`FUME server is running on port ${SERVER_PORT}`);
   }
 
   /**
@@ -100,6 +99,7 @@ export class FumeServer implements IFumeServer {
      * @param logger
      */
   public registerLogger (logger: ILogger) {
+    this.logger = logger;
     setLogger(logger);
   };
 

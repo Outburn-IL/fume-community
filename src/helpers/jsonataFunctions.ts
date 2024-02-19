@@ -19,8 +19,6 @@ import conformance from './conformance';
 import * as v2 from './hl7v2';
 import * as objectFuncs from './objectFunctions';
 
-const logger = getLogger();
-
 // TODO: get from app instance
 const fhirVersionMinor = fhirFuncs.fhirVersionToMinor(config.FHIR_VERSION);
 
@@ -34,11 +32,11 @@ const getStructureDefinitionPath = (definitionId: string): any => {
 
   if (!indexed) { // if not indexed, throw warning and return nothing
     const msg = 'Definition "' + definitionId + '" not found!';
-    logger.warn(msg);
+    getLogger().warn(msg);
     return undefined;
   } else if (Array.isArray(indexed)) {
     const error = new Error(`Found multiple definition with the same id "${definitionId}"!`);
-    logger.error(error);
+    getLogger().error(error);
     throw (error);
   } else {
     return indexed;
@@ -51,7 +49,7 @@ export const getStructureDefinition = (definitionId: string): any => {
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const fullDef = require(path); // load file
-    // logger.info(`Definition loaded: ${path}`);
+    // getLogger().info(`Definition loaded: ${path}`);
     return fullDef;
   } catch (e) {
     return thrower.throwParseError(`A Problem occured while getting the structure definition of '${definitionId}'. The error is: ${e}`);
@@ -60,13 +58,13 @@ export const getStructureDefinition = (definitionId: string): any => {
 
 export const logInfo = (message) => {
   // fork: os
-  logger.info(message);
+  getLogger().info(message);
   return undefined;
 };
 
 export const logWarn = (message) => {
   // fork: os
-  logger.warn(message);
+  getLogger().warn(message);
   return undefined;
 };
 
@@ -122,7 +120,7 @@ const compiledExpression = async (expression: string): Promise<jsonata.Expressio
   const key = stringFuncs.hashKey(expression); // turn expression string to a key
   let compiled: any = compiledExpressions.get(key); // get from cache
   if (compiled === undefined) { // not cached
-    logger.info('expression not cached, compiling it...');
+    getLogger().info('expression not cached, compiling it...');
     const parsedAsJsonataStr = await compiler.toJsonataString(expression);
     compiled = jsonata(parsedAsJsonataStr!);
     compiledExpressions.set(key, compiled);
@@ -137,7 +135,7 @@ const registerTable = (tableId: string): string => {
 const transform = async (input, expression: string) => {
   // fork: os
   try {
-    logger.info('Running transformation...');
+    getLogger().info('Running transformation...');
 
     const expr = await compiledExpression(expression);
 
@@ -210,7 +208,7 @@ const transform = async (input, expression: string) => {
     const res = await expr.evaluate(input, bindings);
     return res;
   } catch (error) {
-    logger.error(error);
+    getLogger().error(error);
     throw error;
   }
 };

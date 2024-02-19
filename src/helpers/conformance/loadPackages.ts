@@ -7,21 +7,19 @@ import { getLogger } from '../logger';
 import axios from 'axios';
 import _ from 'lodash';
 
-const logger = getLogger();
-
 export const loadPackage = async (fhirPackage: string | string[]) => {
   try {
     return await fpl(fhirPackage, {
       log: (level: string, message: string) => {
         if (level === 'error') {
-          logger.error(message);
+          getLogger().error(message);
         } else {
-          logger.info({ level, message });
+          getLogger().info({ level, message });
         }
       }
     });
   } catch (e) {
-    logger.error(e);
+    getLogger().error(e);
     return null;
   }
 };
@@ -36,7 +34,7 @@ export const loadPackages = async (packages: string[], mustPackages: string[], e
         const latestVersion = _.get(packageData, ['data', 'dist-tags', 'latest']);
         return latestVersion ? `${p.split('@')}@${latestVersion}` : '';
       } catch (e) {
-        logger.warn('Could not access - https://packages.fhir.org');
+        getLogger().warn('Could not access - https://packages.fhir.org');
         return '';
       }
     } else {
