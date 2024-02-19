@@ -1,0 +1,2 @@
+npm run eslint:fix
+npm run test:unit
