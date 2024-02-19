@@ -139,7 +139,7 @@ const transform = async (input, expression: string) => {
 
     const expr = await compiledExpression(expression);
 
-    let bindings: Record<string, Function | Record<string, any>> = {};
+    let bindings: Record<string, Function | Record<string, any> | string> = {};
 
     // bind all mappings from cache
     const { compiledMappings } = getCache();
@@ -201,7 +201,7 @@ const transform = async (input, expression: string) => {
 
     // bind all aliases from cache
     bindings = { 
-      aliases: aliases.getDict(), 
+      ...aliases.getDict(), 
       ...bindings 
     };
 
