@@ -9,6 +9,7 @@ import { v2json } from '../helpers/hl7v2';
 import { parseCsv } from '../helpers/stringFunctions';
 import { transform } from '../helpers/jsonataFunctions';
 import type { Request, Response } from 'express';
+import config from '../config';
 
 const get = async (req: Request, res: Response) => {
   return res.status(200).json(
@@ -43,7 +44,8 @@ const evaluate = async (req: Request, res: Response) => {
       }
     };
 
-    const response = await transform(inputJson, req.body.fume);
+    const extraBindings = config.getBindings();
+    const response = await transform(inputJson, req.body.fume, extraBindings);
     return res.status(200).json(response);
   } catch (error: any) {
     const data = {

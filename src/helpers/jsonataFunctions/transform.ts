@@ -20,6 +20,7 @@ import { isEmpty } from './isEmpty';
 import { registerTable } from './registerTable';
 import { logInfo, logWarn } from './log';
 import { getStructureDefinition } from './getStructureDefinition';
+import { IAppBinding } from '../../types';
 
 const compiledExpression = async (expression: string): Promise<jsonata.Expression> => {
   const { compiledExpressions } = getCache();
@@ -36,7 +37,7 @@ const compiledExpression = async (expression: string): Promise<jsonata.Expressio
   return compiled;
 };
 
-const transform = async (input, expression: string) => {
+export const transform = async (input, expression: string, extraBindings: Record<string, IAppBinding> = {}) => {
   // fork: os
   try {
     getLogger().info('Running transformation...');
@@ -106,7 +107,8 @@ const transform = async (input, expression: string) => {
     // bind all aliases from cache
     bindings = { 
       ...aliases.getDict(), 
-      ...bindings 
+      ...bindings,
+      ...extraBindings,
     };
 
     const res = await expr.evaluate(input, bindings);
@@ -115,8 +117,4 @@ const transform = async (input, expression: string) => {
     getLogger().error(error);
     throw error;
   }
-};
-
-export {
-  transform
 };

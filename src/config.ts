@@ -3,11 +3,11 @@
  *   Project name: FUME
  */
 import { fhirCorePackages } from './constants';
-import type { IConfig } from './types';
+import type { IAppBinding, IConfig } from './types';
 import defaultConfig from './serverConfig';
 import { fhirVersionToMinor } from './helpers/fhirFunctions/fhirVersionToMinor';
 
-const additionalBindings = {}; // additional functions to bind when running transformations
+const additionalBindings: Record<string, IAppBinding> = {}; // additional functions to bind when running transformations
 let serverConfig: IConfig = { ...defaultConfig };
 let fhirVersionWithoutPatch: string = fhirVersionToMinor(serverConfig.FHIR_VERSION);
 
@@ -37,7 +37,7 @@ const getFhirVersionWithoutPatch = (): string => {
   return fhirVersionWithoutPatch;
 };
 
-const setBindings = (name: string, binding: any | any[]): void => {
+const setBinding = (name: string, binding: IAppBinding): void => {
   additionalBindings[name] = binding;
 };
 
@@ -50,6 +50,6 @@ export default {
   getFhirVersionWithoutPatch,
   getServerConfig,
   setServerConfig,
-  setBindings,
+  setBinding,
   getBindings
 };

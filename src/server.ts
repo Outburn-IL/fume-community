@@ -9,7 +9,7 @@ import conformance from './helpers/conformance';
 import client from './helpers/client';
 
 import type { Server } from 'http';
-import type { IFumeServer, ILogger, IConfig, ICacheClass } from './types';
+import type { IFumeServer, ILogger, IConfig, ICacheClass, IAppBinding } from './types';
 import { getCache, initCache, SimpleCache } from './helpers/cache';
 
 export class FumeServer implements IFumeServer {
@@ -109,11 +109,10 @@ export class FumeServer implements IFumeServer {
    * @param CacheClass
    * @param options
    */
-  public registerCacheClass (CacheClass: ICacheClass, options: Record<string, any>) {
+  public registerCacheClass (CacheClass: ICacheClass, options: Record<string, IAppBinding>) {
     this.cacheClass = CacheClass;
     this.cacheClassOptions = options;
   };
-
   /**
    *
    * @returns cache
@@ -130,13 +129,12 @@ export class FumeServer implements IFumeServer {
   public registerRoute (route: string, handler: RequestHandler) {
     this.app.use(route, handler);
   }
-
   /**
      *
      * @param key
      * @param binding
      */
-  public registerBinding (key: string, binding: any) {
-    config.setBindings(key, binding);
+  public registerBinding (key: string, binding: IAppBinding) {
+    config.setBinding(key, binding);
   }
 }
