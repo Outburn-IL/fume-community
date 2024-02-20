@@ -13,7 +13,7 @@ const get = async (req: Request, res: Response) => {
     const mappingId: string = req.params.mappingId;
 
     // get mapping expression from cache
-    const mappingObj = getCache().mappings[mappingId];
+    const mappingObj = getCache().mappings.get(mappingId);
     const mapping: string = mappingObj.expression;
 
     if (mapping) {
