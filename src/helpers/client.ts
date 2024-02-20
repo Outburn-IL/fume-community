@@ -64,44 +64,8 @@ export const search = async (query: string, params?: object) => {
   return response.data;
 };
 
-export const create = async (resource: object, resourceType: string) => {
-  if (isStateless) {
-    getLogger().info('Server is stateless, not posting resource');
-    return undefined;
-  }
-
-  const response = await fhirServer.post(`/${resourceType}`, resource);
-  return response.data;
-};
-
-export const update = async (resourceType: string, resourceId: string, resource) => {
-  if (isStateless) {
-    getLogger().warn('Server is stateless, not updating the resource');
-    return undefined;
-  }
-
-  const response = await fhirServer.put(
-    `/${resourceType}/${resourceId}`,
-    resource
-  );
-  return response.data;
-};
-
-export const simpleDelete = async (resourceType: string, resourceId: string) => {
-  if (isStateless) {
-    getLogger().warn('Server is stateless, not deleting the resource');
-    return undefined;
-  }
-
-  const response = await fhirServer.delete(`/${resourceType}/${resourceId}`);
-  return response.data;
-};
-
 export default {
   init,
   read,
-  search,
-  create,
-  update,
-  simpleDelete
+  search
 };
