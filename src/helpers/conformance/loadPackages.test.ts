@@ -37,7 +37,7 @@ describe('loadPackages', () => {
     await loadPackages(['il.core.fhir.r4@0.11.0', 'hl7.fhir.us.core'], [], []);
     expect(mockAxios.get).toHaveBeenCalledTimes(1);
     expect(mockAxios.get).toHaveBeenCalledWith('https://packages.fhir.org/hl7.fhir.us.core/');
-    
+
     mockFpl.fpl.mockResolvedValue({} as any);
     expect(mockFpl.fpl).toHaveBeenCalledTimes(1);
     expect(mockFpl.fpl).toHaveBeenCalledWith(['il.core.fhir.r4@0.11.0', 'hl7.fhir.us.core@6.1.0'], { log: expect.any(Function) });
