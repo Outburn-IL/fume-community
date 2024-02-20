@@ -113,6 +113,7 @@ export class FumeServer implements IFumeServer {
     this.cacheClass = CacheClass;
     this.cacheClassOptions = options;
   };
+
   /**
    *
    * @returns cache
@@ -129,6 +130,7 @@ export class FumeServer implements IFumeServer {
   public registerRoute (route: string, handler: RequestHandler) {
     this.app.use(route, handler);
   }
+
   /**
      *
      * @param key

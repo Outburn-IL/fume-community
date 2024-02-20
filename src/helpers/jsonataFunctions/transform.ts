@@ -108,7 +108,7 @@ export const transform = async (input, expression: string, extraBindings: Record
     bindings = { 
       ...aliases.getDict(), 
       ...bindings,
-      ...extraBindings,
+      ...extraBindings
     };
 
     const res = await expr.evaluate(input, bindings);
