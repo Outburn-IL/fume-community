@@ -5,13 +5,13 @@
 import { selectKeys } from './helpers/objectFunctions';
 
 import parser from './helpers/parser';
-import { 
-  duplicate, 
-  endsWith, 
-  startsWith, 
+import {
+  duplicate,
+  endsWith,
+  startsWith,
   parseCsv,
   substringBefore,
-  substringAfter,
+  substringAfter
 } from './helpers/stringFunctions';
 import config from './config';
 import expressions from './helpers/jsonataExpression';
@@ -35,5 +35,5 @@ export const fumeUtils = {
   getFhirVersionMinor: config.getFhirVersionMinor,
   toJsonataString: parser.toJsonataString,
   getSnapshot: parser.getSnapshot,
-  v2json,
+  v2json
 };
