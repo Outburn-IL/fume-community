@@ -3,14 +3,14 @@ import config from '../../config';
 import { getCache } from '../cache';
 import { read, search } from '../client';
 import expressions from '../jsonataExpression';
-import jsonataFunctions from '../jsonataFunctions';
+import { transform } from '../jsonataFunctions';
 import { getLogger } from '../logger';
 
 const serverConfig = config.getServerConfig();
 
 const toFunction = (mapping: string) => {
   return async (input: any) => {
-    const res = await jsonataFunctions.transform(input, mapping);
+    const res = await transform(input, mapping);
     return res;
   };
 };

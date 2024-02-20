@@ -7,7 +7,7 @@ import { getCache } from '../helpers/cache';
 import conformance from '../helpers/conformance';
 import { v2json } from '../helpers/hl7v2';
 import { parseCsv } from '../helpers/stringFunctions';
-import jsonataFuncs from '../helpers/jsonataFunctions';
+import { transform } from '../helpers/jsonataFunctions';
 import type { Request, Response } from 'express';
 
 const get = async (req: Request, res: Response) => {
@@ -43,7 +43,7 @@ const evaluate = async (req: Request, res: Response) => {
       }
     };
 
-    const response = await jsonataFuncs.transform(inputJson, req.body.fume);
+    const response = await transform(inputJson, req.body.fume);
     return res.status(200).json(response);
   } catch (error: any) {
     const data = {
