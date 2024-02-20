@@ -46,6 +46,153 @@ describe('integration tests', () => {
     await request(globalThis.app).post('/').expect(422);
   });
 
+  test.only('Default example mapping from Designer', async () => {
+    const mapping = `
+/* FLASH script example for FHIR version 4.0 Patient */
+Instance: $pid := $uuid('1')
+InstanceOf: Patient
+* identifier
+  * system = $urn
+  * value = 'urn:uuid:' & $pid
+* identifier
+  * system = $exampleMrn
+  * value = mrn
+* identifier
+  * system = $ssn
+  * value = ssn
+* identifier
+  * system = $passportPrefix & passport_country
+  * value = passport_number
+* active = status='active'
+* name
+  * given = first_name
+  * family = last_name
+* birthDate = birth_date
+* gender = $translate(sex, 'gender')
+* (address).address
+  * city = city_name
+  * state = state
+  * country = 'USA'
+  * line = $join([$string(house_number),street_name], ' ')
+  * postalCode = zip_code
+  * extension
+    * url = $extGeolocation
+    * extension
+      * url = 'latitude'
+      * valueDecimal = lat
+    * extension
+      * url = 'longitude'
+      * valueDecimal = long
+* (phones).telecom
+  * system = 'phone'
+  * value = number
+  * use = (type='HOME'?'home':type='CELL'?'mobile')
+* generalPractitioner
+  * identifier
+    * value = primary_doctor.license
+    * type.coding
+      * system = 'http://terminology.hl7.org/CodeSystem/v2-0203'
+      * code = 'MD'
+  * display = primary_doctor.full_name
+  * reference = $literal('Practitioner?identifier='&primary_doctor.license)
+
+    `;
+    const requestBody = {
+      input: mockInput,
+      fume: mapping
+    };
+    const res = await request(globalThis.app).post('/').send(requestBody);
+
+    expect(res.body).toStrictEqual({
+      resourceType: 'Patient',
+      id: '356a192b-7913-504c-9457-4d18c28d46e6',
+      identifier: [
+        {
+          system: 'urn:ietf:rfc:3986',
+          value: 'urn:uuid:356a192b-7913-504c-9457-4d18c28d46e6'
+        },
+        {
+          system: 'http://this.is.an.example.uri/mrn',
+          value: 'PP875023983'
+        },
+        {
+          system: 'http://hl7.org/fhir/sid/us-ssn',
+          value: '123-45-6789'
+        },
+        {
+          system: 'http://hl7.org/fhir/sid/passport-USA',
+          value: '7429184766'
+        }
+      ],
+      active: true,
+      name: [
+        {
+          given: [
+            'Jessica'
+          ],
+          family: 'Rabbit'
+        }
+      ],
+      birthDate: '1988-06-22',
+      gender: 'female',
+      address: [
+        {
+          city: 'Orlando',
+          state: 'FL',
+          country: 'USA',
+          line: [
+            '1375 Buena Vista'
+          ],
+          postalCode: '3456701',
+          extension: [
+            {
+              url: 'http://hl7.org/fhir/StructureDefinition/geolocation',
+              extension: [
+                {
+                  url: 'latitude',
+                  valueDecimal: 28.3519592
+                },
+                {
+                  url: 'longitude',
+                  valueDecimal: -81.417283
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      telecom: [
+        {
+          system: 'phone',
+          value: '+1 (407) 8372859',
+          use: 'home'
+        },
+        {
+          system: 'phone',
+          value: '+1 (305) 9831195',
+          use: 'mobile'
+        }
+      ],
+      generalPractitioner: [
+        {
+          identifier: {
+            value: '1-820958',
+            type: {
+              coding: [
+                {
+                  system: 'http://terminology.hl7.org/CodeSystem/v2-0203',
+                  code: 'MD'
+                }
+              ]
+            }
+          },
+          display: 'Dr. Dolittle',
+          reference: 'Practitioner/cc829d28-3b32-43df-af57-e72035d98e18'
+        }
+      ]
+    });
+  });
+
   test('Case 1 - Boolean false disappear from FLASH outputs', async () => {
     const mapping = `
             InstanceOf: Patient
