@@ -5,113 +5,21 @@
  *   Project name: FUME
  */
 
-import { getCache } from './cache/cache';
-import thrower from './thrower';
-import * as stringFuncs from './stringFunctions';
-import fhirFuncs from './fhirFunctions';
 import jsonata from 'jsonata';
-import { getLogger } from './logger';
-import compiler from './parser';
 import HL7Dictionary from 'hl7-dictionary';
-import config from '../serverConfig';
-import runtime from './runtime';
-import conformance from './conformance';
-import * as v2 from './hl7v2';
-import * as objectFuncs from './objectFunctions';
-
-// TODO: get from app instance
-const fhirVersionMinor = fhirFuncs.fhirVersionToMinor(config.FHIR_VERSION);
-
-const getStructureDefinitionPath = (definitionId: string): any => {
-  // fork: os
-  const fhirPackageIndex = conformance.getFhirPackageIndex();
-  const cached = fhirPackageIndex[fhirVersionMinor];
-  const indexed = cached.structureDefinitions.byId[definitionId] ?? 
-    cached.structureDefinitions.byUrl[definitionId] ?? 
-    cached.structureDefinitions.byName[definitionId];
-
-  if (!indexed) { // if not indexed, throw warning and return nothing
-    const msg = 'Definition "' + definitionId + '" not found!';
-    getLogger().warn(msg);
-    return undefined;
-  } else if (Array.isArray(indexed)) {
-    const error = new Error(`Found multiple definition with the same id "${definitionId}"!`);
-    getLogger().error(error);
-    throw (error);
-  } else {
-    return indexed;
-  }
-};
-
-export const getStructureDefinition = (definitionId: string): any => {
-  try {
-    const path: string = getStructureDefinitionPath(definitionId); 
-
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const fullDef = require(path); // load file
-    // getLogger().info(`Definition loaded: ${path}`);
-    return fullDef;
-  } catch (e) {
-    return thrower.throwParseError(`A Problem occured while getting the structure definition of '${definitionId}'. The error is: ${e}`);
-  }
-};
-
-export const logInfo = (message) => {
-  // fork: os
-  getLogger().info(message);
-  return undefined;
-};
-
-export const logWarn = (message) => {
-  // fork: os
-  getLogger().warn(message);
-  return undefined;
-};
-
-const isEmptyExpr = jsonata(`(
-  $exists($value)?(
-    $typeOfValue := $type($value);
-    $typeOfValue != 'null' ? (
-      $typeOfValue != 'string' ? (
-        $typeOfValue = 'object' ? (
-          $value = {} ? (
-            true
-            ):(
-              /* check all keys of object */
-              $boolean($value.*)?false:true;
-            )
-        ):(
-          $typeOfValue = 'array' ? (
-            $value = [] ? (
-              true
-            ):(
-              /* check all array values */
-            $boolean($value)?false:true
-            )
-          ):(
-            $typeOfValue = 'number' ? (
-              false /* a number is regarded as non-empty */
-            ):(
-              $typeOfValue = 'boolean' ? (
-                false /* boolean is regarded as non-empty */
-              ):(
-                true /* type is a function, regarded as empty */
-              )
-            )
-          )
-        )
-      ):(
-        false
-      )
-    ):true;
-  ):true;    
-)`);
-
-const isEmpty = async (value) => {
-  // fork: os
-  const res = isEmptyExpr.evaluate({}, { value });
-  return await res;
-};
+import { getCache } from '../cache';
+import * as stringFuncs from '../stringFunctions';
+import fhirFuncs from '../fhirFunctions';
+import { getLogger } from '../logger';
+import compiler from '../parser';
+import runtime from '../runtime';
+import conformance from '../conformance';
+import * as v2 from '../hl7v2';
+import * as objectFuncs from '../objectFunctions';
+import { isEmpty } from './isEmpty';
+import { registerTable } from './registerTable';
+import { logInfo, logWarn } from './log';
+import { getStructureDefinition } from './getStructureDefinition';
 
 const compiledExpression = async (expression: string): Promise<jsonata.Expression> => {
   const { compiledExpressions } = getCache();
@@ -126,10 +34,6 @@ const compiledExpression = async (expression: string): Promise<jsonata.Expressio
     compiledExpressions.set(key, compiled);
   };
   return compiled;
-};
-
-const registerTable = (tableId: string): string => {
-  return 'No need to register tables anymore. You may use $translate() with any ConceptMap that exists on your FHIR server. The $registerTable function has been depricated.';
 };
 
 const transform = async (input, expression: string) => {
@@ -213,30 +117,6 @@ const transform = async (input, expression: string) => {
   }
 };
 
-const mappingToJsFunction = (mapping) => {
-  // fork: os
-  return async (input) => {
-    const res = await transform(input, mapping);
-    return res;
-  };
-};
-
-const cacheMapping = (mappingId: string, mappingExpr: string) => {
-  // fork: os
-  const { compiledMappings } = getCache();
-  const mappingFunc = mappingToJsFunction(mappingExpr);
-  const cacheEntry = {
-    expression: mappingExpr,
-    function: mappingFunc
-  };
-  compiledMappings.set(mappingId, cacheEntry);
-};
-
-export default {
-  transform,
-  mappingToJsFunction,
-  cacheMapping,
-  getStructureDefinition,
-  getStructureDefinitionPath,
-  logInfo
+export {
+  transform
 };

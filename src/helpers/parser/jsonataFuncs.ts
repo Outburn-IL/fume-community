@@ -5,7 +5,7 @@
 
 import jsonata from 'jsonata';
 import { getSnapshot } from './getSnapshot';
-import fumeFuncs, { logInfo, getStructureDefinition } from '../jsonataFunctions';
+import { logInfo, getStructureDefinition } from '../jsonataFunctions';
 import { endsWith, initCapOnce, replaceColonsWithBrackets, startsWith } from '../stringFunctions';
 import { getElementDefinition } from './getElementDefinition';
 
@@ -190,7 +190,7 @@ export const funcs: PreCompilerFunctions = {
         ); 
       )`),
   getMandatoriesOfElement: async (structId: string, relativePath: string, structureFunction: Function): Promise<any> => {
-    const res = await funcs.getMandatoriesOfElementExpr.evaluate({}, { info: fumeFuncs.logInfo, structId, relativePath, getStructureDefinition, getMandatoriesOfElement: funcs.getMandatoriesOfElement, structureFunction, getSnapshot, startsWith, endsWith, initCap: initCapOnce, getElementDefinition, replaceColonsWithBrackets });
+    const res = await funcs.getMandatoriesOfElementExpr.evaluate({}, { info: logInfo, structId, relativePath, getStructureDefinition, getMandatoriesOfElement: funcs.getMandatoriesOfElement, structureFunction, getSnapshot, startsWith, endsWith, initCap: initCapOnce, getElementDefinition, replaceColonsWithBrackets });
     return res;
   },
   getJsonElementNameExpr: jsonata(`

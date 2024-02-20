@@ -6,7 +6,7 @@
 import expressions from '../jsonataExpression';
 import thrower from '../thrower';
 import { funcs } from './jsonataFuncs';
-import fumeFuncs from '../jsonataFunctions';
+import { getStructureDefinition } from '../jsonataFunctions';
 import {
   startsWith,
   endsWith,
@@ -88,7 +88,7 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
       // make sure it's a potentially valid FHIR type
       if (!(await funcs.isTypeNameValid(rootTypeId))) return thrower.throwParseError(`value after "InstanceOf:" must be a valid type name, id or URL, and cannot be an expression. Found: "${rootTypeId}"`);
       // try to fetch the type's StructureDefinition resource
-      rootStructDef = await fumeFuncs.getStructureDefinition(rootTypeId);
+      rootStructDef = await getStructureDefinition(rootTypeId);
       // throw error if StructureDefinition can't be fetched
       if (rootStructDef === undefined) return thrower.throwParseError(`can't find definition of ${rootTypeId}!`);
       // currentFshPath = rootStructDef.type;
@@ -360,7 +360,7 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
         let kind: string = '';
         if (!baseType.startsWith('http://hl7.org/fhirpath/System.')) {
           // fetch StructureDefintion of type
-          const typeStructDef = await fumeFuncs.getStructureDefinition(baseType);
+          const typeStructDef = await getStructureDefinition(baseType);
           kind = typeStructDef?.kind;
         };
 
