@@ -22,7 +22,7 @@ const authHeader = (authType: string, username?: string, password?: string) => {
 };
 
 const init = (): void => {
-  contentType = `application/fhir+json;fhirVersion=${config.getFhirVersionWithoutPatch()}`;
+  contentType = `application/fhir+json;fhirVersion=${config.getFhirVersionMinor()}`;
   if (!isStateless) {
     const server = axios.create({
       baseURL: serverConfig.FHIR_SERVER_BASE,

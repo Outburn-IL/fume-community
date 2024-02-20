@@ -14,7 +14,7 @@ import { getFhirPackageIndex } from './loadFhirPackageIndex';
 
 export const getStructureDefinition = async (definitionId: string): Promise<any> => {
   const fhirPackageIndex = getFhirPackageIndex();
-  const packageIndex = fhirPackageIndex[config.getFhirVersionWithoutPatch()];
+  const packageIndex = fhirPackageIndex[config.getFhirVersionMinor()];
   const indexed = packageIndex.structureDefinitions.byId[definitionId] ??
   packageIndex.structureDefinitions.byUrl[definitionId] ??
   packageIndex.structureDefinitions.byName[definitionId];

@@ -5,7 +5,7 @@
 
 import jsonata from 'jsonata';
 
-interface InternalJsonataExpression {
+export interface InternalJsonataExpression {
   translateCodeExtract: jsonata.Expression
   translateCodingExtract: jsonata.Expression
   searchSingle: jsonata.Expression

@@ -9,14 +9,11 @@ import { fhirVersionToMinor } from './helpers/fhirFunctions/fhirVersionToMinor';
 
 const additionalBindings: Record<string, IAppBinding> = {}; // additional functions to bind when running transformations
 let serverConfig: IConfig = { ...defaultConfig };
-let fhirVersionWithoutPatch: string = fhirVersionToMinor(serverConfig.FHIR_VERSION);
 
 const setServerConfig = (config: IConfig) => {
   let fhirServerBase: string = config.FHIR_SERVER_BASE;
   let isStatelessMode: boolean = config.SERVER_STATELESS;
-  if (config.FHIR_VERSION) {
-    fhirVersionWithoutPatch = fhirVersionToMinor(config.FHIR_VERSION);
-  };
+
   if (!fhirServerBase || fhirServerBase.trim() === '' || isStatelessMode) {
     fhirServerBase = '';
     isStatelessMode = true;
@@ -33,10 +30,6 @@ const getServerConfig = () => {
   return serverConfig;
 };
 
-const getFhirVersionWithoutPatch = (): string => {
-  return fhirVersionWithoutPatch;
-};
-
 const setBinding = (name: string, binding: IAppBinding): void => {
   additionalBindings[name] = binding;
 };
@@ -45,9 +38,22 @@ const getBindings = () => {
   return additionalBindings;
 };
 
+const getFhirVersion = () => {
+  return serverConfig.FHIR_VERSION;
+};
+
+const getFhirCorePackage = () => {
+  return fhirCorePackages[serverConfig.FHIR_VERSION];
+};
+
+const getFhirVersionMinor = () => {
+  return fhirVersionToMinor(serverConfig.FHIR_VERSION);
+};
+
 export default {
-  fhirCorePackages,
-  getFhirVersionWithoutPatch,
+  getFhirVersion,
+  getFhirCorePackage,
+  getFhirVersionMinor,
   getServerConfig,
   setServerConfig,
   setBinding,

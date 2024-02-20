@@ -1,12 +1,12 @@
 import express, { RequestHandler } from 'express';
 import cors from 'cors';
 import defaultConfig from './serverConfig';
-import { fhirCorePackages } from './constants';
 import config from './config';
 import routes from './routes';
 import { getLogger, setLogger } from './helpers/logger';
 import conformance from './helpers/conformance';
 import client from './helpers/client';
+import { transform } from './helpers/jsonataFunctions';
 
 import type { Server } from 'http';
 import type { IFumeServer, ILogger, IConfig, ICacheClass, IAppBinding } from './types';
@@ -51,7 +51,7 @@ export class FumeServer implements IFumeServer {
 
     this.logger.info(`Default FHIR version is set to ${FHIR_VERSION}`);
     // translate fhir version to package id
-    const fhirVersionCorePackageId = fhirCorePackages[FHIR_VERSION];
+    const fhirVersionCorePackageId = config.getFhirCorePackage();
     // load package or throw error
     if (fhirVersionCorePackageId) {
       const loadRes = await conformance.loadPackage(fhirVersionCorePackageId);
@@ -138,5 +138,19 @@ export class FumeServer implements IFumeServer {
      */
   public registerBinding (key: string, binding: IAppBinding) {
     config.setBinding(key, binding);
+  }
+
+  public getFhirPackageIndex () {
+    return conformance.getFhirPackageIndex();
+  }
+
+  public getFhirPackages () {
+    const fhirVersionMinor = config.getFhirVersionMinor();
+    const packages = conformance.getFhirPackageIndex();
+    return packages[fhirVersionMinor];
+  }
+
+  public async transform (input: any, expression: string) {
+    return await transform(input, expression, config.getBindings());
   }
 }

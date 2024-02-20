@@ -10,7 +10,8 @@ const serverConfig = config.getServerConfig();
 
 const toFunction = (mapping: string) => {
   return async (input: any) => {
-    const res = await transform(input, mapping);
+    const extraBindings = config.getBindings();
+    const res = await transform(input, mapping, extraBindings);
     return res;
   };
 };

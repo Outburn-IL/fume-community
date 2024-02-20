@@ -7,7 +7,9 @@ import path from 'path';
 import fs from 'fs-extra';
 import { getLogger } from '../logger';
 
-let fhirPackageIndex: Record<string, any> = {};
+export type IFhirPackage = any;
+export type IFhirPackageIndex = Record<string, IFhirPackage>;
+let fhirPackageIndex: IFhirPackageIndex = {};
 
 const createPackageIndexFile = (packagePath: string) => {
   try {
@@ -82,7 +84,7 @@ const buildFhirCacheIndex = async () => {
   return fixedIndex;
 };
 
-export const parseFhirPackageIndex = async () => {
+export const parseFhirPackageIndex = async (): Promise<IFhirPackageIndex> => {
   const cachePath = path.join(os.homedir(), '.fhir');
   const fumeIndexPath = path.join(cachePath, 'fume.index.json');
   if (fs.existsSync(fumeIndexPath)) {
@@ -106,7 +108,7 @@ export const parseFhirPackageIndex = async () => {
   return fumeIndexFile;
 };
 
-export const getFhirPackageIndex = () => fhirPackageIndex;
+export const getFhirPackageIndex = (): IFhirPackageIndex => fhirPackageIndex;
 
 export const loadFhirPackageIndex = async () => {
   try {
