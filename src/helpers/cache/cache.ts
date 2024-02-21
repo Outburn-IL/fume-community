@@ -3,29 +3,46 @@
  *   Project name: FUME
  */
 
+import { ICache } from '../../types';
 import { ICacheClass } from '../../types/FumeServer';
-import { IAppCache, ICacheEntry } from './cacheTypes';
+import { IAppCache, IAppCacheKeys } from './cacheTypes';
 import { SimpleCache } from './simpleCache';
 
 let appCache: IAppCache | undefined;
 
+const cacheKeys: IAppCacheKeys[] = [
+  'tables',
+  'snapshots',
+  'aliases',
+  'v2keyMap',
+  'expressions',
+  'compiledExpressions',
+  'mappings',
+  'compiledMappings',
+  'elementDefinition',
+  'definitions',
+  'compiledDefinitions'
+];
+
+export interface InitCacheConfig {
+  cacheClass: ICacheClass
+  cacheClassOptions: Record<string, any>
+}
+
 export function initCache (
-  CacheClass: ICacheClass = SimpleCache,
-  options: Record<string, any> = {}
+  options: Partial<Record<IAppCacheKeys, InitCacheConfig>> = {}
 ): void {
-  appCache = {
-    tables: new CacheClass<any>(options),
-    snapshots: new CacheClass<any>(options),
-    aliases: new CacheClass<string>(options),
-    v2keyMap: new CacheClass<string>(options),
-    expressions: new CacheClass<any>(options),
-    compiledExpressions: new CacheClass<any>(options),
-    mappings: new CacheClass<any>(options),
-    compiledMappings: new CacheClass<ICacheEntry>(options),
-    elementDefinition: new CacheClass<any>(options),
-    definitions: new CacheClass<any>(options),
-    compiledDefinitions: new CacheClass<any>(options)
-  };
+  // use map reduce to create caches with the right types.
+  // if options are empty, all will be created SimpleCache.
+  // options can override the type of cache and add options to it.
+  appCache = cacheKeys.map((key) => {
+    const CacheClass = options[key]?.cacheClass || SimpleCache;
+    const cacheClassOptions = options[key]?.cacheClassOptions || {};
+    return new CacheClass(cacheClassOptions);
+  }).reduce((acc, cache, index) => {
+    acc[cacheKeys[index]] = cache as ICache<any>;
+    return acc;
+  }, {}) as IAppCache;
 }
 
 export function getCache (): IAppCache {

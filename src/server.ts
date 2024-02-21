@@ -10,13 +10,13 @@ import { transform } from './helpers/jsonataFunctions';
 
 import type { Server } from 'http';
 import type { IFumeServer, ILogger, IConfig, ICacheClass, IAppBinding } from './types';
-import { getCache, initCache, SimpleCache } from './helpers/cache';
+import { getCache, IAppCacheKeys, initCache } from './helpers/cache';
+import { InitCacheConfig } from './helpers/cache/cache';
 
 export class FumeServer implements IFumeServer {
   private readonly app: express.Application;
   private server: Server | undefined;
-  private cacheClass: ICacheClass = SimpleCache;
-  private cacheClassOptions: Record<string, any> = {};
+  private cacheConfig: Partial<Record<IAppCacheKeys, InitCacheConfig>> = {};
   private logger = getLogger();
 
   constructor () {
@@ -46,7 +46,7 @@ export class FumeServer implements IFumeServer {
     this.logger.info(serverConfig);
 
     // initialize caches
-    initCache(this.cacheClass, this.cacheClassOptions);
+    initCache(this.cacheConfig);
     this.logger.info('Caches initialized');
 
     this.logger.info(`Default FHIR version is set to ${FHIR_VERSION}`);
@@ -109,9 +109,18 @@ export class FumeServer implements IFumeServer {
    * @param CacheClass
    * @param options
    */
-  public registerCacheClass (CacheClass: ICacheClass, options: Record<string, IAppBinding>) {
-    this.cacheClass = CacheClass;
-    this.cacheClassOptions = options;
+  public registerCacheClass (
+    CacheClass: ICacheClass,
+    cacheClassOptions: Record<string, IAppBinding>,
+    applyToCaches: IAppCacheKeys[]
+  ) {
+    if (applyToCaches.length > 0) {
+      applyToCaches.forEach(cacheKey => {
+        this.cacheConfig[cacheKey] = { cacheClass: CacheClass, cacheClassOptions };
+      });
+    } else {
+      this.logger.warn('No cache keys provided to apply cache class to');
+    }
   };
 
   /**
