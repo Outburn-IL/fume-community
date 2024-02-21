@@ -18,7 +18,7 @@ import expressions from './helpers/jsonataExpression';
 import { v2json } from './helpers/hl7v2';
 
 export type { IFumeServer, ILogger, ICache, IConfig, IAppBinding } from './types';
-export type { IAppCache } from './helpers/cache';
+export type { IAppCache, IAppCacheKeys } from './helpers/cache';
 export { FumeServer } from './server';
 
 export const fumeUtils = {

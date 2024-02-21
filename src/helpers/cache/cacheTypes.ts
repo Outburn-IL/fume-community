@@ -22,3 +22,5 @@ export interface IAppCache {
   definitions: ICache<any>
   compiledDefinitions: ICache<any>
 }
+
+export type IAppCacheKeys = keyof IAppCache;
