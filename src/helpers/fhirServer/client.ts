@@ -46,10 +46,17 @@ export class FhirClient implements IFhirClient {
     }
   }
 
-  public async read (url: string) {
+  protected checkStateless () {
     if (this.isStateless) {
-      getLogger().warn('Server is stateless, not reading the resource');
-      return undefined;
+      getLogger().warn('Server is stateless, not performing the operation');
+      return true;
+    }
+    return false;
+  }
+
+  public async read (url: string) {
+    if (this.checkStateless()) {
+      return;
     }
 
     const response = await this.fhirServer!.get(`${url}`);
@@ -57,10 +64,9 @@ export class FhirClient implements IFhirClient {
   };
 
   public async search (query: string, params?: object) {
-    if (this.isStateless) {
-      getLogger().warn('Server is stateless, skipping search');
-      return undefined;
-    };
+    if (this.checkStateless()) {
+      return;
+    }
 
     const { SEARCH_BUNDLE_PAGE_SIZE } = this.serverConfig;
 
