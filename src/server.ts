@@ -153,6 +153,13 @@ export class FumeServer implements IFumeServer {
   }
 
   /**
+   * @returns fhir client
+   */
+  public getFhirClient () {
+    return this.fhirClient;
+  }
+
+  /**
    *
    * @returns cache
    */

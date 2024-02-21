@@ -12,6 +12,7 @@ export type IAppBinding = any;
 export interface IFumeServer {
   registerLogger: (logger: ILogger) => void
   registerFhirClient: (fhitClient: IFhirClient) => void
+  getDhirClient: () => IFhirClient
   registerCacheClass: (
     CacheClass: ICacheClass,
     cacheClassOptions: Record<string, any>,
