@@ -6,13 +6,13 @@
 import { getLogger } from '../logger';
 import config from '../../config';
 import axios, { AxiosInstance } from 'axios';
-import { IFhirClient } from '../../types';
+import { IConfig, IFhirClient } from '../../types';
 
 export class FhirClient implements IFhirClient {
-  private readonly contentType: string;
-  private fhirServer?: AxiosInstance;
-  private readonly serverConfig: any;
-  private readonly isStateless: boolean;
+  protected readonly contentType: string;
+  protected fhirServer?: AxiosInstance;
+  protected readonly serverConfig: IConfig;
+  protected readonly isStateless: boolean;
 
   constructor () {
     this.serverConfig = config.getServerConfig();
