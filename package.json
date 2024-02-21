@@ -19,7 +19,8 @@
     "test:debug": "node --inspect-brk --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.integration.js --runInBand",
-    "prepare": "husky"
+    "prepare": "husky",
+    "postinstall": "npm run build"
   },
   "author": "Outburn Ltd.",
   "license": "AGPL-3.0",
