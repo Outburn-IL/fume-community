@@ -3,6 +3,7 @@
     "target": "ESNext",
     "module": "commonjs",
     "declaration": true,
+    "declarationMap": true,
     "pretty": true,
     "sourceMap": true,
     "outDir": "dist",
