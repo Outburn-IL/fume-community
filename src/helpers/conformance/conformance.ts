@@ -3,11 +3,8 @@
  *   Project name: FUME
  */
 
-import {
-  read
-  , search
-} from '../client';
 import config from '../../config';
+import { getFhirClient } from '../fhirServer';
 import expressions from '../jsonataExpression';
 import { getLogger } from '../logger';
 import { getFhirPackageIndex } from './loadFhirPackageIndex';
@@ -44,15 +41,15 @@ export const getTable = async (tableId: string) => {
   let response;
   try {
     // try to fetch by id
-    response = await read('ConceptMap/' + tableId);
+    response = await getFhirClient().read('ConceptMap/' + tableId);
   } catch {
     // not found by id
     try {
       // try by url
-      response = await search('ConceptMap', { url: tableId });
+      response = await getFhirClient().search('ConceptMap', { url: tableId });
       if (typeof response === 'object' && typeof response.total === 'number' && response.total !== 1) {
         // try by name
-        response = await search('ConceptMap', { name: tableId });
+        response = await getFhirClient().search('ConceptMap', { name: tableId });
         if (typeof response === 'object' && typeof response.total === 'number' && response.total !== 1) {
           // coudn't find
           getLogger().error(err);

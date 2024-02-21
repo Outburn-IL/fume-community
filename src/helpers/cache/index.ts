@@ -1,6 +1,7 @@
 export {
   initCache,
-  getCache
+  getCache,
+  InitCacheConfig
 } from './cache';
 
 export type { IAppCache, IAppCacheKeys } from './cacheTypes';

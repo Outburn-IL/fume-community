@@ -8,6 +8,7 @@ import { ICacheClass } from '../../types/FumeServer';
 import { IAppCache, IAppCacheKeys } from './cacheTypes';
 import { SimpleCache } from './simpleCache';
 
+/** Global app cache instance */
 let appCache: IAppCache | undefined;
 
 const cacheKeys: IAppCacheKeys[] = [

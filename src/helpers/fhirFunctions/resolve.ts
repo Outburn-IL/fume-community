@@ -1,6 +1,6 @@
 
+import { getFhirClient } from '../fhirServer';
 import thrower from '../thrower';
-import { read } from '../client';
 
 export const resolve = async (reference: string): Promise<Record<string, any> | undefined> => {
   // TODO: enable input to be a reference object, and handle logical references (search by identifier)
@@ -8,7 +8,7 @@ export const resolve = async (reference: string): Promise<Record<string, any> | 
   if (reference.includes('?')) return thrower.throwRuntimeError(`The $resolve function only supports literal references. Got: '${reference}'`);
   let resource;
   try {
-    resource = await read(reference);
+    resource = await getFhirClient().read(reference);
   } catch (error) {
     return thrower.throwRuntimeError(`Failed to resolve reference '${reference}'. ${JSON.stringify(error)}`);
   }

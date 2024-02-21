@@ -1,2 +1,3 @@
 npm run eslint:fix
+git add .
 npm run test:unit

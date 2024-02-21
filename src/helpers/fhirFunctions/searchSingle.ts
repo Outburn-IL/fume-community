@@ -1,5 +1,5 @@
+import { getFhirClient } from '../fhirServer';
 import expressions from '../jsonataExpression';
-import { search as fhirSearch } from '../client';
 
 export const searchSingle = async (query: string, params?: Record<string, any>): Promise<any | undefined> => {
   const url: string = encodeURI(query);
@@ -13,7 +13,7 @@ export const searchSingle = async (query: string, params?: Record<string, any>):
     };
   };
 
-  const bundle = await fhirSearch(url, options);
+  const bundle = await getFhirClient().search(url, options);
   const res = await expressions.searchSingle.evaluate({}, { bundle });
   return res;
 };

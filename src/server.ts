@@ -1,21 +1,37 @@
-import express, { RequestHandler } from 'express';
+import express from 'express';
 import cors from 'cors';
 import defaultConfig from './serverConfig';
 import config from './config';
 import routes from './routes';
 import { getLogger, setLogger } from './helpers/logger';
 import conformance from './helpers/conformance';
-import client from './helpers/client';
 import { transform } from './helpers/jsonataFunctions';
 
 import type { Server } from 'http';
-import type { IFumeServer, ILogger, IConfig, ICacheClass, IAppBinding } from './types';
-import { getCache, IAppCacheKeys, initCache } from './helpers/cache';
-import { InitCacheConfig } from './helpers/cache/cache';
+import type {
+  IFumeServer,
+  ILogger,
+  IConfig,
+  ICacheClass,
+  IAppBinding,
+  IFhirClient
+} from './types';
+import { getCache, IAppCacheKeys, initCache, InitCacheConfig } from './helpers/cache';
+import { FhirClient, setFhirClient } from './helpers/fhirServer';
 
 export class FumeServer implements IFumeServer {
   private readonly app: express.Application;
-  private server: Server | undefined;
+  private server?: Server;
+  /**
+   * FHIR client instance
+   * Used to communicate with FHIR server
+   * Can be overriden by calling
+   */
+  private fhirClient?: IFhirClient;
+  /**
+   * Cache configuration
+   * Allows to register custom cache classes and options
+   */
   private cacheConfig: Partial<Record<IAppCacheKeys, InitCacheConfig>> = {};
   private logger = getLogger();
 
@@ -75,7 +91,11 @@ export class FumeServer implements IFumeServer {
       this.logger.info(`Bundle search size: ${SEARCH_BUNDLE_PAGE_SIZE}`);
       this.logger.info(`FHIR Server Timeout: ${FHIR_SERVER_TIMEOUT}`);
       this.logger.info(`Loading FUME resources from FHIR server ${FHIR_SERVER_BASE} into cache...`);
-      client.init();
+
+      if (!this.fhirClient) {
+        this.registerFhirClient(new FhirClient());
+      }
+
       conformance.recacheFromServer().then(_result => {
         this.logger.info('Successfully loaded cache');
       }).catch(_notFound => {
@@ -124,6 +144,15 @@ export class FumeServer implements IFumeServer {
   };
 
   /**
+   * Pass a FHIR client instance to be used by the server
+   * @param fhirClient
+   */
+  public registerFhirClient (fhirClient: IFhirClient) {
+    this.fhirClient = fhirClient;
+    setFhirClient(fhirClient);
+  }
+
+  /**
    *
    * @returns cache
    */
@@ -132,16 +161,7 @@ export class FumeServer implements IFumeServer {
   }
 
   /**
-     *
-     * @param route - express path
-     * @param handler - express request handler
-     */
-  public registerRoute (route: string, handler: RequestHandler) {
-    this.app.use(route, handler);
-  }
-
-  /**
-     *
+     * Register additional bindings for `transform` function
      * @param key
      * @param binding
      */
@@ -149,16 +169,30 @@ export class FumeServer implements IFumeServer {
     config.setBinding(key, binding);
   }
 
+  /**
+   *
+   * @returns fhir package index
+   */
   public getFhirPackageIndex () {
     return conformance.getFhirPackageIndex();
   }
 
+  /**
+   *
+   * @returns fhir packages for the version set in config
+   */
   public getFhirPackages () {
     const fhirVersionMinor = config.getFhirVersionMinor();
     const packages = conformance.getFhirPackageIndex();
     return packages[fhirVersionMinor];
   }
 
+  /**
+   * Calls transform with any additional bindings passed using `registerBinding`
+   * @param input
+   * @param expression
+   * @returns
+   */
   public async transform (input: any, expression: string) {
     return await transform(input, expression, config.getBindings());
   }

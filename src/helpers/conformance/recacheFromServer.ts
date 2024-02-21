@@ -1,7 +1,7 @@
 
 import config from '../../config';
 import { getCache } from '../cache';
-import { read, search } from '../client';
+import { getFhirClient } from '../fhirServer';
 import expressions from '../jsonataExpression';
 import { transform } from '../jsonataFunctions';
 import { getLogger } from '../logger';
@@ -32,7 +32,7 @@ const getNextBundle = async (bundle) => {
   let nextBundle;
   const nextLink = await expressions.extractNextLink.evaluate(bundle);
   if (typeof nextLink === 'string' && nextLink > '') {
-    nextBundle = await read(nextLink);
+    nextBundle = await getFhirClient().read(nextLink);
   }
   return nextBundle;
 };
@@ -42,7 +42,7 @@ const fullSearch = async (query, params) => {
     throw new Error('FUME running in stateless mode. Cannot perform search.');
   };
   const bundleArray: any[] = [];
-  let page: Record<string, any> = await search(query, params);
+  let page: Record<string, any> = await getFhirClient().search(query, params);
   while (typeof page === 'object' && page?.resourceType === 'Bundle') {
     bundleArray.push(page);
     page = await getNextBundle(page);
@@ -57,7 +57,7 @@ const getAliasResource = async () => {
     return undefined;
   };
   let resource;
-  const aliasResourceSearch = await search('ConceptMap', { context: 'http://codes.fume.health|fume', name: 'FumeAliases' });
+  const aliasResourceSearch = await getFhirClient().search('ConceptMap', { context: 'http://codes.fume.health|fume', name: 'FumeAliases' });
   if (typeof aliasResourceSearch === 'object' && aliasResourceSearch.resourceType === 'Bundle' && typeof aliasResourceSearch.total === 'number') {
     if (aliasResourceSearch.total === 1) {
       getLogger().info(`Alias resource found: ${aliasResourceSearch.entry[0].fullUrl as string}`);

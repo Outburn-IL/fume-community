@@ -2,6 +2,7 @@ import { Application } from 'express';
 import { ILogger } from './Logger';
 import { IConfig } from './Config';
 import { ICache } from './Cache';
+import { IFhirClient } from './FhirClient';
 import { IAppCache, IAppCacheKeys } from '../helpers/cache/cacheTypes';
 import { IFhirPackageIndex } from '../helpers/conformance/loadFhirPackageIndex';
 
@@ -10,6 +11,7 @@ export type IAppBinding = any;
 
 export interface IFumeServer {
   registerLogger: (logger: ILogger) => void
+  registerFhirClient: (fhitClient: IFhirClient) => void
   registerCacheClass: (
     CacheClass: ICacheClass,
     cacheClassOptions: Record<string, any>,

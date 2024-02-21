@@ -3,7 +3,6 @@
  */
 
 import { selectKeys } from './helpers/objectFunctions';
-
 import parser from './helpers/parser';
 import {
   duplicate,
@@ -17,10 +16,17 @@ import config from './config';
 import expressions from './helpers/jsonataExpression';
 import { v2json } from './helpers/hl7v2';
 
-export type { IFumeServer, ILogger, ICache, IConfig, IAppBinding } from './types';
+/**
+ * Export types
+ */
+export type { IFumeServer, ILogger, ICache, IConfig, IAppBinding, IFhirClient } from './types';
 export type { IAppCache, IAppCacheKeys } from './helpers/cache';
-export { FumeServer } from './server';
 
+/**
+ * Export classes and utils
+ */
+export { FumeServer } from './server';
+export { FhirClient } from './helpers/fhirServer';
 export const fumeUtils = {
   duplicate,
   substringBefore,
