@@ -156,6 +156,9 @@ export class FumeServer implements IFumeServer {
    * @returns fhir client
    */
   public getFhirClient () {
+    if (!this.fhirClient) {
+      throw new Error('FHIR client not registered');
+    }
     return this.fhirClient;
   }
 
