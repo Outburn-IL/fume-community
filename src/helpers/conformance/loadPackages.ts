@@ -12,9 +12,9 @@ export const loadPackage = async (fhirPackage: string | string[]) => {
     return await fpl(fhirPackage, {
       log: (level: string, message: string) => {
         if (level === 'error') {
-          getLogger().error(message);
+          getLogger().error(`FPL ${level}: ${message}`);
         } else {
-          getLogger().info({ level, message });
+          getLogger().info(`FPL ${level}: ${message}`);
         }
       }
     });
