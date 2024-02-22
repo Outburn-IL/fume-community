@@ -10,6 +10,7 @@ import { parseCsv } from '../helpers/stringFunctions';
 import { transform } from '../helpers/jsonataFunctions';
 import type { Request, Response } from 'express';
 import config from '../config';
+import { getLogger } from '../helpers/logger';
 
 const get = async (req: Request, res: Response) => {
   return res.status(200).json(
@@ -57,7 +58,7 @@ const evaluate = async (req: Request, res: Response) => {
       cause: error.cause ?? '',
       position: error.position ?? ''
     };
-    console.error({ error });
+    getLogger().error({ error });
     return res.status(422).json(data);
   }
 };
