@@ -1,6 +1,8 @@
 import { test } from '@jest/globals';
 import request from 'supertest';
 import _ from 'lodash';
+import fs from 'fs';
+import path from 'path';
 
 const mockInput = {
   mrn: 'PP875023983',
@@ -38,69 +40,14 @@ const mockInput = {
 };
 
 describe('integration tests', () => {
-  test('get /', async () => {
-    await request(globalThis.app).get('/').expect(200);
-  });
-
-  test('post empty fails with 422', async () => {
-    await request(globalThis.app).post('/').expect(422);
-  });
-
-  test.only('Default example mapping from Designer', async () => {
-    const mapping = `
-/* FLASH script example for FHIR version 4.0 Patient */
-Instance: $pid := $uuid('1')
-InstanceOf: Patient
-* identifier
-  * system = $urn
-  * value = 'urn:uuid:' & $pid
-* identifier
-  * system = $exampleMrn
-  * value = mrn
-* identifier
-  * system = $ssn
-  * value = ssn
-* identifier
-  * system = $passportPrefix & passport_country
-  * value = passport_number
-* active = status='active'
-* name
-  * given = first_name
-  * family = last_name
-* birthDate = birth_date
-* gender = $translate(sex, 'gender')
-* (address).address
-  * city = city_name
-  * state = state
-  * country = 'USA'
-  * line = $join([$string(house_number),street_name], ' ')
-  * postalCode = zip_code
-  * extension
-    * url = $extGeolocation
-    * extension
-      * url = 'latitude'
-      * valueDecimal = lat
-    * extension
-      * url = 'longitude'
-      * valueDecimal = long
-* (phones).telecom
-  * system = 'phone'
-  * value = number
-  * use = (type='HOME'?'home':type='CELL'?'mobile')
-* generalPractitioner
-  * identifier
-    * value = primary_doctor.license
-    * type.coding
-      * system = 'http://terminology.hl7.org/CodeSystem/v2-0203'
-      * code = 'MD'
-  * display = primary_doctor.full_name
-  * reference = $literal('Practitioner?identifier='&primary_doctor.license)
-
-    `;
+  test('Default example mapping from Designer', async () => {
+    const file = path.join(__dirname, '..', 'fhir', 'mapping', 'flash-script-fhir-4.0-patient.txt');
+    const mapping = fs.readFileSync(file);
     const requestBody = {
       input: mockInput,
-      fume: mapping
+      fume: mapping.toString()
     };
+
     const res = await request(globalThis.app).post('/').send(requestBody);
 
     expect(res.body).toStrictEqual({

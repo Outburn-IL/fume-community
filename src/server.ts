@@ -96,11 +96,10 @@ export class FumeServer implements IFumeServer {
         this.registerFhirClient(new FhirClient());
       }
 
-      conformance.recacheFromServer().then(_result => {
+      const recacheResult = await conformance.recacheFromServer();
+      if (recacheResult) {
         this.logger.info('Successfully loaded cache');
-      }).catch(_notFound => {
-        this.logger.info('Error loading cache');
-      });
+      }
     };
 
     this.server = this.app.listen(SERVER_PORT);
