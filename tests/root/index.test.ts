@@ -41,7 +41,7 @@ const mockInput = {
 
 describe('integration tests', () => {
   test('Default example mapping from Designer', async () => {
-    const file = path.join(__dirname, '..', 'fhir', 'mapping', 'flash-script-fhir-4.0-patient.txt');
+    const file = path.join(__dirname, '..', 'fhir', 'mappings', 'flash-script-fhir-4.0-patient.txt');
     const mapping = fs.readFileSync(file);
     const requestBody = {
       input: mockInput,
