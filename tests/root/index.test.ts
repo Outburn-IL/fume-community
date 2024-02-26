@@ -39,6 +39,44 @@ const mockInput = {
 };
 
 describe('integration tests', () => {
+  test('Simple CSV parsing to JSON', async () => {
+    const csvFile = path.join(__dirname, '..', 'fhir', 'inputs', 'simple-csv.txt');
+    const input = fs.readFileSync(csvFile);
+    const requestBody = {
+      input: input.toString(),
+      contentType: 'text/csv',
+      fume: '$'
+    };
+
+    const res = await request(globalThis.app).post('/').send(requestBody);
+
+    expect(res.body).toStrictEqual([
+      {
+        field1: '1',
+        field2: 'a',
+        field3: 'true',
+        field4: 'null'
+      },
+      {
+        field1: '2',
+        field2: 'b',
+        field3: 'false'
+      },
+      {
+        field1: '3',
+        field2: 'c',
+        field3: 'null',
+        field4: 'null'
+      },
+      {
+        field1: '4',
+        field2: '1',
+        field3: 'true',
+        field4: 'a'
+      }
+    ]);
+  });
+
   test('HL7 v2 ADT to Bundle', async () => {
     const mappingFile = path.join(__dirname, '..', 'fhir', 'mappings', 'v2-adt-to-bundle.txt');
     const v2file = path.join(__dirname, '..', 'fhir', 'inputs', 'HL7-v2-ADT-A01.txt');

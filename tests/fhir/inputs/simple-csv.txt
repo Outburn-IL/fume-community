@@ -1,0 +1,5 @@
+field1, field2, field3, field4
+1,a,true,null
+2,b,false
+3,c,null,null
+4,1,true,a
