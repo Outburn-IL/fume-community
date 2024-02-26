@@ -1,0 +1,6 @@
+MSH|^~\&|HIS|Hospital1|IRIS||202304062045||ADT^A01|d6b56e78-f6d1-4c82-9a9c-7e777a93e1af|P|2.5.1|||
+EVN|A01|202304042045|||||
+PID|58705|58705|1^^^^MR||DemoTest1^DemoTest1||20220101|F|||Oren Street^^Haifa|IL|09-12345678|054-123456789||||Account1||||||||||||||||||||
+PV1|1|E|ER^101^1^DemoHospital|E||||||MED||||7|||37^DISNEY^WALT^^^^^^DemoHospital^^^^CI|2|Admission1^^^DemoHospital|4|||||||||||||||||||1||G|||20050110||||||
+DG1|1|DH|ABDPAIN^Abdominal pain^DH|Abdominal Pain |20230406|A| IN1|1|MEDICARE|3|MEDICARE||||||||20230406|Condition1|unconfirmed| 
+IN1|2|InsuranceIdentifier1|10|Health Insurance Global|PO BOX 94776^^HOLLYWOOD^CA^441414776||8003621279|PUBSUMB|||Cartoon Ducks Inc||||7|DUCK^DONALD^D|SEL|19241010|111 DUCK ST^^FOWL^CA^999990000|||||||||||||||||056269770||||||PT|M|111^DUCK ST^^FOWL^CA^999990000|||||1

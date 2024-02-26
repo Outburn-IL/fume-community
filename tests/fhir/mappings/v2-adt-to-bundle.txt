@@ -1,0 +1,192 @@
+(
+  $patient := (
+            /* FLASH template for FHIR version 4.0 Patient */
+        Instance:$resourceId("Patient?identifier=http://example.com/identifier/patient-id|"&PID.PatientIdentifierList.IDNumber) /* Logical id of this artifact */
+        InstanceOf: Patient
+        * meta
+          * source="urn:uuid:"&MSH.MessageControlID
+        * identifier /* <Identifier> An identifier for this patient */
+          * type /* <CodeableConcept> Description of identifier */
+            * coding /* <Coding> Code defined by a terminology system */
+              * system = "http://terminology.hl7.org/CodeSystem/v2-0203" /* <uri> Identity of the terminology system */
+              * code = PID.PatientIdentifierList.IdentifierTypeCode /* <code> Symbol in syntax defined by the system */
+          * system = "http://example.com/identifier/patient-id" /* <uri> The namespace for the identifier value */
+          * value = PID.PatientIdentifierList.IDNumber /* <string> The value that is unique */
+        * active = true /* <boolean> Whether this patient's record is in active use */
+        * name /* <HumanName> A name associated with the patient */
+          * family = PID.PatientName.FamilyName.Surname /* <string> Family name (often called 'Surname') */
+          * given = PID.PatientName.GivenName /* <string> Given names (not always 'first'). Includes middle names */
+        * telecom /* <ContactPoint> A contact detail for the individual */
+          * system = 'phone' /* <code> phone | fax | email | pager | url | sms | other */
+          * value = PID.PhoneNumber_Home ? PID.PhoneNumber_Home.TelephoneNumber /* <string> The actual contact point details */
+          * use = 'home' /* <code> home | work | temp | old | mobile - purpose of this contact point */
+        * telecom /* <ContactPoint> A contact detail for the individual */
+          * system = 'phone' /* <code> phone | fax | email | pager | url | sms | other */
+          * value = PID.PhoneNumber_Business ? PID.PhoneNumber_Business.TelephoneNumber /* <string> The actual contact point details */
+          * use = 'mobile' /* <code> home | work | temp | old | mobile - purpose of this contact point */
+        * gender = PID.AdministrativeSex = 'F' ? 'female' : 'other' /* <code> male | female | other | unknown */
+        * birthDate = PID.DateTimeOfBirth.Time /* <date> The date of birth for the individual */
+        * address /* <Address> An address for the individual */
+          * line = PID.PatientAddress.StreetAddress.StreetOrMailingAddress /* <string> Street name, number, direction & P.O. Box etc. */
+          * city = PID.PatientAddress.City /* <string> Name of city, town etc. */
+          * country = PID.CountyCode/* <string> Country (e.g. can be ISO 3166 2 or 3 letter code) */
+  );
+  $organization := (
+            /* FLASH template for FHIR version 4.0 Organization */
+        Instance: $resourceId("Organization?identifier="&IN1.InsuranceCompanyID.IDNumber)/* Logical id of this artifact */
+        InstanceOf: Organization
+        * meta.source="urn:uuid:"&MSH.MessageControlID
+        * identifier /* <Identifier> Identifies this organization  across multiple systems */
+          * system = "http://insurance-providers/idnetifier/insurance" /* <uri> The namespace for the identifier value */
+          * value = IN1.InsuranceCompanyID.IDNumber /* <string> The value that is unique */
+        * name = IN1.InsuranceCompanyName.OrganizationName /* <string> Name used for the organization */
+        * address /* <Address> An address for the organization */
+          * line = IN1.InsuranceCompanyAddress.StreetAddress.StreetOrMailingAddress /* <string> Street name, number, direction & P.O. Box etc. */
+          * city = IN1.InsuranceCompanyAddress.City /* <string> Name of city, town etc. */
+          * state = IN1.InsuredsAddress.StateOrProvince /* <string> Sub-unit of country (abbreviations ok) */
+          * postalCode = IN1.InsuredsAddress.ZipOrPostalCode /* <string> Postal code for area */
+  );
+  $coverage := (
+            /* FLASH template for FHIR version 4.0 Coverage */
+        Instance: $resourceId("Coverage?identifier=http://healthinsglobal.com/identifier/healthcoverage|"&IN1.InsurancePlanID.Identifier) /* Logical id of this artifact */
+        InstanceOf: Coverage
+        * meta.source="urn:uuid:"&MSH.MessageControlID
+        * identifier /* <Identifier> Business Identifier for the coverage */
+          * system = "http://healthinsglobal.com/identifier/healthcoverage" /* <uri> The namespace for the identifier value */
+          * value = IN1.InsurancePlanID.Identifier /* <string> The value that is unique */
+        * status = "active" /* <code> active | cancelled | draft | entered-in-error */
+        * type /* <CodeableConcept> Coverage category such as medical or accident */
+          * coding /* <Coding> Code defined by a terminology system */
+            * system = "http://terminology.hl7.org/CodeSystem/coverage-selfpay" /* <uri> Identity of the terminology system */
+            * code = IN1.PlanType="7" ? "EHCPOL" /* <code> Symbol in syntax defined by the system */
+        * beneficiary /* <Reference> Plan beneficiary */
+          * reference = $reference($patient) /* <string> Literal reference, Relative, internal or absolute URL */
+        * ($translate(IN1.InsuredsRelationshipToPatient.Identifier,'hl7v2coveragebeneficiary')).relationship /* <CodeableConcept> Beneficiary relationship to the subscriber */
+          * coding /* <Coding> Code defined by a terminology system */
+            * system = "http://terminology.hl7.org/CodeSystem/subscriber-relationship" /* <uri> Identity of the terminology system */
+            * code = $ /* <code> Symbol in syntax defined by the system */
+        * payor /* <Reference> Issuer of the policy */
+          * reference = $reference($organization) /* <string> Literal reference, Relative, internal or absolute URL */
+  );
+  $account := (
+              /* FLASH template for FHIR version 4.0 Account */
+          Instance: $resourceId("Account?identifier="&PID.PatientAccountNumber.IDNumber)/* Logical id of this artifact */
+          InstanceOf: Account
+          * meta.source="urn:uuid:"&MSH.MessageControlID
+          * identifier /* <Identifier> Account number */
+            * value = PID.PatientAccountNumber.IDNumber /* <string> The value that is unique */
+          * status = "active" /* <code> active | inactive | entered-in-error | on-hold | unknown */
+          * subject /* <Reference> The entity that caused the expenses */
+            * reference = $reference($patient) /* <string> Literal reference, Relative, internal or absolute URL */
+          * coverage /* <BackboneElement> The party(s) that are responsible for covering the payment of this account, and what order should they be applied to the account */
+            * coverage /* <Reference> The party(s), such as insurances, that may contribute to the payment of this account */
+              * reference = $reference($coverage)/* <string> Literal reference, Relative, internal or absolute URL */
+  );
+  $encounter := (
+            /* FLASH template for FHIR version 4.0 Encounter */
+        Instance: $resourceId("Encounter?identifier=http://"&PV1.VisitNumber.AssigningAuthority.NamespaceID&".com/identifier/admission|"&PV1.VisitNumber.IDNumber) /* Logical id of this artifact */
+        InstanceOf: Encounter
+        * meta
+          * source="urn:uuid:"&MSH.MessageControlID
+        * identifier /* <Identifier> Identifier(s) by which this encounter is known */
+          * system = "http://"&PV1.VisitNumber.AssigningAuthority.NamespaceID&".com/identifier/admission"/* <uri> The namespace for the identifier value */
+          * value = PV1.VisitNumber.IDNumber/* <string> The value that is unique */
+        * status = 'in-progress' /* <code> planned | arrived | triaged | in-progress | onleave | finished | cancelled + */
+        * class /* <Coding> Classification of patient encounter */
+          * system = "http://terminology.outburn.co.il/enc-class" /* <uri> Identity of the terminology system */
+          * code = 'E' /* <code> Symbol in syntax defined by the system */
+          * display = "emergency"  /* <string> Representation defined by the system */
+        * type /* <CodeableConcept> Specific type of encounter */
+          * coding /* <Coding> Code defined by a terminology system */
+            * system = "http://terminology.outburn.co.il/123" /* <uri> Identity of the terminology system */
+            * code = PV1.AdmissionType /* <code> Symbol in syntax defined by the system */
+            * display = $translate(PV1.AdmissionType,'hl7v2encountertype') ? 'Emergency' /* <string> Representation defined by the system */
+          * text = $translate(PV1.AdmissionType,'hl7v2encountertype') ? 'Emergency' /* <string> Plain text representation of the concept */
+        * serviceType /* <CodeableConcept> Specific type of service */
+          * coding /* <Coding> Code defined by a terminology system */
+            * code = PV1.HospitalService /* <code> Symbol in syntax defined by the system */
+            * display = 'Medical service' /* <string> Representation defined by the system */
+          * text = 'Medical service'  /* <string> Plain text representation of the concept */
+        * subject /* <Reference> The patient or group present at the encounter */
+          * reference = $reference($patient) /* <string> Literal reference, Relative, internal or absolute URL */
+        * period /* <Period> The start and end time of the encounter */
+          * start = PV1.AdmitDateTime.Time /* <dateTime> Starting time with inclusive boundary */
+        * account /* <Reference> The set of accounts that may be used for billing for this Encounter */
+          * reference = $reference($account)/* <string> Literal reference, Relative, internal or absolute URL */
+        * hospitalization /* <BackboneElement> Details about the admission to a healthcare service */
+          * admitSource /* <CodeableConcept> From where patient was admitted (physician referral, transfer) */
+            * coding /* <Coding> Code defined by a terminology system */
+              * system = 'http://terminology.fume.health/admit-source' /* <uri> Identity of the terminology system */
+              * code = PV1.AdmitSource /* <code> Symbol in syntax defined by the system */
+        * location /* <BackboneElement> List of locations where the patient has been */
+          * location /* <Reference> Location the encounter takes place */
+            * identifier /* <Identifier> Logical reference, when literal reference is not known */
+              * system = "http://"&PV1.VisitNumber.AssigningAuthority.NamespaceID&".com/identifier/location" /* <uri> The namespace for the identifier value */
+              * value = PV1.AssignedPatientLocation.PointOfCare  /* <string> The value that is unique */
+          * status = 'active' /* <code> planned | active | reserved | completed */
+  );
+  $condition := (
+            /* FLASH template for FHIR version 4.0 Condition */
+        Instance: $resourceId("Condition?identifier=http://"&PV1.VisitNumber.AssigningAuthority.NamespaceID&".com/identifier/condition|"&G1.DiagnosisIdentifier.EntityIdentifier)/* Logical id of this artifact */
+        InstanceOf: Condition
+        * meta.source="urn:uuid:"&MSH.MessageControlID
+        * identifier /* <Identifier> External Ids for this condition */
+          * system = "http://"&PV1.VisitNumber.AssigningAuthority.NamespaceID&".com/identifier/condition" /* <uri> The namespace for the identifier value */
+          * value = DG1.DiagnosisIdentifier.EntityIdentifier/* <string> The value that is unique */
+        * verificationStatus /* <CodeableConcept> unconfirmed | provisional | differential | confirmed | refuted | entered-in-error */
+          * coding /* <Coding> Code defined by a terminology system */
+            * system = 'http://terminology.hl7.org/CodeSystem/condition-ver-status'  /* <uri> Identity of the terminology system */
+            * code = DG1.DiagnosisActionCode  /* <code> Symbol in syntax defined by the system */
+        * code /* <CodeableConcept> Identification of the condition, problem or diagnosis */
+          * coding /* <Coding> Code defined by a terminology system */
+            * system = 'http//DemoHospital.com/cs/condition-code' /* <uri> Identity of the terminology system */
+            * code = DG1.DiagnosisCode_DG1.Identifier /* <code> Symbol in syntax defined by the system */
+            * display = DG1.DiagnosisCode_DG1.Text /* <string> Representation defined by the system */
+          * coding /* <Coding> Code defined by a terminology system */ 
+            * system = 'http//terminology.fume.health/cs/condition-code' /* <uri> Identity of the terminology system */
+            * code = DG1.DiagnosisCode_DG1.Identifier /* <code> Symbol in syntax defined by the system */
+            * display = DG1.DiagnosisCode_DG1.Text /* <string> Representation defined by the system */
+          * text = DG1.DiagnosisDescription ~> $trim/* <string> Plain text representation of the concept */
+        * subject /* <Reference> Who has the condition? */
+          * reference = $reference($patient) /* <string> Literal reference, Relative, internal or absolute URL */
+        * encounter /* <Reference> Encounter created as part of */
+          * reference = $reference($encounter) /* <string> Literal reference, Relative, internal or absolute URL */
+        * onsetDateTime = DG1.DiagnosisDateTime.Time /* <dateTime> Estimated or actual date,  date-time, or age */
+        * recordedDate = DG1.AttestationDateTime.Time /* <dateTime> Date record was first recorded */
+  );
+  (
+    Instance: $uuid('ADT')  
+    InstanceOf: Bundle
+    * type = 'transaction'
+    * ($patient).entry
+      * request
+        * method = $exists(id) ? 'PUT' : 'POST'
+        * url = 'Patient' & ($exists(id) ? '/' & id : '')
+      * resource = $
+    * ($account).entry
+      * request
+        * method = $exists(id) ? 'PUT' : 'POST'
+        * url = 'Account' & ($exists(id) ? '/' & id : '')
+      * resource = $
+    * ($encounter).entry
+      * request
+        * method = $exists(id) ? 'PUT' : 'POST'
+        * url = 'Encounter' & ($exists(id) ? '/' & id : '')
+      * resource = $
+    * ($condition).entry
+      * request
+        * method = $exists(id) ? 'PUT' : 'POST'
+        * url = 'Condition' & ($exists(id) ? '/' & id : '')
+      * resource = $
+    * ($organization).entry
+      * request
+        * method = $exists(id) ? 'PUT' : 'POST'
+        * url = 'Organization' & ($exists(id) ? '/' & id : '')
+      * resource = $  
+    * ($coverage).entry
+      * request
+        * method = $exists(id) ? 'PUT' : 'POST'
+        * url = 'Coverage' & ($exists(id) ? '/' & id : '')
+      * resource = $        
+  );
+)

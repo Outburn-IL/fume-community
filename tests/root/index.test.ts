@@ -39,6 +39,313 @@ const mockInput = {
 };
 
 describe('integration tests', () => {
+  test('HL7 v2 ORU message to BP profile', async () => {
+    const mappingFile = path.join(__dirname, '..', 'fhir', 'mappings', 'v2-adt-to-bundle.txt');
+    const v2file = path.join(__dirname, '..', 'fhir', 'inputs', 'HL7-v2-ADT-A01.txt');
+    const mapping = fs.readFileSync(mappingFile);
+    const input = fs.readFileSync(v2file);
+    const requestBody = {
+      input: input.toString(),
+      contentType: 'x-application/hl7-v2+er7',
+      fume: mapping.toString()
+    };
+
+    const res = await request(globalThis.app).post('/').send(requestBody);
+
+    expect(res.body).toStrictEqual({
+      resourceType: 'Bundle',
+      id: '049fd91f-3b99-5864-9cd4-9e5480b39969',
+      type: 'transaction',
+      entry: [
+        {
+          request: {
+            method: 'PUT',
+            url: 'Patient/3452'
+          },
+          resource: {
+            resourceType: 'Patient',
+            id: '3452',
+            meta: {
+              source: 'urn:uuid:d6b56e78-f6d1-4c82-9a9c-7e777a93e1af'
+            },
+            identifier: [
+              {
+                type: {
+                  coding: [
+                    {
+                      system: 'http://terminology.hl7.org/CodeSystem/v2-0203',
+                      code: 'MR'
+                    }
+                  ]
+                },
+                system: 'http://example.com/identifier/patient-id',
+                value: '1'
+              }
+            ],
+            active: true,
+            name: [
+              {
+                family: 'DemoTest1',
+                given: [
+                  'DemoTest1'
+                ]
+              }
+            ],
+            telecom: [
+              {
+                system: 'phone',
+                value: '09-12345678',
+                use: 'home'
+              },
+              {
+                system: 'phone',
+                value: '054-123456789',
+                use: 'mobile'
+              }
+            ],
+            gender: 'female',
+            birthDate: '2022-01-01',
+            address: [
+              {
+                line: [
+                  'Oren Street'
+                ],
+                city: 'Haifa',
+                country: 'IL'
+              }
+            ]
+          }
+        },
+        {
+          request: {
+            method: 'POST',
+            url: 'Account'
+          },
+          resource: {
+            resourceType: 'Account',
+            meta: {
+              source: 'urn:uuid:d6b56e78-f6d1-4c82-9a9c-7e777a93e1af'
+            },
+            identifier: [
+              {
+                value: 'Account1'
+              }
+            ],
+            status: 'active',
+            subject: [
+              {
+                reference: 'urn:uuid:88f334bc-9be0-5248-af09-ac5bdcc81a58'
+              }
+            ],
+            coverage: [
+              {
+                coverage: {
+                  reference: 'urn:uuid:e795040e-0d9b-552e-9dc9-69a004390f94'
+                }
+              }
+            ]
+          }
+        },
+        {
+          request: {
+            method: 'POST',
+            url: 'Encounter'
+          },
+          resource: {
+            resourceType: 'Encounter',
+            meta: {
+              source: 'urn:uuid:d6b56e78-f6d1-4c82-9a9c-7e777a93e1af'
+            },
+            identifier: [
+              {
+                system: 'http://DemoHospital.com/identifier/admission',
+                value: 'Admission1'
+              }
+            ],
+            status: 'in-progress',
+            class: {
+              system: 'http://terminology.outburn.co.il/enc-class',
+              code: 'E',
+              display: 'emergency'
+            },
+            type: [
+              {
+                coding: [
+                  {
+                    system: 'http://terminology.outburn.co.il/123',
+                    code: 'E'
+                  }
+                ]
+              }
+            ],
+            serviceType: {
+              coding: [
+                {
+                  code: 'MED',
+                  display: 'Medical service'
+                }
+              ],
+              text: 'Medical service'
+            },
+            subject: {
+              reference: 'urn:uuid:88f334bc-9be0-5248-af09-ac5bdcc81a58'
+            },
+            period: {
+              start: '2005-01-10'
+            },
+            account: [
+              {
+                reference: 'urn:uuid:985fe67f-a66c-595f-9bf5-310dfbfb5d83'
+              }
+            ],
+            hospitalization: {
+              admitSource: {
+                coding: [
+                  {
+                    system: 'http://terminology.fume.health/admit-source',
+                    code: '7'
+                  }
+                ]
+              }
+            },
+            location: [
+              {
+                location: {
+                  identifier: {
+                    system: 'http://DemoHospital.com/identifier/location',
+                    value: 'ER'
+                  }
+                },
+                status: 'active'
+              }
+            ]
+          }
+        },
+        {
+          request: {
+            method: 'POST',
+            url: 'Condition'
+          },
+          resource: {
+            resourceType: 'Condition',
+            meta: {
+              source: 'urn:uuid:d6b56e78-f6d1-4c82-9a9c-7e777a93e1af'
+            },
+            identifier: [
+              {
+                system: 'http://DemoHospital.com/identifier/condition',
+                value: 'Condition1'
+              }
+            ],
+            verificationStatus: {
+              coding: [
+                {
+                  system: 'http://terminology.hl7.org/CodeSystem/condition-ver-status',
+                  code: 'unconfirmed'
+                }
+              ]
+            },
+            code: {
+              coding: [
+                {
+                  system: 'http//DemoHospital.com/cs/condition-code',
+                  code: 'ABDPAIN',
+                  display: 'Abdominal pain'
+                },
+                {
+                  system: 'http//terminology.fume.health/cs/condition-code',
+                  code: 'ABDPAIN',
+                  display: 'Abdominal pain'
+                }
+              ],
+              text: 'Abdominal Pain'
+            },
+            subject: {
+              reference: 'urn:uuid:88f334bc-9be0-5248-af09-ac5bdcc81a58'
+            },
+            encounter: {
+              reference: 'urn:uuid:19510d2c-62d5-5119-907c-1e705ff1c424'
+            },
+            onsetDateTime: '2023-04-06',
+            recordedDate: '2023-04-06'
+          }
+        },
+        {
+          request: {
+            method: 'POST',
+            url: 'Organization'
+          },
+          resource: {
+            resourceType: 'Organization',
+            meta: {
+              source: 'urn:uuid:d6b56e78-f6d1-4c82-9a9c-7e777a93e1af'
+            },
+            identifier: [
+              {
+                system: 'http://insurance-providers/idnetifier/insurance',
+                value: '10'
+              }
+            ],
+            name: 'Health Insurance Global',
+            address: [
+              {
+                line: [
+                  'PO BOX 94776'
+                ],
+                city: 'HOLLYWOOD',
+                state: 'CA',
+                postalCode: '999990000'
+              }
+            ]
+          }
+        },
+        {
+          request: {
+            method: 'POST',
+            url: 'Coverage'
+          },
+          resource: {
+            resourceType: 'Coverage',
+            meta: {
+              source: 'urn:uuid:d6b56e78-f6d1-4c82-9a9c-7e777a93e1af'
+            },
+            identifier: [
+              {
+                system: 'http://healthinsglobal.com/identifier/healthcoverage',
+                value: 'InsuranceIdentifier1'
+              }
+            ],
+            status: 'active',
+            type: {
+              coding: [
+                {
+                  system: 'http://terminology.hl7.org/CodeSystem/coverage-selfpay',
+                  code: 'EHCPOL'
+                }
+              ]
+            },
+            beneficiary: {
+              reference: 'urn:uuid:88f334bc-9be0-5248-af09-ac5bdcc81a58'
+            },
+            relationship: {
+              coding: [
+                {
+                  system: 'http://terminology.hl7.org/CodeSystem/subscriber-relationship',
+                  code: 'self'
+                }
+              ]
+            },
+            payor: [
+              {
+                reference: 'urn:uuid:62fc2899-773f-5f8e-b159-a892b78c30c1'
+              }
+            ]
+          }
+        }
+      ]
+    });
+  });
+
   test('HL7 v2 ORU message parsing to JSON', async () => {
     const v2file = path.join(__dirname, '..', 'fhir', 'inputs', 'HL7-v2-ORU.txt');
     const input = fs.readFileSync(v2file);
