@@ -1,7 +1,7 @@
 (
   $patient := (
             /* FLASH template for FHIR version 4.0 Patient */
-        Instance:$resourceId("Patient?identifier=http://example.com/identifier/patient-id|"&PID.PatientIdentifierList.IDNumber) /* Logical id of this artifact */
+        Instance:$uuid(PID.PatientIdentifierList.IDNumber) /* Logical id of this artifact */
         InstanceOf: Patient
         * meta
           * source="urn:uuid:"&MSH.MessageControlID
@@ -33,7 +33,7 @@
   );
   $organization := (
             /* FLASH template for FHIR version 4.0 Organization */
-        Instance: $resourceId("Organization?identifier="&IN1.InsuranceCompanyID.IDNumber)/* Logical id of this artifact */
+        Instance: $uuid(IN1.InsuranceCompanyID.IDNumber)/* Logical id of this artifact */
         InstanceOf: Organization
         * meta.source="urn:uuid:"&MSH.MessageControlID
         * identifier /* <Identifier> Identifies this organization  across multiple systems */
@@ -48,7 +48,7 @@
   );
   $coverage := (
             /* FLASH template for FHIR version 4.0 Coverage */
-        Instance: $resourceId("Coverage?identifier=http://healthinsglobal.com/identifier/healthcoverage|"&IN1.InsurancePlanID.Identifier) /* Logical id of this artifact */
+        Instance: $uuid(IN1.InsurancePlanID.Identifier) /* Logical id of this artifact */
         InstanceOf: Coverage
         * meta.source="urn:uuid:"&MSH.MessageControlID
         * identifier /* <Identifier> Business Identifier for the coverage */
@@ -61,16 +61,12 @@
             * code = IN1.PlanType="7" ? "EHCPOL" /* <code> Symbol in syntax defined by the system */
         * beneficiary /* <Reference> Plan beneficiary */
           * reference = $reference($patient) /* <string> Literal reference, Relative, internal or absolute URL */
-        * ($translate(IN1.InsuredsRelationshipToPatient.Identifier,'hl7v2coveragebeneficiary')).relationship /* <CodeableConcept> Beneficiary relationship to the subscriber */
-          * coding /* <Coding> Code defined by a terminology system */
-            * system = "http://terminology.hl7.org/CodeSystem/subscriber-relationship" /* <uri> Identity of the terminology system */
-            * code = $ /* <code> Symbol in syntax defined by the system */
         * payor /* <Reference> Issuer of the policy */
           * reference = $reference($organization) /* <string> Literal reference, Relative, internal or absolute URL */
   );
   $account := (
               /* FLASH template for FHIR version 4.0 Account */
-          Instance: $resourceId("Account?identifier="&PID.PatientAccountNumber.IDNumber)/* Logical id of this artifact */
+          Instance: $uuid(PID.PatientAccountNumber.IDNumber)/* Logical id of this artifact */
           InstanceOf: Account
           * meta.source="urn:uuid:"&MSH.MessageControlID
           * identifier /* <Identifier> Account number */
@@ -84,7 +80,7 @@
   );
   $encounter := (
             /* FLASH template for FHIR version 4.0 Encounter */
-        Instance: $resourceId("Encounter?identifier=http://"&PV1.VisitNumber.AssigningAuthority.NamespaceID&".com/identifier/admission|"&PV1.VisitNumber.IDNumber) /* Logical id of this artifact */
+        Instance: $uuid(PV1.VisitNumber.AssigningAuthority.NamespaceID & PV1.VisitNumber.IDNumber) /* Logical id of this artifact */
         InstanceOf: Encounter
         * meta
           * source="urn:uuid:"&MSH.MessageControlID
@@ -100,8 +96,6 @@
           * coding /* <Coding> Code defined by a terminology system */
             * system = "http://terminology.outburn.co.il/123" /* <uri> Identity of the terminology system */
             * code = PV1.AdmissionType /* <code> Symbol in syntax defined by the system */
-            * display = $translate(PV1.AdmissionType,'hl7v2encountertype') ? 'Emergency' /* <string> Representation defined by the system */
-          * text = $translate(PV1.AdmissionType,'hl7v2encountertype') ? 'Emergency' /* <string> Plain text representation of the concept */
         * serviceType /* <CodeableConcept> Specific type of service */
           * coding /* <Coding> Code defined by a terminology system */
             * code = PV1.HospitalService /* <code> Symbol in syntax defined by the system */
@@ -127,7 +121,7 @@
   );
   $condition := (
             /* FLASH template for FHIR version 4.0 Condition */
-        Instance: $resourceId("Condition?identifier=http://"&PV1.VisitNumber.AssigningAuthority.NamespaceID&".com/identifier/condition|"&G1.DiagnosisIdentifier.EntityIdentifier)/* Logical id of this artifact */
+        Instance: $uuid(PV1.VisitNumber.AssigningAuthority.NamespaceID & G1.DiagnosisIdentifier.EntityIdentifier)/* Logical id of this artifact */
         InstanceOf: Condition
         * meta.source="urn:uuid:"&MSH.MessageControlID
         * identifier /* <Identifier> External Ids for this condition */

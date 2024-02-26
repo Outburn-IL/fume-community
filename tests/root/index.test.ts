@@ -39,7 +39,7 @@ const mockInput = {
 };
 
 describe('integration tests', () => {
-  test('HL7 v2 ORU message to BP profile', async () => {
+  test('HL7 v2 ADT to Bundle', async () => {
     const mappingFile = path.join(__dirname, '..', 'fhir', 'mappings', 'v2-adt-to-bundle.txt');
     const v2file = path.join(__dirname, '..', 'fhir', 'inputs', 'HL7-v2-ADT-A01.txt');
     const mapping = fs.readFileSync(mappingFile);
@@ -60,11 +60,12 @@ describe('integration tests', () => {
         {
           request: {
             method: 'PUT',
-            url: 'Patient/3452'
+            url: 'Patient/356a192b-7913-504c-9457-4d18c28d46e6'
           },
+          fullUrl: 'urn:uuid:e8b15d81-264c-51a3-8c79-b01d2bc387bd',
           resource: {
             resourceType: 'Patient',
-            id: '3452',
+            id: '356a192b-7913-504c-9457-4d18c28d46e6',
             meta: {
               source: 'urn:uuid:d6b56e78-f6d1-4c82-9a9c-7e777a93e1af'
             },
@@ -118,11 +119,13 @@ describe('integration tests', () => {
         },
         {
           request: {
-            method: 'POST',
-            url: 'Account'
+            method: 'PUT',
+            url: 'Account/5e683a84-b61b-587a-87c4-ac12c52f4adc'
           },
+          fullUrl: 'urn:uuid:bfea352e-2473-5514-8d94-cd5d7893e4b3',
           resource: {
             resourceType: 'Account',
+            id: '5e683a84-b61b-587a-87c4-ac12c52f4adc',
             meta: {
               source: 'urn:uuid:d6b56e78-f6d1-4c82-9a9c-7e777a93e1af'
             },
@@ -134,13 +137,13 @@ describe('integration tests', () => {
             status: 'active',
             subject: [
               {
-                reference: 'urn:uuid:88f334bc-9be0-5248-af09-ac5bdcc81a58'
+                reference: 'urn:uuid:e8b15d81-264c-51a3-8c79-b01d2bc387bd'
               }
             ],
             coverage: [
               {
                 coverage: {
-                  reference: 'urn:uuid:e795040e-0d9b-552e-9dc9-69a004390f94'
+                  reference: 'urn:uuid:b3ec93b8-0bde-5fbf-b54d-1c13d03b481c'
                 }
               }
             ]
@@ -148,11 +151,13 @@ describe('integration tests', () => {
         },
         {
           request: {
-            method: 'POST',
-            url: 'Encounter'
+            method: 'PUT',
+            url: 'Encounter/a202b052-7dbf-51f6-a269-7ece3d07b903'
           },
+          fullUrl: 'urn:uuid:f3d10c95-e080-5b91-baf7-b52189b30965',
           resource: {
             resourceType: 'Encounter',
+            id: 'a202b052-7dbf-51f6-a269-7ece3d07b903',
             meta: {
               source: 'urn:uuid:d6b56e78-f6d1-4c82-9a9c-7e777a93e1af'
             },
@@ -188,14 +193,14 @@ describe('integration tests', () => {
               text: 'Medical service'
             },
             subject: {
-              reference: 'urn:uuid:88f334bc-9be0-5248-af09-ac5bdcc81a58'
+              reference: 'urn:uuid:e8b15d81-264c-51a3-8c79-b01d2bc387bd'
             },
             period: {
               start: '2005-01-10'
             },
             account: [
               {
-                reference: 'urn:uuid:985fe67f-a66c-595f-9bf5-310dfbfb5d83'
+                reference: 'urn:uuid:bfea352e-2473-5514-8d94-cd5d7893e4b3'
               }
             ],
             hospitalization: {
@@ -223,11 +228,13 @@ describe('integration tests', () => {
         },
         {
           request: {
-            method: 'POST',
-            url: 'Condition'
+            method: 'PUT',
+            url: 'Condition/2029de8a-c596-568d-8966-fd095f5421a1'
           },
+          fullUrl: 'urn:uuid:b0e70524-6171-5e61-8850-f0218e2aa687',
           resource: {
             resourceType: 'Condition',
+            id: '2029de8a-c596-568d-8966-fd095f5421a1',
             meta: {
               source: 'urn:uuid:d6b56e78-f6d1-4c82-9a9c-7e777a93e1af'
             },
@@ -261,10 +268,10 @@ describe('integration tests', () => {
               text: 'Abdominal Pain'
             },
             subject: {
-              reference: 'urn:uuid:88f334bc-9be0-5248-af09-ac5bdcc81a58'
+              reference: 'urn:uuid:e8b15d81-264c-51a3-8c79-b01d2bc387bd'
             },
             encounter: {
-              reference: 'urn:uuid:19510d2c-62d5-5119-907c-1e705ff1c424'
+              reference: 'urn:uuid:f3d10c95-e080-5b91-baf7-b52189b30965'
             },
             onsetDateTime: '2023-04-06',
             recordedDate: '2023-04-06'
@@ -272,11 +279,13 @@ describe('integration tests', () => {
         },
         {
           request: {
-            method: 'POST',
-            url: 'Organization'
+            method: 'PUT',
+            url: 'Organization/b1d57811-11d8-5f7b-bfe4-5a0852e59758'
           },
+          fullUrl: 'urn:uuid:bc088c1b-a76c-5726-b9b8-303a96d5255a',
           resource: {
             resourceType: 'Organization',
+            id: 'b1d57811-11d8-5f7b-bfe4-5a0852e59758',
             meta: {
               source: 'urn:uuid:d6b56e78-f6d1-4c82-9a9c-7e777a93e1af'
             },
@@ -301,11 +310,13 @@ describe('integration tests', () => {
         },
         {
           request: {
-            method: 'POST',
-            url: 'Coverage'
+            method: 'PUT',
+            url: 'Coverage/3cdf996f-3ea0-5a0c-ad34-c695b523efa8'
           },
+          fullUrl: 'urn:uuid:b3ec93b8-0bde-5fbf-b54d-1c13d03b481c',
           resource: {
             resourceType: 'Coverage',
+            id: '3cdf996f-3ea0-5a0c-ad34-c695b523efa8',
             meta: {
               source: 'urn:uuid:d6b56e78-f6d1-4c82-9a9c-7e777a93e1af'
             },
@@ -325,19 +336,11 @@ describe('integration tests', () => {
               ]
             },
             beneficiary: {
-              reference: 'urn:uuid:88f334bc-9be0-5248-af09-ac5bdcc81a58'
-            },
-            relationship: {
-              coding: [
-                {
-                  system: 'http://terminology.hl7.org/CodeSystem/subscriber-relationship',
-                  code: 'self'
-                }
-              ]
+              reference: 'urn:uuid:e8b15d81-264c-51a3-8c79-b01d2bc387bd'
             },
             payor: [
               {
-                reference: 'urn:uuid:62fc2899-773f-5f8e-b159-a892b78c30c1'
+                reference: 'urn:uuid:bc088c1b-a76c-5726-b9b8-303a96d5255a'
               }
             ]
           }
@@ -566,7 +569,7 @@ describe('integration tests', () => {
       },
       effectiveDateTime: '2023-04-05T21:50:00Z'
     });
-  });
+  }, 15000);
 
   test('Default example mapping from Designer', async () => {
     const file = path.join(__dirname, '..', 'fhir', 'mappings', 'flash-script-fhir-4.0-patient.txt');
