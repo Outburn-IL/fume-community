@@ -17,7 +17,7 @@ describe('loadPackages', () => {
     jest.resetAllMocks();
   });
 
-  test('Load empty list of packages', async () => {
+  test('Load empty list of packages asa', async () => {
     await loadPackages([], [], []);
     mockFpl.fpl.mockResolvedValue({} as any);
     expect(mockFpl.fpl).toHaveBeenCalledTimes(1);
