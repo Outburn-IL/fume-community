@@ -5,7 +5,7 @@ import { isNumeric } from '../stringFunctions';
 import path from 'path';
 import fs from 'fs-extra';
 import { getLogger } from '../logger';
-import { getCachePackagesPath, getCachePath, getCachedPackageDirs } from './getCachePath';
+import { getCachePackagesPath, getCachedPackageDirs, getFumeIndexFilePath } from './getCachePath';
 
 export type IFhirPackage = any;
 export type IFhirPackageIndex = Record<string, IFhirPackage>;
@@ -85,8 +85,7 @@ const buildFhirCacheIndex = async () => {
 };
 
 const parseFhirPackageIndex = async (): Promise<IFhirPackageIndex> => {
-  const cachePath = getCachePath();
-  const fumeIndexPath = path.join(cachePath, 'fume.index.json');
+  const fumeIndexPath = getFumeIndexFilePath();
   if (fs.existsSync(fumeIndexPath)) {
     getLogger().info(`Found global package index file at ${fumeIndexPath}`);
     const dirList: string[] = getCachedPackageDirs();

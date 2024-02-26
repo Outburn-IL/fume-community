@@ -19,3 +19,7 @@ export const getCachedPackageDirs = () => {
   const cachePath = getCachePackagesPath();
   return fs.readdirSync(cachePath, { withFileTypes: true }).filter(entry => entry.isDirectory()).map(dir => dir.name);
 };
+
+export const getFumeIndexFilePath = () => {
+  return path.join(getCachePath(), 'fume.index.json');
+};
