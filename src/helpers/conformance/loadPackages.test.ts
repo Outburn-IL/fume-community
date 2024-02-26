@@ -8,16 +8,24 @@ import { test } from '@jest/globals';
 import mockAxios from 'jest-mock-axios';
 
 import * as fpl from 'fhir-package-loader';
+
+import * as cached from './getCachePath';
 jest.mock('fhir-package-loader');
 const mockFpl = jest.mocked(fpl, { shallow: true });
+const mockCached = jest.mocked(cached, { shallow: true });
 
 describe('loadPackages', () => {
+  beforeEach(() => {
+    mockCached.getCachedPackageDirs = jest.fn().mockReturnValue([]);
+    mockCached.getCachePackagesPath = jest.fn().mockReturnValue('cachePath');
+  });
+
   afterEach(() => {
     mockAxios.reset();
     jest.resetAllMocks();
   });
 
-  test('Load empty list of packages asa', async () => {
+  test('Load empty list of packages', async () => {
     await loadPackages([], [], []);
     mockFpl.fpl.mockResolvedValue({} as any);
     expect(mockFpl.fpl).toHaveBeenCalledTimes(1);
@@ -61,5 +69,8 @@ describe('loadPackages', () => {
     mockFpl.fpl.mockResolvedValue({} as any);
     expect(mockFpl.fpl).toHaveBeenCalledTimes(1);
     expect(mockFpl.fpl).toHaveBeenCalledWith(['il.core.fhir.r4@0.11.0'], { log: expect.any(Function) });
+  });
+
+  test.skip('Loads package.json cached package', async () => {
   });
 });
