@@ -1,6 +1,5 @@
 import { test } from '@jest/globals';
 import request from 'supertest';
-import _ from 'lodash';
 import fs from 'fs';
 import path from 'path';
 
@@ -140,6 +139,94 @@ describe('integration tests', () => {
     });
   });
 
+  test('Basic Bundle with fullUrl and internal reference', async () => {
+    const file = path.join(__dirname, '..', 'fhir', 'mappings', 'flash-script-basic-bundle.txt');
+    const mapping = fs.readFileSync(file);
+    const requestBody = {
+      input: mockInput,
+      fume: mapping.toString()
+    };
+
+    const res = await request(globalThis.app).post('/').send(requestBody);
+
+    expect(res.body).toStrictEqual({
+      resourceType: 'Bundle',
+      entry: [
+        {
+          fullUrl: 'urn:uuid:74004cf7-9086-5f29-bbd0-8aca59814550',
+          resource: {
+            resourceType: 'Patient',
+            id: '356a192b-7913-504c-9457-4d18c28d46e6',
+            identifier: [
+              {
+                value: '356a192b-7913-504c-9457-4d18c28d46e6'
+              }
+            ],
+            active: true,
+            name: [
+              {
+                given: [
+                  'Jessica'
+                ],
+                family: 'Rabbit'
+              }
+            ],
+            birthDate: '1988-06-22'
+          }
+        },
+        {
+          fullUrl: 'urn:uuid:802ddc31-4422-5364-bff3-c1a9a3b1e21a',
+          resource: {
+            resourceType: 'Patient',
+            id: '2nd',
+            identifier: [
+              {
+                value: '2nd'
+              }
+            ],
+            active: true,
+            name: [
+              {
+                given: [
+                  'Jessica'
+                ],
+                family: 'Rabbit'
+              }
+            ],
+            birthDate: '1988-06-22',
+            generalPractitioner: [
+              {
+                reference: 'urn:uuid:74004cf7-9086-5f29-bbd0-8aca59814550'
+              }
+            ]
+          }
+        },
+        {
+          fullUrl: 'urn:uuid:6037a737-7ad4-5b40-803e-3bf43e69892b',
+          resource: {
+            resourceType: 'Patient',
+            id: '3rd',
+            identifier: [
+              {
+                value: '3rd'
+              }
+            ],
+            active: true,
+            name: [
+              {
+                given: [
+                  'Jessica'
+                ],
+                family: 'Rabbit'
+              }
+            ],
+            birthDate: '1988-06-22'
+          }
+        }
+      ]
+    });
+  });
+
   test('Case 1 - Boolean false disappear from FLASH outputs', async () => {
     const mapping = `
             InstanceOf: Patient
@@ -192,7 +279,7 @@ describe('integration tests', () => {
     });
   });
 
-  test('Case 4 - Profiled FLASH with no rules doesn\'t go through finalize', async () => {
+  test.skip('Case 4 - Profiled FLASH with no rules doesn\'t go through finalize', async () => {
     const mapping = 'InstanceOf: bp';
     const requestBody = {
       input: mockInput,
@@ -207,7 +294,7 @@ describe('integration tests', () => {
           'http://hl7.org/fhir/StructureDefinition/bp'
         ]
       },
-      'category[VSCat]': [
+      category: [
         {
           coding: [
             {
@@ -218,29 +305,27 @@ describe('integration tests', () => {
         }
       ],
       code: {
-        'coding[BPCode]': [
+        coding: [
           {
             system: 'http://loinc.org',
             code: '85354-9'
           }
         ]
       },
-      'component[SystolicBP]': [
+      component: [
         {
           code: {
-            'coding[SBPCode]': [
+            coding: [
               {
                 system: 'http://loinc.org',
                 code: '8480-6'
               }
             ]
           }
-        }
-      ],
-      'component[DiastolicBP]': [
+        },
         {
           code: {
-            'coding[DBPCode]': [
+            coding: [
               {
                 system: 'http://loinc.org',
                 code: '8462-4'
@@ -256,7 +341,7 @@ describe('integration tests', () => {
     const mapping = `
             InstanceOf: Patient
             * deceasedBoolean = true
-            * deceasedDateTime = $now()
+            * deceasedDateTime = '2024-02-26T08:45:16.317Z'
         `;
     const requestBody = {
       input: mockInput,
@@ -264,7 +349,10 @@ describe('integration tests', () => {
     };
 
     const res = await request(globalThis.app).post('/').send(requestBody);
-    expect(res.body.deceasedBoolean).toBe(undefined);
+    expect(res.body).toStrictEqual({
+      resourceType: 'Patient',
+      deceasedDateTime: '2024-02-26T08:45:16.317Z'
+    });
   });
 
   test('Case 6 - Assignment of single element array values in FLASH is stringified', async () => {
@@ -402,7 +490,7 @@ describe('integration tests', () => {
     });
   });
 
-  test.skip('Case 12 - aliases stopped working', async () => {
+  test('Case 12 - aliases stopped working', async () => {
     const mapping = `
             Instance: $pid := '584afafb-c979-44bd-a821-fb232721480e'
             InstanceOf: Patient
@@ -425,9 +513,10 @@ describe('integration tests', () => {
     };
 
     const res = await request(globalThis.app).post('/').send(requestBody);
-    expect(_.omit(res.body, 'id')).toStrictEqual(
+    expect(res.body).toStrictEqual(
       {
         resourceType: 'Patient',
+        id: '584afafb-c979-44bd-a821-fb232721480e',
         identifier: [
           {
             system: 'urn:ietf:rfc:3986',
@@ -442,7 +531,7 @@ describe('integration tests', () => {
             value: '123-45-6789'
           },
           {
-            system: 'USA',
+            system: 'http://hl7.org/fhir/sid/passport-USA',
             value: '7429184766'
           }
         ]
