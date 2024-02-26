@@ -2,6 +2,8 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "commonjs",
+    "declaration": true,
+    "declarationMap": true,
     "pretty": true,
     "sourceMap": true,
     "outDir": "dist",
@@ -24,6 +26,11 @@
     "allowJs": true
   },
   "include": [
+    "tests/**/*",
     "src/**/*"
+    // ,"src/hl7.fhir.r4.core/StructureDefinition*.json"
+  ],
+  "exclude": [
+    "dist/**/*"
   ]
 }

@@ -5,7 +5,7 @@ Before you install FUME, you can play with the mapping language in our interacti
 
 ## Initial Setup
 
-Install [Node.js v16](https://nodejs.org/en/download/)
+Install [Node.js v18](https://nodejs.org/en/download/)
 
 Update to the latest version of `npm`
 
@@ -13,14 +13,11 @@ Update to the latest version of `npm`
 npm install -g npm@latest
 ```
 
-## Running the RESTful API server
+## Installing FUME and its dependencies
 In the root folder:
-- `npm install`
-- `npm run build`
+`npm install`
 
-Then go to the 'serve' folder, and start the server:
-
-- `npm install`
+## Running the RESTful API server
 - `npm start`
 
 ## API instructions:

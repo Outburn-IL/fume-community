@@ -3,120 +3,59 @@
  *   Project name: FUME
  */
 import { fhirCorePackages } from './constants';
+import type { IAppBinding, IConfig } from './types';
+import defaultConfig from './serverConfig';
+import { fhirVersionToMinor } from './helpers/fhirFunctions/fhirVersionToMinor';
 
-export interface Logger {
-  info: Function
-  warn: Function
-  error: Function
-};
+const additionalBindings: Record<string, IAppBinding> = {}; // additional functions to bind when running transformations
+let serverConfig: IConfig = { ...defaultConfig };
 
-let fumeInitialized: boolean = false;
-let fhirServerBase: string = 'http://hapi-fhir.outburn.co.il/fhir';
-let fhirServerTimeout: number = 10000;
-let fhirVersion: string = '4.0.1';
-let fhirVersionWithoutPatch: string = '4.0';
-let statelessMode: boolean;
-let additionalBindings = {}; // additional functions to bind when running transformations
+const setServerConfig = (config: IConfig) => {
+  let fhirServerBase: string = config.FHIR_SERVER_BASE;
+  let isStatelessMode: boolean = config.SERVER_STATELESS;
 
-let logger: Logger = {
-  info: (msg: any) => console.log(msg),
-  warn: (msg: any) => console.warn(msg),
-  error: (msg: any) => console.error(msg)
-};
-let searchBundleSize: number = 20;
-
-const setFumeInitialized = (): void => {
-  fumeInitialized = true;
-};
-
-const getFumeInitialized = (): boolean => {
-  return fumeInitialized;
-};
-
-const setFhirServerBase = (url: string): void => {
-  if (url === undefined || url === null || (typeof url === 'string' && url === '')) {
+  if (!fhirServerBase || fhirServerBase.trim() === '' || isStatelessMode) {
     fhirServerBase = '';
-    statelessMode = true;
-  } else {
-    fhirServerBase = url;
-    statelessMode = false;
-  }
-};
-
-const getFhirServerBase = (): string => {
-  return fhirServerBase;
-};
-
-const setLogger = (loggerObj: Logger): void => {
-  logger = loggerObj;
-};
-
-const getLogger = (): Logger => {
-  return logger;
-};
-
-const setFhirServerTimeout = (millis: number): void => {
-  fhirServerTimeout = millis;
-};
-
-const getFhirServerTimeout = (): number => {
-  return fhirServerTimeout;
-};
-
-const setFhirVersion = (version: string): void => {
-  const fhirVersionRemovePatch = (fhirVersion: string) => {
-    const parts = fhirVersion.split('.');
-    return parts[0] + '.' + parts[1];
+    isStatelessMode = true;
   };
-  fhirVersion = version;
-  fhirVersionWithoutPatch = fhirVersionRemovePatch(version);
+  serverConfig = {
+    ...defaultConfig,
+    ...config,
+    FHIR_SERVER_BASE: fhirServerBase,
+    SERVER_STATELESS: isStatelessMode
+  };
 };
 
-const getFhirVersion = (): string => {
-  return fhirVersion;
+const getServerConfig = () => {
+  return serverConfig;
 };
 
-const getFhirVersionWithoutPatch = (): string => {
-  return fhirVersionWithoutPatch;
+const setBinding = (name: string, binding: IAppBinding): void => {
+  additionalBindings[name] = binding;
 };
 
-const setSearchBundleSize = (size: number): void => {
-  searchBundleSize = size;
-};
-
-const getSearchBundleSize = (): number => {
-  return searchBundleSize;
-};
-
-const isStatelessMode = (): boolean => {
-  if (statelessMode) return true;
-  return false;
-};
-
-const setAdditionalBindings = (bindings): void => {
-  additionalBindings = bindings;
-};
-
-const getAdditionalBindings = () => {
+const getBindings = () => {
   return additionalBindings;
 };
 
+const getFhirVersion = () => {
+  return serverConfig.FHIR_VERSION;
+};
+
+const getFhirCorePackage = () => {
+  return fhirCorePackages[serverConfig.FHIR_VERSION];
+};
+
+const getFhirVersionMinor = () => {
+  return fhirVersionToMinor(serverConfig.FHIR_VERSION);
+};
+
 export default {
-  getLogger,
-  setLogger,
-  fhirCorePackages,
   getFhirVersion,
-  setFhirVersion,
-  getFhirVersionWithoutPatch,
-  getFhirServerBase,
-  setFhirServerBase,
-  getFhirServerTimeout,
-  setFhirServerTimeout,
-  getFumeInitialized,
-  setFumeInitialized,
-  setSearchBundleSize,
-  getSearchBundleSize,
-  isStatelessMode,
-  setAdditionalBindings,
-  getAdditionalBindings
+  getFhirCorePackage,
+  getFhirVersionMinor,
+  getServerConfig,
+  setServerConfig,
+  setBinding,
+  getBindings
 };

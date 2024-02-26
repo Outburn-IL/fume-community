@@ -1,0 +1,15 @@
+$a := (
+Instance: $pid := $uuid('1')
+InstanceOf: Patient
+* identifier.value = $pid
+* active = status='active'
+* name
+  * given = first_name
+  * family = last_name
+* birthDate = birth_date
+);
+
+InstanceOf: Bundle
+* entry.resource = $a
+* entry.resource = $a ~> |$|{'id': '2nd', 'identifier': [{'value': '2nd'}], 'generalPractitioner': [{'reference': $reference($a)}]}|
+* entry.resource = $a ~> |$|{'id': '3rd', 'identifier': [{'value': '3rd'}]}|
