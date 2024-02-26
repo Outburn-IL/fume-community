@@ -1,0 +1,30 @@
+name: PR workflow
+
+on: 
+  pull_request:
+    types: [opened, reopened, synchronize]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18.17.0"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+  merge-check:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check test status
+        if: ${{ needs.test.result != 'success' }}
+        run: exit 1 # Exit with a non-zero status code if tests fail
