@@ -39,6 +39,228 @@ const mockInput = {
 };
 
 describe('integration tests', () => {
+  test('HL7 v2 ORU message parsing to JSON', async () => {
+    const v2file = path.join(__dirname, '..', 'fhir', 'inputs', 'HL7-v2-ORU.txt');
+    const input = fs.readFileSync(v2file);
+    const requestBody = {
+      input: input.toString(),
+      contentType: 'x-application/hl7-v2+er7',
+      fume: '$'
+    };
+
+    const res = await request(globalThis.app).post('/').send(requestBody);
+
+    expect(res.body).toStrictEqual({
+      MSH: {
+        SegmentDescription: 'Message Header',
+        FieldSeparator: '|',
+        EncodingCharacters: '^~\\&',
+        SendingApplication: {
+          NamespaceID: 'VitalSignsDevice'
+        },
+        SendingFacility: {
+          NamespaceID: 'Hospital1'
+        },
+        ReceivingApplication: {
+          NamespaceID: 'IRIS'
+        },
+        DateTimeOfMessage: {
+          Time: '2023-04-05T20:45'
+        },
+        MessageType: {
+          MessageCode: 'ORU',
+          TriggerEvent: 'R01'
+        },
+        MessageControlID: '0c810ec6-c06a-4505-88b5-73841470b9d1',
+        ProcessingID: {
+          ProcessingID: 'P'
+        },
+        VersionID: {
+          VersionID: '2.5.1'
+        }
+      },
+      PID: {
+        SegmentDescription: 'Patient Identification',
+        SetID: '58705',
+        PatientID: {
+          IDNumber: '58705'
+        },
+        PatientIdentifierList: {
+          IDNumber: '1',
+          IdentifierTypeCode: 'MR'
+        },
+        PatientName: {
+          FamilyName: {
+            Surname: 'DemoTest1'
+          },
+          GivenName: 'DemoTest1'
+        },
+        DateTimeOfBirth: {
+          Time: '2022-01-01'
+        },
+        AdministrativeSex: 'F',
+        PatientAddress: {
+          StreetAddress: {
+            StreetOrMailingAddress: 'Oren Street'
+          },
+          City: 'Haifa'
+        },
+        CountyCode: 'IL',
+        PhoneNumber_Home: {
+          TelephoneNumber: '09-12345678'
+        },
+        PhoneNumber_Business: {
+          TelephoneNumber: '054-123456789'
+        },
+        PatientAccountNumber: {
+          IDNumber: 'Account1'
+        }
+      },
+      PV1: {
+        SegmentDescription: 'Patient Visit',
+        PatientClass: '1',
+        AssignedPatientLocation: {
+          PointOfCare: 'CE'
+        },
+        AttendingDoctor: {
+          IDNumber: '12345',
+          FamilyName: {
+            Surname: 'Doctor'
+          },
+          GivenName: 'Doctor'
+        },
+        VisitNumber: {
+          IDNumber: 'Admission1',
+          AssigningAuthority: {
+            NamespaceID: 'DemoHospital'
+          }
+        }
+      },
+      OBX: [
+        {
+          SegmentDescription: 'Observation/Result',
+          SetID: '1',
+          ValueType: 'NM',
+          ObservationIdentifier: {
+            Identifier: '8480-6',
+            Text: 'Systolic blood pressure',
+            NameOfCodingSystem: 'LN'
+          },
+          ObservationValue: '125',
+          Units: {
+            Identifier: 'mm(hg)'
+          },
+          ReferencesRange: '100-120',
+          NatureOfAbnormalTest: 'N',
+          ObservationResultStatus: 'F',
+          DateTimeOfTheAnalysis: {
+            Time: '2023-04-05T21:50'
+          }
+        },
+        {
+          SegmentDescription: 'Observation/Result',
+          SetID: '2',
+          ValueType: 'NM',
+          ObservationIdentifier: {
+            Identifier: '8462-4',
+            Text: 'Diastolic blood pressure',
+            NameOfCodingSystem: 'LN'
+          },
+          ObservationValue: '95',
+          Units: {
+            Identifier: 'mm(hg)'
+          },
+          ReferencesRange: '60-90',
+          NatureOfAbnormalTest: 'N',
+          ObservationResultStatus: 'F',
+          DateTimeOfTheAnalysis: {
+            Time: '2023-04-05T21:50'
+          }
+        }
+      ]
+    });
+  });
+
+  test('HL7 v2 ORU message to BP profile', async () => {
+    const file = path.join(__dirname, '..', 'fhir', 'mappings', 'v2-oru-to-bp.txt');
+    const v2file = path.join(__dirname, '..', 'fhir', 'inputs', 'HL7-v2-ORU.txt');
+    const mapping = fs.readFileSync(file);
+    const input = fs.readFileSync(v2file);
+    const requestBody = {
+      input: input.toString(),
+      contentType: 'x-application/hl7-v2+er7',
+      fume: mapping.toString()
+    };
+
+    const res = await request(globalThis.app).post('/').send(requestBody);
+
+    expect(res.body).toStrictEqual({
+      resourceType: 'Observation',
+      meta: {
+        profile: [
+          'http://hl7.org/fhir/StructureDefinition/bp'
+        ]
+      },
+      category: [
+        {
+          coding: [
+            {
+              system: 'http://terminology.hl7.org/CodeSystem/observation-category',
+              code: 'vital-signs'
+            }
+          ]
+        }
+      ],
+      code: {
+        coding: [
+          {
+            system: 'http://loinc.org',
+            code: '85354-9'
+          }
+        ]
+      },
+      component: [
+        {
+          code: {
+            coding: [
+              {
+                system: 'http://loinc.org',
+                code: '8480-6'
+              }
+            ]
+          },
+          valueQuantity: {
+            system: 'http://unitsofmeasure.org',
+            code: 'mm[Hg]',
+            value: 125
+          }
+        },
+        {
+          code: {
+            coding: [
+              {
+                system: 'http://loinc.org',
+                code: '8462-4'
+              }
+            ]
+          },
+          valueQuantity: {
+            system: 'http://unitsofmeasure.org',
+            code: 'mm[Hg]',
+            value: 95
+          }
+        }
+      ],
+      status: 'final',
+      subject: {
+        identifier: {
+          value: '1'
+        }
+      },
+      effectiveDateTime: '2023-04-05T21:50:00Z'
+    });
+  });
+
   test('Default example mapping from Designer', async () => {
     const file = path.join(__dirname, '..', 'fhir', 'mappings', 'flash-script-fhir-4.0-patient.txt');
     const mapping = fs.readFileSync(file);

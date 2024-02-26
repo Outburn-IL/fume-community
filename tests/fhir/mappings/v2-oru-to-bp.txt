@@ -1,0 +1,7 @@
+Instance: undefined /* Logical id of this artifact */
+InstanceOf: bp
+* status="final"
+* subject.identifier.value=PID.PatientIdentifierList.IDNumber
+* effectiveDateTime=OBX[0].DateTimeOfTheAnalysis.Time&":00Z"
+* component[SystolicBP].valueQuantity.value=OBX[0].ObservationValue
+* component[DiastolicBP].value.value=OBX[1].ObservationValue

@@ -1,0 +1,5 @@
+MSH|^~\&|VitalSignsDevice|Hospital1|IRIS||202304052045||ORU^R01|0c810ec6-c06a-4505-88b5-73841470b9d1|P|2.5.1||||||||
+PID|58705|58705|1^^^^MR||DemoTest1^DemoTest1||20220101|F|||Oren Street^^Haifa|IL|09-12345678|054-123456789||||Account1||||||||||||||||||||
+PV1||1|CE||||12345^Doctor^Doctor||||||||||||Admission1^^^DemoHospital
+OBX|1|NM|8480-6^Systolic blood pressure^LN||125|mm(hg)|100-120|||N|F||||||||202304052150
+OBX|2|NM|8462-4^Diastolic blood pressure^LN||95|mm(hg)|60-90|||N|F||||||||202304052150
