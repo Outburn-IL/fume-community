@@ -1,11 +1,11 @@
 
-import os from 'os';
 import path from 'path';
 import fs from 'fs-extra';
 import { fpl } from 'fhir-package-loader';
 import { getLogger } from '../logger';
 import axios from 'axios';
 import _ from 'lodash';
+import { getCachePackagesPath, getCachedPackageDirs } from './getCachePath';
 
 export const loadPackage = async (fhirPackage: string | string[]) => {
   try {
@@ -45,8 +45,8 @@ export const loadPackages = async (packages: string[], mustPackages: string[], e
   await loadPackage(packagesToLoad.filter(Boolean));
 
   // Retrieving the list of the directories in the .fhir directory.
-  const cachePath = path.join(os.homedir(), '.fhir', 'packages');
-  const dirList: string[] = fs.readdirSync(cachePath, { withFileTypes: true }).filter(entry => entry.isDirectory()).map(dir => dir.name);
+  const cachePath = getCachePackagesPath();
+  const dirList: string[] = getCachedPackageDirs();
 
   // For each directory, searching for it's package.json and getting it's dependencies for loading.
   await Promise.all(dirList.map(async p => {
