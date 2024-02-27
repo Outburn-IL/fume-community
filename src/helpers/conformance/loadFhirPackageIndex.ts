@@ -2,23 +2,14 @@
 import expressions from '../jsonataExpression';
 import { omitKeys } from '../objectFunctions';
 import { isNumeric } from '../stringFunctions';
-import os from 'os';
 import path from 'path';
 import fs from 'fs-extra';
 import { getLogger } from '../logger';
+import { getCachePackagesPath, getCachedPackageDirs, getFumeIndexFilePath } from './getCachePath';
 
 export type IFhirPackage = any;
 export type IFhirPackageIndex = Record<string, IFhirPackage>;
 let fhirPackageIndex: IFhirPackageIndex = {};
-
-const getCachePath = () => {
-  const cachePath = path.join(os.homedir(), '.fhir');
-  if (!fs.existsSync(cachePath)) {
-    fs.mkdirSync(cachePath, { recursive: true });
-    console.log(`Directory '${cachePath}' created successfully.`);
-  }
-  return cachePath;
-};
 
 const createPackageIndexFile = (packagePath: string) => {
   try {
@@ -51,8 +42,8 @@ const createPackageIndexFile = (packagePath: string) => {
 
 const buildFhirCacheIndex = async () => {
   getLogger().info('Building global package index (this might take some time...)');
-  const cachePath = path.join(getCachePath(), 'packages');
-  const dirList: string[] = fs.readdirSync(cachePath, { withFileTypes: true }).filter(entry => entry.isDirectory()).map(dir => dir.name);
+  const cachePath = getCachePackagesPath();
+  const dirList: string[] = getCachedPackageDirs();
   getLogger().info(`FHIR Packages found in global cache: ${dirList.join(', ')}`);
   const packageIndexArray = dirList.map(pack => {
     if (fs.existsSync(path.join(cachePath, pack, 'package', 'package.json'))) {
@@ -94,11 +85,10 @@ const buildFhirCacheIndex = async () => {
 };
 
 const parseFhirPackageIndex = async (): Promise<IFhirPackageIndex> => {
-  const cachePath = getCachePath();
-  const fumeIndexPath = path.join(cachePath, 'fume.index.json');
+  const fumeIndexPath = getFumeIndexFilePath();
   if (fs.existsSync(fumeIndexPath)) {
     getLogger().info(`Found global package index file at ${fumeIndexPath}`);
-    const dirList: string[] = fs.readdirSync(path.join(cachePath, 'packages'), { withFileTypes: true }).filter(entry => entry.isDirectory()).map(dir => dir.name);
+    const dirList: string[] = getCachedPackageDirs();
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const currentIndex = require(fumeIndexPath);
     const currentPackages = await expressions.extractCurrentPackagesFromIndex.evaluate(currentIndex);
