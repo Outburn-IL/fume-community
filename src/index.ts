@@ -26,6 +26,7 @@ export type { IAppCache, IAppCacheKeys } from './helpers/cache';
  * Export classes and utils
  */
 export { FumeServer } from './server';
+export { FumeConfigSchema } from './serverConfigSchema';
 export { FhirClient } from './helpers/fhirServer';
 export const fumeUtils = {
   duplicate,
