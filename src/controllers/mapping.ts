@@ -11,9 +11,8 @@ import type { Request, Response } from 'express';
 const get = async (req: Request, res: Response) => {
   try {
     const mappingId: string = req.params.mappingId;
-
     // get mapping expression from cache
-    const mappingObj = getCache().mappings.get(mappingId);
+    const mappingObj = getCache().compiledMappings.get(mappingId);
     const mapping: string = mappingObj.expression;
 
     if (mapping) {
@@ -31,7 +30,7 @@ const get = async (req: Request, res: Response) => {
 const transform = async (req: Request, res: Response) => {
   try {
     const mappingId = req.params.mappingId;
-    const mappingFromCache = getCache().mappings[mappingId];
+    const mappingFromCache = getCache().compiledMappings.get(mappingId);
     const contentType = req.get('Content-Type');
     let inputJson;
 
@@ -42,7 +41,8 @@ const transform = async (req: Request, res: Response) => {
       inputJson = await v2json(bodyString);
     } else {
       if (contentType?.startsWith('text/csv')) {
-        inputJson = parseCsv(req.body);
+        console.log('Content-Type header suggests CSV input');
+        inputJson = await parseCsv(req.body);
       } else {
         inputJson = req.body;
       }
