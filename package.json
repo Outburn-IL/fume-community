@@ -1,5 +1,5 @@
 {
-  "name": "fume-community",
+  "name": "fume-fhir-converter",
   "version": "2.0.1",
   "description": "FHIR-Utilized Mapping Engine - Community",
   "main": "dist/src/index.js",
