@@ -13,7 +13,7 @@ jobs:
           uses: actions/setup-node@v4
           with:
             node-version: "18"
-        - run: npm run build
+        - run: npm ci
         - run: npm test:unit
         - uses: JS-DevTools/npm-publish@v3
           with:
