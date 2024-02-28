@@ -1,3 +1,5 @@
+name: Publish to npm workflow
+
 on:
     push:
         branches: 
