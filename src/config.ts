@@ -10,7 +10,7 @@ import { fhirVersionToMinor } from './helpers/fhirFunctions/fhirVersionToMinor';
 const additionalBindings: Record<string, IAppBinding> = {}; // additional functions to bind when running transformations
 let serverConfig: IConfig = { ...defaultConfig };
 
-const setServerConfig = (config: IConfig) => {
+const setServerConfig = <ConfigType extends IConfig>(config: ConfigType) => {
   let fhirServerBase: string = config.FHIR_SERVER_BASE;
   let isStatelessMode: boolean = config.SERVER_STATELESS;
 

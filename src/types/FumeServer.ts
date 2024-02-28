@@ -1,6 +1,5 @@
 import { Application } from 'express';
 import { ILogger } from './Logger';
-import { IConfig } from './Config';
 import { ICache } from './Cache';
 import { IFhirClient } from './FhirClient';
 import { IAppCache, IAppCacheKeys } from '../helpers/cache/cacheTypes';
@@ -9,9 +8,9 @@ import { IFhirPackageIndex } from '../helpers/conformance/loadFhirPackageIndex';
 export type ICacheClass = new <T>(options: Record<string, any>) => ICache<T>;
 export type IAppBinding = any;
 
-export interface IFumeServer {
+export interface IFumeServer<ConfigType> {
   registerLogger: (logger: ILogger) => void
-  registerFhirClient: (fhitClient: IFhirClient) => void
+  registerFhirClient: (fhirClient: IFhirClient) => void
   getFhirClient: () => IFhirClient
   registerCacheClass: (
     CacheClass: ICacheClass,
@@ -20,8 +19,9 @@ export interface IFumeServer {
   ) => void
   registerBinding: (key: string, binding: IAppBinding) => void
   getCache: () => IAppCache
+  getConfig: () => ConfigType
   getExpressApp: () => Application
-  warmUp: (serverOptions: IConfig | undefined) => Promise<void>
+  warmUp: (serverOptions: ConfigType | undefined) => Promise<void>
   shutDown: () => Promise<void>
 
   getFhirPackageIndex: () => IFhirPackageIndex

@@ -19,7 +19,7 @@ import type {
 import { getCache, IAppCacheKeys, initCache, InitCacheConfig } from './helpers/cache';
 import { FhirClient, setFhirClient } from './helpers/fhirServer';
 
-export class FumeServer implements IFumeServer {
+export class FumeServer<ConfigType extends IConfig> implements IFumeServer<ConfigType> {
   private readonly app: express.Application;
   private server?: Server;
   /**
@@ -53,8 +53,8 @@ export class FumeServer implements IFumeServer {
     }
   }
 
-  public async warmUp (serverOptions: IConfig | undefined = undefined): Promise<void> {
-    const options: IConfig = serverOptions ?? defaultConfig;
+  public async warmUp (serverOptions?: ConfigType | undefined): Promise<void> {
+    const options = serverOptions ?? defaultConfig;
     this.logger.info('FUME initializing...');
     config.setServerConfig(options);
     const serverConfig: IConfig = config.getServerConfig();
@@ -167,6 +167,14 @@ export class FumeServer implements IFumeServer {
    */
   public getCache () {
     return getCache();
+  }
+
+  /**
+   *
+   * @returns config
+   */
+  public getConfig () {
+    return config.getServerConfig() as ConfigType;
   }
 
   /**
