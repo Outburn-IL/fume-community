@@ -29,6 +29,7 @@ export { FumeServer } from './server';
 export { FumeConfigSchema } from './serverConfigSchema';
 export { FhirClient } from './helpers/fhirServer';
 export const fumeUtils = {
+  expressions,
   duplicate,
   substringBefore,
   substringAfter,
@@ -36,7 +37,6 @@ export const fumeUtils = {
   startsWith,
   endsWith,
   parseCsv,
-  expressions,
   getFhirVersion: config.getFhirVersion,
   getFhirCorePackage: config.getFhirCorePackage,
   getFhirVersionMinor: config.getFhirVersionMinor,
