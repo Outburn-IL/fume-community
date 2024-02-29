@@ -26,10 +26,12 @@ jobs:
           if: steps.check.outputs.changed == 'false'
           run: |
             echo "No version change detected. Exiting."
-            exit 0
-
+        
         - run: npm ci
+          if: steps.check.outputs.changed == 'true'
         - run: npm run test:unit
+          if: steps.check.outputs.changed == 'true'
         - uses: JS-DevTools/npm-publish@v3
+          if: steps.check.outputs.changed == 'true'
           with:
             token: ${{ secrets.NPM_TOKEN }}
