@@ -3,6 +3,8 @@ name: PR workflow
 on: 
   pull_request:
     types: [opened, reopened, synchronize]
+  workflow_dispatch:
+    
 jobs:
   test:
     runs-on: ubuntu-latest
