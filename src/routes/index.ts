@@ -6,13 +6,14 @@
 import express from 'express';
 import mapping from './mapping';
 import root from './root';
+import notFound from './notFound';
 
 const routes = express.Router();
 
 routes.use('/Mapping/', mapping);
 routes.use('/', root);
-routes.use((_req, res) => {
-  res.status(404).json({ message: 'not found' });
-});
 
-export default routes;
+export {
+  routes,
+  notFound
+};
