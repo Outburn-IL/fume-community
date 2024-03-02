@@ -87,7 +87,7 @@ export const transform = async (input, expression: string, extraBindings: Record
     bindings.v2json = v2.v2json;
     bindings.isNumeric = stringFuncs.isNumeric;
 
-    const { compiledDefinitions, aliases } = getCache();
+    const { aliases } = getCache();
     // these are debug functions, should be removed in production versions
     bindings.fhirCacheIndex = conformance.getFhirPackageIndex();
     bindings.getSnapshot = compiler.getSnapshot;
@@ -97,7 +97,6 @@ export const transform = async (input, expression: string, extraBindings: Record
     bindings.v2codeLookup = v2.v2codeLookup;
     bindings.v2tableUrl = v2.v2tableUrl;
     bindings.toJsonataString = compiler.toJsonataString;
-    bindings.compiledDefinitions = compiledDefinitions.getDict();
     bindings.getMandatoriesOfElement = compiler.getMandatoriesOfElement;
     bindings.getMandatoriesOfStructure = compiler.getMandatoriesOfStructure;
     bindings.getElementDefinition = compiler.getElementDefinition;
