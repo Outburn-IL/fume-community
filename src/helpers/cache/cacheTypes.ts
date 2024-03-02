@@ -20,7 +20,6 @@ export interface IAppCache {
   compiledMappings: ICache<ICacheEntry>
   elementDefinition: ICache<any>
   definitions: ICache<any>
-  compiledDefinitions: ICache<any>
 }
 
 export type IAppCacheKeys = keyof IAppCache;
