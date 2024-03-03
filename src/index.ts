@@ -15,6 +15,7 @@ import {
 import config from './config';
 import expressions from './helpers/jsonataExpression';
 import { v2json } from './helpers/hl7v2';
+import { getAliasResource } from './helpers/conformance/recacheFromServer';
 
 /**
  * Export types
@@ -42,5 +43,6 @@ export const fumeUtils = {
   getFhirVersionMinor: config.getFhirVersionMinor,
   toJsonataString: parser.toJsonataString,
   getSnapshot: parser.getSnapshot,
-  v2json
+  v2json,
+  getAliasResource
 };
