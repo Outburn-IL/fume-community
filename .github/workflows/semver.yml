@@ -20,7 +20,7 @@ jobs:
               with:
                 ref: main
                 token: ${{ secrets.PAT }}
-
+            
             - name: Semantic Release
               uses: cycjimmy/semantic-release-action@v4
               with:

@@ -20,7 +20,8 @@
     "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.integration.js --runInBand",
     "prepare": "npm run build && husky",
-    "semantic-release": "semantic-release"
+    "semantic-release": "semantic-release",
+    "prepublishOnly": "npm ci && npm run build"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -29,7 +30,8 @@
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
-    "tag": "latest"
+    "tag": "latest",
+    "access": "public"
   },
   "author": "Outburn Ltd.",
   "license": "AGPL-3.0",

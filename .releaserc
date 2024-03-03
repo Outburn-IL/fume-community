@@ -1,7 +1,7 @@
 {
   "branches": ["main"],
   "debug": "false",
-  "dryRun": "true",
+  "dryRun": "false",
   "tagFormat": "v${version}",
   "plugins": [
     "semantic-release-unsquash",
