@@ -45,7 +45,7 @@
   "homepage": "https://fume.health",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Outburn-IL/fume-community.git"
+    "url": "git+https://github.com/Outburn-IL/fume-community.git"
   },
   "dependencies": {
     "axios": "^1.1.3",
