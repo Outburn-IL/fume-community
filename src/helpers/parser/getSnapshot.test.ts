@@ -3,10 +3,10 @@
  *   Project name: FUME
  */
 
-import { snapshots, getSnapshot } from './getSnapshot';
-import * as snapshotBuilder from '../snapshotBuilder';
-
 import { test } from '@jest/globals';
+
+import * as snapshotBuilder from '../snapshotBuilder';
+import { getSnapshot, snapshots } from './getSnapshot';
 
 describe('getSnapshot', () => {
   afterEach(() => {

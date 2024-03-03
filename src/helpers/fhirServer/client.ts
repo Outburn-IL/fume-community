@@ -3,10 +3,11 @@
  *   Project name: FUME
  */
 
-import { getLogger } from '../logger';
-import config from '../../config';
 import axios, { AxiosInstance } from 'axios';
+
+import config from '../../config';
 import { IConfig, IFhirClient } from '../../types';
+import { getLogger } from '../logger';
 
 export class FhirClient implements IFhirClient {
   protected readonly contentType: string;

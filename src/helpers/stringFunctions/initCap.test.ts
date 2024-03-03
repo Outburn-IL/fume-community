@@ -1,5 +1,6 @@
-import { initCap } from './initCap';
 import { test } from '@jest/globals';
+
+import { initCap } from './initCap';
 
 describe('initCap', () => {
   test('capitalizes single word', async () => {

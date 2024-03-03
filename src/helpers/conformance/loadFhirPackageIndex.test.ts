@@ -4,11 +4,12 @@
  *   Project name: FUME
  */
 
-import os from 'os';
-import path from 'path';
-import { loadFhirPackageIndex } from './loadFhirPackageIndex';
 import { test } from '@jest/globals';
 import * as fs from 'fs';
+import os from 'os';
+import path from 'path';
+
+import { loadFhirPackageIndex } from './loadFhirPackageIndex';
 jest.mock('fs');
 
 describe('loadFhirPackageIndex', () => {

@@ -5,22 +5,23 @@
  *   Project name: FUME
  */
 
-import jsonata from 'jsonata';
 import HL7Dictionary from 'hl7-dictionary';
+import jsonata from 'jsonata';
+
+import { IAppBinding } from '../../types';
 import { getCache } from '../cache';
-import * as stringFuncs from '../stringFunctions';
+import conformance from '../conformance';
 import fhirFuncs from '../fhirFunctions';
+import * as v2 from '../hl7v2';
 import { getLogger } from '../logger';
+import * as objectFuncs from '../objectFunctions';
 import compiler from '../parser';
 import runtime from '../runtime';
-import conformance from '../conformance';
-import * as v2 from '../hl7v2';
-import * as objectFuncs from '../objectFunctions';
-import { isEmpty } from './isEmpty';
-import { registerTable } from './registerTable';
-import { logInfo, logWarn } from './log';
+import * as stringFuncs from '../stringFunctions';
 import { getStructureDefinition } from './getStructureDefinition';
-import { IAppBinding } from '../../types';
+import { isEmpty } from './isEmpty';
+import { logInfo, logWarn } from './log';
+import { registerTable } from './registerTable';
 
 const compiledExpression = async (expression: string): Promise<jsonata.Expression> => {
   const { compiledExpressions } = getCache();

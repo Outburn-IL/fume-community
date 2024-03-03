@@ -3,8 +3,9 @@
  *   Project name: FUME
  */
 
-import { FumeConfigSchema } from './serverConfigSchema';
 import { test } from '@jest/globals';
+
+import { FumeConfigSchema } from './serverConfigSchema';
 
 describe('FumeConfigSchema', () => {
   test('Check schema defaults', async () => {

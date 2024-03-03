@@ -6,6 +6,7 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 
 import _ from 'lodash';
+
 import { getCache } from '../cache';
 import { initCapOnce, replaceColonsWithBrackets } from '../stringFunctions';
 import { returnPathWithoutX } from './returnPathWithoutX';

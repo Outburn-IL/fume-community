@@ -4,20 +4,20 @@
  */
 
 import expressions from '../jsonataExpression';
-import thrower from '../thrower';
-import { funcs } from './jsonataFuncs';
 import { getStructureDefinition } from '../jsonataFunctions';
+import { CastToFhirOptions, FlashMergeOptions } from '../runtime';
 import {
-  startsWith,
+  duplicate,
   endsWith,
   initCapOnce,
-  substringBefore,
-  substringAfter,
   splitToLines,
-  duplicate
+  startsWith,
+  substringAfter,
+  substringBefore
 } from '../stringFunctions';
-import { CastToFhirOptions, FlashMergeOptions } from '../runtime';
+import thrower from '../thrower';
 import { getElementDefinition } from './getElementDefinition';
+import { funcs } from './jsonataFuncs';
 
 export const toJsonataString = async (inExpr: string): Promise<string | undefined> => {
   console.time('Parse to JSONATA');

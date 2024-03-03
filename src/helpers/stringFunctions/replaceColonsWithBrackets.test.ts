@@ -1,5 +1,6 @@
-import { replaceColonsWithBrackets } from './replaceColonsWithBrackets';
 import { test } from '@jest/globals';
+
+import { replaceColonsWithBrackets } from './replaceColonsWithBrackets';
 
 describe('initCap', () => {
   test('leaves text as is', async () => {

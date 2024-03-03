@@ -4,9 +4,10 @@
  */
 
 import express from 'express';
+
 import mapping from './mapping';
-import root from './root';
 import notFound from './notFound';
+import root from './root';
 
 const routes = express.Router();
 
@@ -14,6 +15,6 @@ routes.use('/Mapping/', mapping);
 routes.use('/', root);
 
 export {
-  routes,
-  notFound
+  notFound,
+  routes
 };

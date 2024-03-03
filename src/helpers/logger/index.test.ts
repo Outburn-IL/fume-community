@@ -1,5 +1,6 @@
-import { getLogger, setLogger } from './index';
 import { test } from '@jest/globals';
+
+import { getLogger, setLogger } from './index';
 
 describe('getLogger', () => {
   afterEach(() => {

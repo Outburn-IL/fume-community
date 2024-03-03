@@ -1,5 +1,6 @@
-import { initCache, getCache } from './cache';
 import { test } from '@jest/globals';
+
+import { getCache, initCache } from './cache';
 
 describe('SimpleCache', () => {
   test('getCache fails if not init', async () => {

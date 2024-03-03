@@ -4,8 +4,9 @@
  */
 
 import * as dotenv from 'dotenv';
-import { IConfig } from './types';
+
 import { FumeConfigSchema } from './serverConfigSchema';
+import { IConfig } from './types';
 
 dotenv.config();
 export const config: IConfig = FumeConfigSchema.parse(process.env);

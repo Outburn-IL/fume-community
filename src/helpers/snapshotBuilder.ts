@@ -4,10 +4,11 @@
  */
 
 import jsonata from 'jsonata';
-import parser from './parser';
-import { startsWith, endsWith } from './stringFunctions';
+
+import { getStructureDefinition, logInfo, logWarn } from './jsonataFunctions';
 import { omitKeys } from './objectFunctions';
-import { logWarn, logInfo, getStructureDefinition } from './jsonataFunctions';
+import parser from './parser';
+import { endsWith, startsWith } from './stringFunctions';
 
 const expressions = {
   toNamedMonoPoly: jsonata(`

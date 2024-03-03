@@ -4,6 +4,7 @@ module.exports = {
     es2021: true
   },
   extends: 'standard-with-typescript',
+  plugins: ['simple-import-sort'],
   overrides: [
     {
       files: ['*.ts', '*.tsx'],
@@ -18,7 +19,9 @@ module.exports = {
         '@typescript-eslint/explicit-function-return-type': 'off',
         '@typescript-eslint/prefer-nullish-coalescing': 'off',
         '@typescript-eslint/restrict-template-expressions': 'off',
-        '@typescript-eslint/no-non-null-assertion': 'off'
+        '@typescript-eslint/no-non-null-assertion': 'off',
+        'simple-import-sort/imports': 'error',
+        'simple-import-sort/exports': 'error'
       }
     }
   ],

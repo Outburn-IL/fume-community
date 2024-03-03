@@ -1,23 +1,23 @@
-import express from 'express';
 import cors from 'cors';
-import defaultConfig from './serverConfig';
-import config from './config';
-import { routes, notFound } from './routes';
-import { getLogger, setLogger } from './helpers/logger';
-import conformance from './helpers/conformance';
-import { transform } from './helpers/jsonataFunctions';
-
+import express from 'express';
 import type { Server } from 'http';
-import type {
-  IFumeServer,
-  ILogger,
-  IConfig,
-  ICacheClass,
-  IAppBinding,
-  IFhirClient
-} from './types';
+
+import config from './config';
 import { getCache, IAppCacheKeys, initCache, InitCacheConfig } from './helpers/cache';
+import conformance from './helpers/conformance';
 import { FhirClient, setFhirClient } from './helpers/fhirServer';
+import { transform } from './helpers/jsonataFunctions';
+import { getLogger, setLogger } from './helpers/logger';
+import { notFound, routes } from './routes';
+import defaultConfig from './serverConfig';
+import type {
+  IAppBinding,
+  ICacheClass,
+  IConfig,
+  IFhirClient,
+  IFumeServer,
+  ILogger
+} from './types';
 
 export class FumeServer<ConfigType extends IConfig> implements IFumeServer<ConfigType> {
   private readonly app: express.Application;

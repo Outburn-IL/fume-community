@@ -4,6 +4,7 @@
  */
 
 import _ from 'lodash';
+
 import thrower from '../thrower';
 
 export interface FlashMergeOptions {

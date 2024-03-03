@@ -1,7 +1,7 @@
 
-import expressions from '../jsonataExpression';
 import { getCache } from '../cache';
 import conformance from '../conformance';
+import expressions from '../jsonataExpression';
 import { getLogger } from '../logger';
 
 export const translateCode = async (input: string, tableId: string) => {
