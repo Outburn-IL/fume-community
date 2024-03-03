@@ -87,6 +87,7 @@
     "pre-commit": "^1.2.2",
     "rimraf": "^5.0.5",
     "semantic-release": "^23.0.2",
+    "semantic-release-unsquash": "^0.2.0",
     "semver": "^7.5.4",
     "simple-git": "^3.22.0",
     "supertest": "^6.3.4",
