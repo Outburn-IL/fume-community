@@ -1,11 +1,12 @@
 
-import path from 'path';
-import fs from 'fs-extra';
-import { fpl } from 'fhir-package-loader';
-import { getLogger } from '../logger';
 import axios from 'axios';
+import { fpl } from 'fhir-package-loader';
+import fs from 'fs-extra';
 import _ from 'lodash';
-import { getCachePackagesPath, getCachedPackageDirs } from './getCachePath';
+import path from 'path';
+
+import { getLogger } from '../logger';
+import { getCachedPackageDirs, getCachePackagesPath } from './getCachePath';
 
 export const loadPackage = async (fhirPackage: string | string[]) => {
   try {

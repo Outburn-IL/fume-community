@@ -21,4 +21,4 @@ const isEmpty = async (value: any): Promise<boolean> => {
   return res;
 };
 
-export { selectKeys, omitKeys, isEmpty };
+export { isEmpty, omitKeys, selectKeys };

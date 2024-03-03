@@ -3,10 +3,11 @@
  *   Project name: FUME
  */
 
-import thrower from '../thrower';
-import conformance from '../conformance';
 import _ from 'lodash';
 import uuidByString from 'uuid-by-string';
+
+import conformance from '../conformance';
+import thrower from '../thrower';
 
 export interface CastToFhirOptions {
   name: string // name of the element

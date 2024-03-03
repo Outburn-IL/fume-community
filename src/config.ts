@@ -3,9 +3,9 @@
  *   Project name: FUME
  */
 import { fhirCorePackages } from './constants';
-import type { IAppBinding, IConfig } from './types';
-import defaultConfig from './serverConfig';
 import { fhirVersionToMinor } from './helpers/fhirFunctions/fhirVersionToMinor';
+import defaultConfig from './serverConfig';
+import type { IAppBinding, IConfig } from './types';
 
 const additionalBindings: Record<string, IAppBinding> = {}; // additional functions to bind when running transformations
 let serverConfig: IConfig = { ...defaultConfig };

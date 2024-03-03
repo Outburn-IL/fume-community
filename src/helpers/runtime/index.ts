@@ -4,12 +4,12 @@
  */
 
 import { castToFhir } from './castToFhir';
-import { flashMerge } from './flashMerge';
-import { finalize } from './finalize';
 import { checkResourceId } from './checkResourceId';
+import { finalize } from './finalize';
+import { flashMerge } from './flashMerge';
 
 export type { CastToFhirOptions } from './castToFhir';
-export type { FlashMergeOptions, flashMerge } from './flashMerge';
+export type { flashMerge, FlashMergeOptions } from './flashMerge';
 
 export default {
   castToFhir,

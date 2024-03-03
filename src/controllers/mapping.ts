@@ -3,11 +3,12 @@
  *   Project name: FUME
  */
 
+import type { Request, Response } from 'express';
+
 import { getCache } from '../helpers/cache';
 import { v2json } from '../helpers/hl7v2';
-import { parseCsv } from '../helpers/stringFunctions';
-import type { Request, Response } from 'express';
 import { getLogger } from '../helpers/logger';
+import { parseCsv } from '../helpers/stringFunctions';
 
 const get = async (req: Request, res: Response) => {
   const logger = getLogger();

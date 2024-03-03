@@ -1,7 +1,8 @@
-import { translateCode } from './translateCode';
 import { test } from '@jest/globals';
-import conformance from '../conformance';
+
 import { initCache } from '../cache';
+import conformance from '../conformance';
+import { translateCode } from './translateCode';
 
 jest.mock('../logger', () => ({
   getLogger: jest.fn().mockReturnValue({

@@ -3,14 +3,15 @@
  *   Project name: FUME
  */
 
+import type { Request, Response } from 'express';
+
+import config from '../config';
 import { getCache } from '../helpers/cache';
 import conformance from '../helpers/conformance';
 import { v2json } from '../helpers/hl7v2';
-import { parseCsv } from '../helpers/stringFunctions';
 import { transform } from '../helpers/jsonataFunctions';
-import type { Request, Response } from 'express';
-import config from '../config';
 import { getLogger } from '../helpers/logger';
+import { parseCsv } from '../helpers/stringFunctions';
 
 const get = async (req: Request, res: Response) => {
   return res.status(200).json(
@@ -29,6 +30,7 @@ const get = async (req: Request, res: Response) => {
 const evaluate = async (req: Request, res: Response) => {
   try {
     let inputJson;
+
     if (req.body.contentType === 'x-application/hl7-v2+er7') {
       console.log('Content-Type suggests HL7 V2.x message');
       console.log('Trying to parse V2 message as JSON...');

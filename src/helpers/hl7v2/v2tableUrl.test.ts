@@ -1,6 +1,6 @@
-import { v2tableUrl } from './v2tableUrl';
-
 import { test } from '@jest/globals';
+
+import { v2tableUrl } from './v2tableUrl';
 
 describe('v2codeLookup', () => {
   test('gets link for existing table', async () => {

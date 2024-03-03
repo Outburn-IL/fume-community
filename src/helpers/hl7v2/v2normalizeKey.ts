@@ -1,7 +1,7 @@
-import { initCap } from '../stringFunctions';
-import expressions from '../jsonataExpression';
-import { registerV2key } from './registerV2key';
 import { getCache } from '../cache';
+import expressions from '../jsonataExpression';
+import { initCap } from '../stringFunctions';
+import { registerV2key } from './registerV2key';
 
 export const v2normalizeKey = async (key: string) => {
   const bindings = {

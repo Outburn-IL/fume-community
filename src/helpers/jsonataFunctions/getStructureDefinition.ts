@@ -1,8 +1,8 @@
 import config from '../../config';
 import conformance from '../conformance';
+import fhirFuncs from '../fhirFunctions';
 import { getLogger } from '../logger';
 import thrower from '../thrower';
-import fhirFuncs from '../fhirFunctions';
 
 const getStructureDefinitionPath = (definitionId: string): any => {
   // fork: os

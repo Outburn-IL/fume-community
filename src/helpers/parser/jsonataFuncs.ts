@@ -4,10 +4,11 @@
  */
 
 import jsonata from 'jsonata';
-import { getSnapshot } from './getSnapshot';
-import { logInfo, getStructureDefinition } from '../jsonataFunctions';
+
+import { getStructureDefinition, logInfo } from '../jsonataFunctions';
 import { endsWith, initCapOnce, replaceColonsWithBrackets, startsWith } from '../stringFunctions';
 import { getElementDefinition } from './getElementDefinition';
+import { getSnapshot } from './getSnapshot';
 
 export interface PreCompilerFunctions {
   findClosingBrackets: Function

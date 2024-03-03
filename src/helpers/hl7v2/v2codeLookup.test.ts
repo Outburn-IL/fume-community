@@ -1,6 +1,6 @@
-import { v2codeLookup } from './v2codeLookup';
-
 import { test } from '@jest/globals';
+
+import { v2codeLookup } from './v2codeLookup';
 
 describe('v2codeLookup', () => {
   test('looks up existing key', async () => {

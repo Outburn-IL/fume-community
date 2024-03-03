@@ -1,12 +1,12 @@
+import { fhirVersionToMinor } from './fhirVersionToMinor';
 import { literal } from './literal';
-import { resourceId } from './resourceId';
+import { reference } from './reference';
 import { resolve } from './resolve';
+import { resourceId } from './resourceId';
 import { search } from './search';
 import { searchSingle } from './searchSingle';
-import { translateCoding } from './translateCoding';
 import { translateCode } from './translateCode';
-import { fhirVersionToMinor } from './fhirVersionToMinor';
-import { reference } from './reference';
+import { translateCoding } from './translateCoding';
 
 export default {
   literal,
