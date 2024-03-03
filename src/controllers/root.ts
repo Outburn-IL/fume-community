@@ -29,6 +29,7 @@ const get = async (req: Request, res: Response) => {
 const evaluate = async (req: Request, res: Response) => {
   try {
     let inputJson;
+
     if (req.body.contentType === 'x-application/hl7-v2+er7') {
       console.log('Content-Type suggests HL7 V2.x message');
       console.log('Trying to parse V2 message as JSON...');
