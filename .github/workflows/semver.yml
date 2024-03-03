@@ -20,6 +20,8 @@ jobs:
                 semantic_version: 21.1.1
                 branches: main
                 dry_run: true
+                extra_plugins:
+                    semantic-release-unsquash
               env:
                 GITHUB_TOKEN: ${{ secrets.PAT }}
                 NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
