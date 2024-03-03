@@ -2,5 +2,12 @@
   "branches": ["main"],
   "debug": "false",
   "dryRun": "true",
-  "tagFormat": "v${version}"
+  "tagFormat": "v${version}",
+  "plugins": [
+    "semantic-release-unsquash",
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/npm",
+    "@semantic-release/github"
+  ]
 }
