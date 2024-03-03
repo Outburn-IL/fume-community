@@ -5,7 +5,7 @@ Before you install FUME, you can play with the mapping language in our interacti
 
 ## Initial Setup
 
-Install [Node.js v18](https://nodejs.org/en/download/)
+Install [Node.js](https://nodejs.org/en/download/). The minimum version is specified in `.nvmrc`.
 
 Update to the latest version of `npm`
 
