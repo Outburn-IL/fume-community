@@ -29,6 +29,7 @@ jobs:
                 dry_run: false
                 extra_plugins:
                     semantic-release-unsquash
+                    "@semantic-release/git"
               env:
                 GITHUB_TOKEN: ${{ secrets.PAT }}
                 NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
