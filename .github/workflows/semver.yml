@@ -1,4 +1,4 @@
-name: SemVer
+name: Semantic version release and publish
 
 on:
     push:
@@ -19,7 +19,7 @@ jobs:
               with:
                 semantic_version: 21.1.1
                 branches: main
-                dry_run: true
+                dry_run: false
                 extra_plugins:
                     semantic-release-unsquash
               env:
