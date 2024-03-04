@@ -7,7 +7,7 @@ import type { Request, Response } from 'express';
 
 import config from '../config';
 import { getCache } from '../helpers/cache';
-import conformance from '../helpers/conformance';
+import { recacheFromServer } from '../helpers/conformance';
 import { v2json } from '../helpers/hl7v2';
 import { transform } from '../helpers/jsonataFunctions';
 import { getLogger } from '../helpers/logger';
@@ -67,7 +67,7 @@ const evaluate = async (req: Request, res: Response) => {
 
 const recache = async (req: Request, res: Response) => {
   try {
-    const recacheSuccess = await conformance.recacheFromServer();
+    const recacheSuccess = await recacheFromServer();
 
     if (recacheSuccess) {
       const { tables, compiledMappings } = getCache();

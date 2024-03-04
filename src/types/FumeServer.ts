@@ -1,7 +1,7 @@
 import { Application } from 'express';
 
 import { IAppCache, IAppCacheKeys } from '../helpers/cache/cacheTypes';
-import { IFhirPackageIndex } from '../helpers/conformance/loadFhirPackageIndex';
+import { IFhirPackageIndex } from '../helpers/conformance';
 import { ICache } from './Cache';
 import { IFhirClient } from './FhirClient';
 import { ILogger } from './Logger';

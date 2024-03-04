@@ -4,7 +4,7 @@ import type { Server } from 'http';
 
 import config from './config';
 import { getCache, IAppCacheKeys, initCache, InitCacheConfig } from './helpers/cache';
-import conformance from './helpers/conformance';
+import * as conformance from './helpers/conformance';
 import { FhirClient, setFhirClient } from './helpers/fhirServer';
 import { transform } from './helpers/jsonataFunctions';
 import { getLogger, setLogger } from './helpers/logger';
