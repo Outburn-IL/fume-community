@@ -3,7 +3,7 @@ import request from 'supertest';
 
 describe('api tests', () => {
   test('get mapping that does not exist', async () => {
-    await request(globalThis.app).get('Mapping/1').expect(404);
+    await request(globalThis.app).get('/Mapping/11925e4e-6ac0-4a38-a817-9a1524c9e1aa').expect(404);
   });
 
   test('get mapping that does exist', async () => {
