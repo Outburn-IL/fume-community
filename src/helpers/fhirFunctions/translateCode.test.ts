@@ -1,8 +1,12 @@
 import { test } from '@jest/globals';
 
 import { initCache } from '../cache';
-import conformance from '../conformance';
+import { getTable } from '../conformance';
 import { translateCode } from './translateCode';
+
+jest.mock('../conformance', () => ({
+  getTable: jest.fn()
+}));
 
 jest.mock('../logger', () => ({
   getLogger: jest.fn().mockReturnValue({
@@ -16,12 +20,12 @@ describe('translateCode', () => {
 
   beforeEach(() => {
     initCache();
-    mockGetTable = jest.spyOn(conformance, 'getTable');
+    mockGetTable = getTable as jest.Mock;
     mockGetTable.mockResolvedValue({ tableId: { input: [{ code: 1 }] } });
   });
 
   afterEach(() => {
-    mockGetTable.mockRestore();
+    (getTable as jest.Mock).mockRestore();
   });
 
   test('returns undefined on error', async () => {

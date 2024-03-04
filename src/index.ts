@@ -3,7 +3,7 @@
  */
 
 import config from './config';
-import { getAliasResource } from './helpers/conformance/recacheFromServer';
+import { getAliasResource } from './helpers/conformance';
 import { v2json } from './helpers/hl7v2';
 import expressions from './helpers/jsonataExpression';
 import { selectKeys } from './helpers/objectFunctions';
@@ -32,6 +32,7 @@ export { FumeConfigSchema } from './serverConfigSchema';
 export const fumeUtils = {
   expressions,
   duplicate,
+  getAliasResource,
   substringBefore,
   substringAfter,
   selectKeys,
@@ -43,6 +44,5 @@ export const fumeUtils = {
   getFhirVersionMinor: config.getFhirVersionMinor,
   toJsonataString: parser.toJsonataString,
   getSnapshot: parser.getSnapshot,
-  v2json,
-  getAliasResource
+  v2json
 };
