@@ -10,7 +10,7 @@ import jsonata from 'jsonata';
 
 import { IAppBinding } from '../../types';
 import { getCache } from '../cache';
-import conformance from '../conformance';
+import * as conformance from '../conformance';
 import fhirFuncs from '../fhirFunctions';
 import * as v2 from '../hl7v2';
 import { getLogger } from '../logger';
