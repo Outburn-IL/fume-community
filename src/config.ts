@@ -10,13 +10,15 @@ import type { IAppBinding, IConfig } from './types';
 const additionalBindings: Record<string, IAppBinding> = {}; // additional functions to bind when running transformations
 let serverConfig: IConfig = { ...defaultConfig };
 
-const setServerConfig = <ConfigType extends IConfig>(config: ConfigType) => {
-  let fhirServerBase: string = config.FHIR_SERVER_BASE;
-  let isStatelessMode: boolean = config.SERVER_STATELESS;
+const setServerConfig = <ConfigType extends IConfig>(config: Partial<ConfigType>) => {
+  let fhirServerBase: string | undefined = config.FHIR_SERVER_BASE?.trim();
+  let isStatelessMode: boolean | undefined = config.SERVER_STATELESS;
 
-  if (!fhirServerBase || fhirServerBase.trim() === '' || isStatelessMode) {
+  if (!fhirServerBase || isStatelessMode) {
     fhirServerBase = '';
     isStatelessMode = true;
+  } else {
+    isStatelessMode = false;
   };
   serverConfig = {
     ...defaultConfig,
