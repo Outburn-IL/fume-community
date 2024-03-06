@@ -11,10 +11,10 @@ const additionalBindings: Record<string, IAppBinding> = {}; // additional functi
 let serverConfig: IConfig = { ...defaultConfig };
 
 const setServerConfig = <ConfigType extends IConfig>(config: Partial<ConfigType>) => {
-  let fhirServerBase: string | undefined = config.FHIR_SERVER_BASE?.trim();
+  let fhirServerBase: string | undefined = config.FHIR_SERVER_BASE ? config.FHIR_SERVER_BASE.trim() : undefined;
   let isStatelessMode: boolean | undefined = config.SERVER_STATELESS;
 
-  if (!fhirServerBase || isStatelessMode) {
+  if (!fhirServerBase || fhirServerBase === '' || isStatelessMode) {
     fhirServerBase = '';
     isStatelessMode = true;
   } else {
