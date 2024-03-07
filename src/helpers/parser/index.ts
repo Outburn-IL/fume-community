@@ -5,7 +5,7 @@
 
 import { toJsonataString } from './toJsonataString';
 import { getSnapshot } from './getSnapshot';
-import { funcs } from './jsonataFuncs';
+import { funcs } from '../jsonataFuncs';
 import { getElementDefinition } from './getElementDefinition';
 import { replaceColonsWithBrackets } from '../stringFunctions';
 

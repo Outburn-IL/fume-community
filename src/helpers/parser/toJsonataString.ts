@@ -5,7 +5,7 @@
 
 import expressions from '../jsonataExpression';
 import thrower from '../thrower';
-import { funcs } from './jsonataFuncs';
+import { funcs } from '../jsonataFuncs';
 import { getStructureDefinition } from '../jsonataFunctions';
 import {
   startsWith,
@@ -145,12 +145,12 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
       // when indentation is higher than previous one it can only be by 2 spaces - no need to close previous rule
       // when indentation is the same - close previous rule
       const indent: string | undefined = substringBefore(line, '* '); // the indentation of this rule in actual spaces
-      const ruleDepth: number = (indent!.length - rootIndentOffset!.length) + 2; // any root rule is 2, so all rules are shifted by 2
+      const ruleDepth: number = (indent.length - rootIndentOffset!.length) + 2; // any root rule is 2, so all rules are shifted by 2
       if (ruleDepth < 2) {
-        return thrower.throwParseError(`expected indentation of at least ${rootIndentOffset!.length} spaces, got ${indent!.length} instead. Rule: ${line}`);
+        return thrower.throwParseError(`expected indentation of at least ${rootIndentOffset!.length} spaces, got ${indent.length} instead. Rule: ${line}`);
       }
       if (ruleDepth > prevRuleDepth + 2) {
-        return thrower.throwParseError(`expected indentation of max ${rootIndentOffset!.length + prevRuleDepth} spaces, got ${indent!.length} instead. Rule: ${line}`);
+        return thrower.throwParseError(`expected indentation of max ${rootIndentOffset!.length + prevRuleDepth} spaces, got ${indent.length} instead. Rule: ${line}`);
       }
       if (ruleDepth % 2 !== 0) {
         return thrower.throwParseError(`rule indentation must be in increments of two spaces. Rule: ${line}`);
@@ -369,7 +369,7 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
         const typeForFixed = jsonPrimitiveProfile ?? baseType;
         const fixed: any = eDef['fixed' + initCapOnce(typeForFixed)] ?? eDef['pattern' + initCapOnce(typeForFixed)];
 
-        const mandatoryObj = await funcs.getMandatoriesOfElement(rootStructDef.id, currentFshPath, funcs.getMandatoriesOfStructure);
+        const mandatoryObj = await funcs.getMandatoriesOfElement(rootStructDef.id, currentFshPath);
         let pathForCardinality = currentFshPath;
         if (eDefPath.split('.').length > currentFshPath.split('.').length) {
           pathForCardinality = eDefPath.split('.')[0] + '.' + currentFshPath;
