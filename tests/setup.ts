@@ -5,6 +5,27 @@ import path from 'path';
 import { FumeServer } from '../src/server';
 import { LOCAL_FHIR_API, LOCAL_FHIR_SERVER_BASE } from './config';
 
+/**
+ * Disable axios cache during integration tests
+ * @param config
+ * @returns
+ */
+const originalCreate = axios.create;
+axios.create = function createPatchedAxios (config) {
+  const instance = originalCreate(config);
+  instance.interceptors.request.use((request) => {
+    request.headers['Cache-Control'] = 'no-cache';
+    return request;
+  });
+  return instance;
+};
+
+/**
+ * Awaits for the FHIR server to start and for its API to be available
+ * @param maxAttempts
+ * @param currentAttempt
+ * @returns
+ */
 async function waitForFhirApi (maxAttempts, currentAttempt = 1) {
   try {
     console.log(`Attempt ${currentAttempt} to query FHIR API...`);

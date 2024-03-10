@@ -10,15 +10,6 @@ jest.unmock('axios');
 import axios from 'axios';
 /* eslint-enable */
 
-axios.create = function createPatchedAxios (config) {
-  const instance = axios.create(config);
-  instance.interceptors.request.use((request) => {
-    request.headers['Cache-Control'] = 'no-cache';
-    return request;
-  });
-  return instance;
-};
-
 const patientExpression: string = `Instance: $uuid('1')
 InstanceOf: Patient
 * active = true
