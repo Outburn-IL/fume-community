@@ -70,4 +70,14 @@ describe('SimpleCache', () => {
     const res = cache.getDict();
     expect(res).toEqual({ key: 'apple', key3: 'banana' });
   });
+
+  test('populate with undefined clears cache', async () => {
+    const cache = new SimpleCache();
+    cache.set('key', 'value');
+    cache.set('key2', 'value2');
+
+    cache.populate(undefined as any);
+    const res = cache.getDict();
+    expect(res).toEqual({});
+  });
 });

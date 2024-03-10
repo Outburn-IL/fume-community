@@ -1,23 +1,56 @@
+
 import { test } from '@jest/globals';
 import request from 'supertest';
 
-describe('api tests', () => {
-  test('get mapping that does not exist', async () => {
-    await request(globalThis.app).get('/Mapping/11925e4e-6ac0-4a38-a817-9a1524c9e1aa').expect(404);
-  });
+import { LOCAL_FHIR_API } from '../config';
+import { getResourceFileContents } from '../utils/getResourceFileContents';
 
-  test('get mapping that does exist', async () => {
-    const expectedExpression: string = `Instance: $uuid('1')
+/* eslint-disable */ 
+jest.unmock('axios');
+import axios from 'axios';
+/* eslint-enable */
+
+axios.create = function createPatchedAxios (config) {
+  const instance = axios.create(config);
+  instance.interceptors.request.use((request) => {
+    request.headers['Cache-Control'] = 'no-cache';
+    return request;
+  });
+  return instance;
+};
+
+const patientExpression: string = `Instance: $uuid('1')
 InstanceOf: Patient
 * active = true
 * name
   * given = given
   * family = family
 `;
-    const res = await request(globalThis.app)
-      .get('/Mapping/testMappingRoute')
+
+describe('api tests', () => {
+  beforeAll(async () => {
+    const testMapping = getResourceFileContents('json', 'test-mapping-route.json');
+    const parsed = JSON.parse(testMapping);
+    await axios.put(`${LOCAL_FHIR_API}/StructureMap/testMappingRoute`, parsed);
+    const mapping = await axios.get(`${LOCAL_FHIR_API}/StructureMap/testMappingRoute`);
+    expect(mapping.status).toBe(200);
+    await request(globalThis.app).get('/recache');
+  });
+
+  afterAll(async () => {
+    await axios.delete(`${LOCAL_FHIR_API}/StructureMap/testMappingRoute`);
+    await request(globalThis.app).get('/recache');
+  });
+
+  test('get mapping that does not exist', async () => {
+    await request(globalThis.app).get('/Mapping/11925e4e-6ac0-4a38-a817-9a1524c9e1aa').expect(404);
+  });
+
+  test('get mapping that does exist', async () => {
+    const res = await request(globalThis.app).get('/Mapping/testMappingRoute')
       .expect('Content-Type', 'application/vnd.outburn.fume; charset=utf-8');
-    expect(res.text).toBe(expectedExpression);
+
+    expect(res.text).toBe(patientExpression);
     ;
   });
 

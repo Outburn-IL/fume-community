@@ -1,7 +1,7 @@
 import { test } from '@jest/globals';
-import fs from 'fs';
-import path from 'path';
 import request from 'supertest';
+
+import { getResourceFileContents } from '../utils/getResourceFileContents';
 
 const mockInput = {
   mrn: 'PP875023983',
@@ -40,8 +40,7 @@ const mockInput = {
 
 describe('integration tests', () => {
   test('Simple CSV parsing to JSON', async () => {
-    const csvFile = path.join(__dirname, '..', 'fhir', 'inputs', 'simple-csv.txt');
-    const input = fs.readFileSync(csvFile);
+    const input = getResourceFileContents('inputs', 'simple-csv.txt');
     const requestBody = {
       input: input.toString(),
       contentType: 'text/csv',
@@ -78,14 +77,12 @@ describe('integration tests', () => {
   });
 
   test('HL7 v2 ADT to Bundle', async () => {
-    const mappingFile = path.join(__dirname, '..', 'fhir', 'mappings', 'v2-adt-to-bundle.txt');
-    const v2file = path.join(__dirname, '..', 'fhir', 'inputs', 'HL7-v2-ADT-A01.txt');
-    const mapping = fs.readFileSync(mappingFile);
-    const input = fs.readFileSync(v2file);
+    const mapping = getResourceFileContents('mappings', 'v2-adt-to-bundle.txt');
+    const input = getResourceFileContents('inputs', 'HL7-v2-ADT-A01.txt');
     const requestBody = {
-      input: input.toString(),
+      input,
       contentType: 'x-application/hl7-v2+er7',
-      fume: mapping.toString()
+      fume: mapping
     };
 
     const res = await request(globalThis.app).post('/').send(requestBody);
@@ -388,10 +385,9 @@ describe('integration tests', () => {
   });
 
   test('HL7 v2 ORU message parsing to JSON', async () => {
-    const v2file = path.join(__dirname, '..', 'fhir', 'inputs', 'HL7-v2-ORU.txt');
-    const input = fs.readFileSync(v2file);
+    const input = getResourceFileContents('mappings', 'HL7-v2-ORU.txt');
     const requestBody = {
-      input: input.toString(),
+      input,
       contentType: 'x-application/hl7-v2+er7',
       fume: '$'
     };
@@ -530,14 +526,12 @@ describe('integration tests', () => {
   });
 
   test('HL7 v2 ORU message to BP profile', async () => {
-    const file = path.join(__dirname, '..', 'fhir', 'mappings', 'v2-oru-to-bp.txt');
-    const v2file = path.join(__dirname, '..', 'fhir', 'inputs', 'HL7-v2-ORU.txt');
-    const mapping = fs.readFileSync(file);
-    const input = fs.readFileSync(v2file);
+    const input = getResourceFileContents('mappings', 'HL7-v2-ORU.txt');
+    const fume = getResourceFileContents('mappings', 'v2-oru-to-bp.txt');
     const requestBody = {
-      input: input.toString(),
+      input,
       contentType: 'x-application/hl7-v2+er7',
-      fume: mapping.toString()
+      fume
     };
 
     const res = await request(globalThis.app).post('/').send(requestBody);
@@ -610,11 +604,10 @@ describe('integration tests', () => {
   }, 15000);
 
   test('Default example mapping from Designer', async () => {
-    const file = path.join(__dirname, '..', 'fhir', 'mappings', 'flash-script-fhir-4.0-patient.txt');
-    const mapping = fs.readFileSync(file);
+    const fume = getResourceFileContents('mappings', 'flash-script-fhir-4.0-patient.txt');
     const requestBody = {
       input: mockInput,
-      fume: mapping.toString()
+      fume
     };
 
     const res = await request(globalThis.app).post('/').send(requestBody);
@@ -710,11 +703,10 @@ describe('integration tests', () => {
   });
 
   test('Basic Bundle with fullUrl and internal reference', async () => {
-    const file = path.join(__dirname, '..', 'fhir', 'mappings', 'flash-script-basic-bundle.txt');
-    const mapping = fs.readFileSync(file);
+    const fume = getResourceFileContents('mappings', 'flash-script-basic-bundle.txt');
     const requestBody = {
       input: mockInput,
-      fume: mapping.toString()
+      fume
     };
 
     const res = await request(globalThis.app).post('/').send(requestBody);

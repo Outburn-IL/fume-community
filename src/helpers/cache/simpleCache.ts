@@ -32,7 +32,7 @@ export class SimpleCache<T> implements ICache<T> {
   }
 
   populate (dict: Record<string, T>) {
-    this.cache = dict;
+    this.cache = dict || {};
   }
 
   getDict () {

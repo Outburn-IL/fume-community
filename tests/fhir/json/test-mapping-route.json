@@ -1,0 +1,69 @@
+{
+    "resourceType": "StructureMap",
+    "id": "testMappingRoute",
+    "url": "http://localdev.fume.health/StructureMap/testMappingRoute",
+    "identifier": [
+        {
+            "use": "official",
+            "type": {
+                "text": "Canonical URL"
+            },
+            "system": "urn:ietf:rfc:3986",
+            "value": "http://localdev.fume.health/StructureMap/testMappingRoute"
+        }
+    ],
+    "name": "testMappingRoute",
+    "title": "testMappingRoute",
+    "status": "active",
+    "date": "2024-03-02T18:36:03.495Z",
+    "useContext": [
+        {
+            "code": {
+                "system": "http://snomed.info/sct",
+                "code": "706594005",
+                "display": "Information system software"
+            },
+            "valueCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://codes.fume.health",
+                        "code": "fume",
+                        "display": "FUME"
+                    }
+                ],
+                "text": "FUME"
+            }
+        }
+    ],
+    "group": [
+        {
+            "name": "fumeMapping",
+            "typeMode": "none",
+            "input": [
+                {
+                    "name": "input",
+                    "mode": "source"
+                }
+            ],
+            "rule": [
+                {
+                    "extension": [
+                        {
+                            "url": "http://fhir.fume.health/StructureDefinition/mapping-expression",
+                            "valueExpression": {
+                                "language": "application/vnd.outburn.fume",
+                                "expression": "Instance: $uuid('1')\nInstanceOf: Patient\n* active = true\n* name\n  * given = given\n  * family = family\n"
+                            }
+                        }
+                    ],
+                    "name": "evaluate",
+                    "source": [
+                        {
+                            "context": "input"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
