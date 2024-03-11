@@ -3,10 +3,11 @@
  *   Project name: FUME
  */
 
-import thrower from '../thrower';
-import conformance from '../conformance';
 import _ from 'lodash';
 import uuidByString from 'uuid-by-string';
+
+import { getStructureDefinition } from '../conformance';
+import thrower from '../thrower';
 
 export interface CastToFhirOptions {
   name: string // name of the element
@@ -28,7 +29,7 @@ const getPrimitiveParser = async (typeName: string): Promise<Function | undefine
   } else {
     // generate and compile the function
     let resFn: Function;
-    const sDef = await conformance.getStructureDefinition(typeName);
+    const sDef = await getStructureDefinition(typeName);
     if (sDef === undefined) return thrower.throwRuntimeError(`error fetching structure definition for type ${typeName}`);
     const valueElementDef = sDef?.snapshot?.element[3]; // 4th element in a primitive's structdef is always the actual primitive value
     // get regular expression string from the standard extension

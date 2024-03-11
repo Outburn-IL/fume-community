@@ -1,5 +1,6 @@
-import { duplicate } from './duplicate';
 import { test } from '@jest/globals';
+
+import { duplicate } from './duplicate';
 
 describe('string helper tests', () => {
   describe('duplicate', () => {

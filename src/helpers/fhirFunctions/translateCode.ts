@@ -1,7 +1,7 @@
 
-import expressions from '../jsonataExpression';
 import { getCache } from '../cache';
-import conformance from '../conformance';
+import { getTable } from '../conformance';
+import expressions from '../jsonataExpression';
 import { getLogger } from '../logger';
 
 export const translateCode = async (input: string, tableId: string) => {
@@ -11,7 +11,7 @@ export const translateCode = async (input: string, tableId: string) => {
     let map = tables.get(tableId);
     if (map === undefined) {
       getLogger().info(`Table ${tableId} not cached, trying to fetch from server...`);
-      map = (await conformance.getTable(tableId))[tableId];
+      map = (await getTable(tableId))[tableId];
       tables.set(tableId, map);
     };
 

@@ -1,5 +1,6 @@
-import { v2parse } from './v2parse';
 import { test } from '@jest/globals';
+
+import { v2parse } from './v2parse';
 
 describe('v2parse', () => {
   test('parses message', async () => {

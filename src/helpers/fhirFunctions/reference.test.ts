@@ -1,5 +1,6 @@
-import { reference } from './reference';
 import { test } from '@jest/globals';
+
+import { reference } from './reference';
 
 describe('reference', () => {
   test('returns undefined on anything but an object', async () => {

@@ -1,3 +1,3 @@
-npm run eslint:fix
+npx lint-staged
 git add .
 npm run test:unit

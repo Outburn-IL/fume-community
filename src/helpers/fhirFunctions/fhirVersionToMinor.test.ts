@@ -1,5 +1,6 @@
-import { fhirVersionToMinor } from './fhirVersionToMinor';
 import { test } from '@jest/globals';
+
+import { fhirVersionToMinor } from './fhirVersionToMinor';
 
 describe('fhirVersionToMinor', () => {
   test('with patch', async () => {

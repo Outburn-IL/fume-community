@@ -4,11 +4,12 @@
  *   Project name: FUME
  */
 
-import os from 'os';
-import path from 'path';
-import { getCachePath, getCachedPackageDirs } from './getCachePath';
 import { test } from '@jest/globals';
 import * as fs from 'fs';
+import os from 'os';
+import path from 'path';
+
+import { getCachedPackageDirs, getCachePath } from './getCachePath';
 jest.mock('fs');
 
 describe('Cache paths', () => {

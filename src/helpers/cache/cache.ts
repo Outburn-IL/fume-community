@@ -21,8 +21,7 @@ const cacheKeys: IAppCacheKeys[] = [
   'mappings',
   'compiledMappings',
   'elementDefinition',
-  'definitions',
-  'compiledDefinitions'
+  'definitions'
 ];
 
 export interface InitCacheConfig {

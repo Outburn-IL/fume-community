@@ -1,14 +1,14 @@
 import config from '../../config';
-import conformance from '../conformance';
+import { getFhirPackageIndex } from '../conformance';
+import fhirFuncs from '../fhirFunctions';
 import { getLogger } from '../logger';
 import thrower from '../thrower';
-import fhirFuncs from '../fhirFunctions';
 
 const getStructureDefinitionPath = (definitionId: string): any => {
   // fork: os
   const serverConfig = config.getServerConfig();
   const fhirVersionMinor = fhirFuncs.fhirVersionToMinor(serverConfig.FHIR_VERSION);
-  const fhirPackageIndex = conformance.getFhirPackageIndex();
+  const fhirPackageIndex = getFhirPackageIndex();
   const cached = fhirPackageIndex[fhirVersionMinor];
   const indexed = cached.structureDefinitions.byId[definitionId] ??
     cached.structureDefinitions.byUrl[definitionId] ??

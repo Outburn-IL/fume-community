@@ -1,9 +1,10 @@
 import { Application } from 'express';
-import { ILogger } from './Logger';
+
+import { IAppCache, IAppCacheKeys } from '../helpers/cache/cacheTypes';
+import { IFhirPackageIndex } from '../helpers/conformance';
 import { ICache } from './Cache';
 import { IFhirClient } from './FhirClient';
-import { IAppCache, IAppCacheKeys } from '../helpers/cache/cacheTypes';
-import { IFhirPackageIndex } from '../helpers/conformance/loadFhirPackageIndex';
+import { ILogger } from './Logger';
 
 export type ICacheClass = new <T>(options: Record<string, any>) => ICache<T>;
 export type IAppBinding = any;

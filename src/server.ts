@@ -1,23 +1,23 @@
-import express from 'express';
 import cors from 'cors';
-import defaultConfig from './serverConfig';
-import config from './config';
-import routes from './routes';
-import { getLogger, setLogger } from './helpers/logger';
-import conformance from './helpers/conformance';
-import { transform } from './helpers/jsonataFunctions';
-
+import express from 'express';
 import type { Server } from 'http';
-import type {
-  IFumeServer,
-  ILogger,
-  IConfig,
-  ICacheClass,
-  IAppBinding,
-  IFhirClient
-} from './types';
+
+import config from './config';
 import { getCache, IAppCacheKeys, initCache, InitCacheConfig } from './helpers/cache';
+import * as conformance from './helpers/conformance';
 import { FhirClient, setFhirClient } from './helpers/fhirServer';
+import { transform } from './helpers/jsonataFunctions';
+import { getLogger, setLogger } from './helpers/logger';
+import { notFound, routes } from './routes';
+import defaultConfig from './serverConfig';
+import type {
+  IAppBinding,
+  ICacheClass,
+  IConfig,
+  IFhirClient,
+  IFumeServer,
+  ILogger
+} from './types';
 
 export class FumeServer<ConfigType extends IConfig> implements IFumeServer<ConfigType> {
   private readonly app: express.Application;
@@ -53,6 +53,12 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     }
   }
 
+  /**
+   * Start the server
+   * Any extensions to the server should be done before calling this method
+   * i.e. registering alternative logger, cache class, fhir client and express routes.
+   * @param serverOptions
+   */
   public async warmUp (serverOptions?: ConfigType | undefined): Promise<void> {
     const options = serverOptions ?? defaultConfig;
     this.logger.info('FUME initializing...');
@@ -101,6 +107,11 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
         this.logger.info('Successfully loaded cache');
       }
     };
+
+    // catch any routes that are not found
+    // This allows consumers to extend the server with their own routes
+    // and still have a default 404 handler
+    this.app.use(notFound);
 
     this.server = this.app.listen(SERVER_PORT);
     this.logger.info(`FUME server is running on port ${SERVER_PORT}`);

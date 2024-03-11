@@ -1,7 +1,8 @@
-import { v2normalizeKey } from './v2normalizeKey';
 import { test } from '@jest/globals';
-import { initCache, getCache } from '../cache';
+
 import { ICache } from '../../types';
+import { getCache, initCache } from '../cache';
+import { v2normalizeKey } from './v2normalizeKey';
 
 describe('v2normalizeKey', () => {
   let v2keyMap: ICache<any>;

@@ -1,8 +1,8 @@
-import { registerV2key } from './registerV2key';
-import { initCache, getCache } from '../cache';
-
 import { test } from '@jest/globals';
+
 import { ICache } from '../../types';
+import { getCache, initCache } from '../cache';
+import { registerV2key } from './registerV2key';
 
 describe('registerV2key', () => {
   let v2keyMap: ICache<any>;

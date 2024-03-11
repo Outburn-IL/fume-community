@@ -6,12 +6,13 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 
 import _ from 'lodash';
-import { getSnapshot } from './getSnapshot';
+
 import { getCache } from '../cache';
-import thrower from '../thrower';
-import { returnPathWithoutX } from './returnPathWithoutX';
 import { initCapOnce, replaceColonsWithBrackets } from '../stringFunctions';
+import thrower from '../thrower';
 import { getCurrElement } from './getCurrElement';
+import { getSnapshot } from './getSnapshot';
+import { returnPathWithoutX } from './returnPathWithoutX';
 
 export interface FshPathObject {
   originPath: string

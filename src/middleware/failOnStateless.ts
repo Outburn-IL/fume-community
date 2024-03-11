@@ -4,6 +4,7 @@
  */
 
 import express from 'express';
+
 import config from '../config';
 
 const serverConfig = config.getServerConfig();

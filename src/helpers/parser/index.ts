@@ -3,11 +3,11 @@
  *   Project name: FUME
  */
 
-import { toJsonataString } from './toJsonataString';
-import { getSnapshot } from './getSnapshot';
 import { funcs } from '../jsonataFuncs';
-import { getElementDefinition } from './getElementDefinition';
 import { replaceColonsWithBrackets } from '../stringFunctions';
+import { getElementDefinition } from './getElementDefinition';
+import { getSnapshot } from './getSnapshot';
+import { toJsonataString } from './toJsonataString';
 
 export default {
   toJsonataString,

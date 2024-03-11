@@ -1,11 +1,12 @@
 
+import fs from 'fs-extra';
+import path from 'path';
+
 import expressions from '../jsonataExpression';
+import { getLogger } from '../logger';
 import { omitKeys } from '../objectFunctions';
 import { isNumeric } from '../stringFunctions';
-import path from 'path';
-import fs from 'fs-extra';
-import { getLogger } from '../logger';
-import { getCachePackagesPath, getCachedPackageDirs, getFumeIndexFilePath } from './getCachePath';
+import { getCachedPackageDirs, getCachePackagesPath, getFumeIndexFilePath } from './getCachePath';
 
 export type IFhirPackage = any;
 export type IFhirPackageIndex = Record<string, IFhirPackage>;

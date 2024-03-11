@@ -5,22 +5,23 @@
  *   Project name: FUME
  */
 
-import jsonata from 'jsonata';
 import HL7Dictionary from 'hl7-dictionary';
+import jsonata from 'jsonata';
+
+import { IAppBinding } from '../../types';
 import { getCache } from '../cache';
-import * as stringFuncs from '../stringFunctions';
+import * as conformance from '../conformance';
 import fhirFuncs from '../fhirFunctions';
+import * as v2 from '../hl7v2';
 import { getLogger } from '../logger';
+import * as objectFuncs from '../objectFunctions';
 import compiler from '../parser';
 import runtime from '../runtime';
-import conformance from '../conformance';
-import * as v2 from '../hl7v2';
-import * as objectFuncs from '../objectFunctions';
-import { isEmpty } from './isEmpty';
-import { registerTable } from './registerTable';
-import { logInfo, logWarn } from './log';
+import * as stringFuncs from '../stringFunctions';
 import { getStructureDefinition } from './getStructureDefinition';
-import { IAppBinding } from '../../types';
+import { isEmpty } from './isEmpty';
+import { logInfo, logWarn } from './log';
+import { registerTable } from './registerTable';
 
 const compiledExpression = async (expression: string): Promise<jsonata.Expression> => {
   const { compiledExpressions } = getCache();
@@ -87,7 +88,7 @@ export const transform = async (input, expression: string, extraBindings: Record
     bindings.v2json = v2.v2json;
     bindings.isNumeric = stringFuncs.isNumeric;
 
-    const { compiledDefinitions, aliases } = getCache();
+    const { aliases } = getCache();
     // these are debug functions, should be removed in production versions
     bindings.fhirCacheIndex = conformance.getFhirPackageIndex();
     bindings.getSnapshot = compiler.getSnapshot;
@@ -97,7 +98,6 @@ export const transform = async (input, expression: string, extraBindings: Record
     bindings.v2codeLookup = v2.v2codeLookup;
     bindings.v2tableUrl = v2.v2tableUrl;
     bindings.toJsonataString = compiler.toJsonataString;
-    bindings.compiledDefinitions = compiledDefinitions.getDict();
     bindings.getMandatoriesOfElement = compiler.getMandatoriesOfElement;
     bindings.getMandatoriesOfStructure = compiler.getMandatoriesOfStructure;
     bindings.getElementDefinition = compiler.getElementDefinition;

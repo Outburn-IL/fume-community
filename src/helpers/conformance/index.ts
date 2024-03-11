@@ -1,12 +1,14 @@
-import { getFhirPackageIndex, loadFhirPackageIndex } from './loadFhirPackageIndex';
+import { getStructureDefinition, getTable } from './conformance';
+import { getFhirPackageIndex, IFhirPackageIndex, loadFhirPackageIndex } from './loadFhirPackageIndex';
 import { loadPackage, loadPackages } from './loadPackages';
-import { getTable, getStructureDefinition } from './conformance';
-import { recacheFromServer } from './recacheFromServer';
+import { getAliasResource, recacheFromServer } from './recacheFromServer';
 
-export default {
-  getTable,
-  getStructureDefinition,
+export {
+  getAliasResource,
   getFhirPackageIndex,
+  getStructureDefinition,
+  getTable,
+  IFhirPackageIndex,
   loadFhirPackageIndex,
   loadPackage,
   loadPackages,

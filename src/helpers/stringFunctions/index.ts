@@ -7,36 +7,36 @@ import { duplicate } from './duplicate';
 import { initCap } from './initCap';
 import { replaceColonsWithBrackets } from './replaceColonsWithBrackets';
 import {
-  startsWith,
   endsWith,
-  substringBefore,
-  substringAfter,
-  removeEmptyLines,
-  initCapOnce,
   hashKey,
-  uuid,
+  initCapOnce,
   isNumeric,
   matches,
-  splitToLines,
   parseCsv,
-  removeComments
+  removeComments,
+  removeEmptyLines,
+  splitToLines,
+  startsWith,
+  substringAfter,
+  substringBefore,
+  uuid
 } from './stringFunctions';
 
 export {
   duplicate,
-  initCap,
-  startsWith,
   endsWith,
-  substringBefore,
-  substringAfter,
-  removeEmptyLines,
-  initCapOnce,
   hashKey,
-  uuid,
+  initCap,
+  initCapOnce,
   isNumeric,
   matches,
-  splitToLines,
   parseCsv,
   removeComments,
-  replaceColonsWithBrackets
+  removeEmptyLines,
+  replaceColonsWithBrackets,
+  splitToLines,
+  startsWith,
+  substringAfter,
+  substringBefore,
+  uuid
 };

@@ -1,0 +1,16 @@
+{
+  "branches": ["main"],
+  "debug": "false",
+  "dryRun": "false",
+  "tagFormat": "v${version}",
+  "plugins": [
+    "semantic-release-unsquash",
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/npm",
+    ["@semantic-release/git", {
+        "assets": ["package.json"],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+    }],
+    "@semantic-release/github"
+  ]
+}

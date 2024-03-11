@@ -3,9 +3,10 @@
  *   Project name: FUME
  */
 
+import { test } from '@jest/globals';
+
 import { initCache } from '../cache';
 import { getCurrElement } from './getCurrElement';
-import { test } from '@jest/globals';
 
 describe('getCurrElement', () => {
   beforeEach(() => {

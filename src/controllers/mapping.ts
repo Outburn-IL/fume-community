@@ -3,25 +3,29 @@
  *   Project name: FUME
  */
 
+import type { Request, Response } from 'express';
+
 import { getCache } from '../helpers/cache';
 import { v2json } from '../helpers/hl7v2';
-import { parseCsv } from '../helpers/stringFunctions';
-import type { Request, Response } from 'express';
 import { getLogger } from '../helpers/logger';
+import { parseCsv } from '../helpers/stringFunctions';
 
 const get = async (req: Request, res: Response) => {
   const logger = getLogger();
   try {
+    // get mapping id from route
     const mappingId: string = req.params.mappingId;
-    // get mapping expression from cache
+    // get mapping object from cache
     const mappingObj = getCache().compiledMappings.get(mappingId);
-    const mapping: string = mappingObj.expression;
-
-    if (mapping) {
+    if (mappingObj) {
+      // get expression from mapping object
+      const mapping: string = mappingObj.expression;
       res.set('Content-Type', 'application/vnd.outburn.fume');
       res.status(200).send(mapping);
     } else {
-      res.status(404).json({ message: 'not found' });
+      const message: string = `Mapping '${mappingId}' could not be found`;
+      logger.error(message);
+      res.status(404).json({ message });
     }
   } catch (error) {
     logger.error({ error });
