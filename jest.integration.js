@@ -1,6 +1,6 @@
 module.exports = {
   globalSetup: './tests/setup.ts',
   globalTeardown: './tests/teardown.ts',
-  testPathIgnorePatterns: ['dist/*'],
-  testMatch: ['<rootDir>/tests/**/*.test.ts']
+  testTimeout: 30000,
+  roots: ['<rootDir>/tests']
 };

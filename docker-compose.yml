@@ -11,6 +11,8 @@ services:
         target: /app/config/application.yaml
     depends_on:
       - db
+    environment:
+      JVM_OPTS: "-Xms2g -Xms2g"
 
   db:
     image: postgres

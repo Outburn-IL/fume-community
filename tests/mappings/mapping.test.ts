@@ -1,14 +1,10 @@
 
 import { test } from '@jest/globals';
+import axios from 'axios';
 import request from 'supertest';
 
 import { LOCAL_FHIR_API } from '../config';
 import { getResourceFileContents } from '../utils/getResourceFileContents';
-
-/* eslint-disable */ 
-jest.unmock('axios');
-import axios from 'axios';
-/* eslint-enable */
 
 const patientExpression: string = `Instance: $uuid('1')
 InstanceOf: Patient

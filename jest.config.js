@@ -1,3 +1,3 @@
 module.exports = {
-  testPathIgnorePatterns: ['dist/*', 'tests/*']
+  roots: ['<rootDir>/src']
 };
