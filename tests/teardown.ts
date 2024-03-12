@@ -1,4 +1,4 @@
-import { v2 as compose } from 'docker-compose';
+import * as compose from 'docker-compose';
 
 async function teardown () {
   console.log('stopping FHIR server...');

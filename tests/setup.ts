@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { v2 as compose } from 'docker-compose';
+import * as compose from 'docker-compose';
 import path from 'path';
 
 import { FumeServer } from '../src/server';
