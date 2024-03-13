@@ -1,0 +1,21 @@
+{
+    "resourceType": "Practitioner",
+    "id": "cc829d28-3b32-43df-af57-e72035d98e18",
+    "identifier": [
+        {
+            "system": "http://fume.health/identifier/practitioner-license",
+            "value": "1-820958"
+        }
+    ],
+    "active": true,
+    "name": [
+        {
+            "text": "Dr. Dolittle",
+            "family": "Dolittle",
+            "given": [
+                "Doctor"
+            ]
+        }
+    ],
+    "gender": "male"
+}
