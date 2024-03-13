@@ -3,10 +3,10 @@
  *   Project name: FUME
  */
 
+import { funcs } from '../jsonataFuncs';
 import { replaceColonsWithBrackets } from '../stringFunctions';
 import { getElementDefinition } from './getElementDefinition';
 import { getSnapshot } from './getSnapshot';
-import { funcs } from './jsonataFuncs';
 import { toJsonataString } from './toJsonataString';
 
 export default {

@@ -1,46 +1,26 @@
-import jsonata from 'jsonata';
-
-const isEmptyExpr = jsonata(`(
-    $exists($value)?(
-      $typeOfValue := $type($value);
-      $typeOfValue != 'null' ? (
-        $typeOfValue != 'string' ? (
-          $typeOfValue = 'object' ? (
-            $value = {} ? (
-              true
-              ):(
-                /* check all keys of object */
-                $boolean($value.*)?false:true;
-              )
-          ):(
-            $typeOfValue = 'array' ? (
-              $value = [] ? (
-                true
-              ):(
-                /* check all array values */
-              $boolean($value)?false:true
-              )
-            ):(
-              $typeOfValue = 'number' ? (
-                false /* a number is regarded as non-empty */
-              ):(
-                $typeOfValue = 'boolean' ? (
-                  false /* boolean is regarded as non-empty */
-                ):(
-                  true /* type is a function, regarded as empty */
-                )
-              )
-            )
-          )
-        ):(
-          false
-        )
-      ):true;
-    ):true;    
-  )`);
+import _ from 'lodash';
 
 export const isEmpty = async (value) => {
-  // fork: os
-  const res = isEmptyExpr.evaluate({}, { value });
-  return await res;
+  if (value) {
+    const type = typeof value;
+    if (type) {
+      if (type !== 'string') {
+        if (type === 'object') {
+          return _.isEmpty(value) ? true : (Object.keys(value).length === 0);
+        } else {
+          if (Array.isArray(value)) {
+            return value.length === 0;
+          }
+
+          return type === 'number' ? false : (type !== 'boolean');
+        }
+      } else {
+        return false;
+      }
+    } else {
+      return true;
+    }
+  }
+
+  return true;
 };

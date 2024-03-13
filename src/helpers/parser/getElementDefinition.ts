@@ -19,7 +19,7 @@ export interface FshPathObject {
   newPath: string
 };
 
-export const getElementDefinition = async (rootType: string, path: FshPathObject) => {
+export const getElementDefinition = async (rootType: string, path: FshPathObject | string) => {
   if (typeof path === 'string') {
     path = { originPath: path, newPath: path };
   }
