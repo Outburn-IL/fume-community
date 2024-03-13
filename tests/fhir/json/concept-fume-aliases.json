@@ -1,0 +1,188 @@
+{
+    "resourceType": "ConceptMap",
+    "url": "http://example.fume.health/ConceptMap/fume-global-aliases",
+    "name": "FumeAliases",
+    "status": "active",
+    "publisher": "Outburn Ltd.",
+    "description": "The value associated with each FUME alias",
+    "useContext": [
+        {
+            "code": {
+                "system": "http://snomed.info/sct",
+                "code": "706594005",
+                "display": "Information system software"
+            },
+            "valueCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://codes.fume.health",
+                        "code": "fume",
+                        "display": "FUME Mapping Engine"
+                    }
+                ],
+                "text": "FUME Mapping Engine"
+            }
+        }
+    ],
+    "group": [
+        {
+            "source": "http://example.fume.health/CodeSystem/fume-global-alias-name",
+            "target": "http://example.fume.health/CodeSystem/fume-global-alias-value",
+            "element": [
+                {
+                    "code": "passportPrefix",
+                    "target": [
+                        {
+                            "code": "http://hl7.org/fhir/sid/passport-",
+                            "equivalence": "equivalent"
+                        }
+                    ]
+                },
+                {
+                    "code": "extLanguage",
+                    "target": [
+                        {
+                            "code": "http://hl7.org/fhir/StructureDefinition/language",
+                            "equivalence": "equivalent"
+                        }
+                    ]
+                },
+                {
+                    "code": "extGeolocation",
+                    "target": [
+                        {
+                            "code": "http://hl7.org/fhir/StructureDefinition/geolocation",
+                            "equivalence": "equivalent"
+                        }
+                    ]
+                },
+                {
+                    "code": "extStreetName",
+                    "target": [
+                        {
+                            "code": "http://hl7.org/fhir/StructureDefinition/iso21090-ADXP-streetName",
+                            "equivalence": "equivalent"
+                        }
+                    ]
+                },
+                {
+                    "code": "extHouseNumber",
+                    "target": [
+                        {
+                            "code": "http://hl7.org/fhir/StructureDefinition/iso21090-ADXP-houseNumber",
+                            "equivalence": "equivalent"
+                        }
+                    ]
+                },
+                {
+                    "code": "extApartment",
+                    "target": [
+                        {
+                            "code": "http://hl7.org/fhir/StructureDefinition/iso21090-ADXP-unitID",
+                            "equivalence": "equivalent"
+                        }
+                    ]
+                },
+                {
+                    "code": "urn",
+                    "target": [
+                        {
+                            "code": "urn:ietf:rfc:3986",
+                            "equivalence": "equivalent"
+                        }
+                    ]
+                },
+                {
+                    "code": "ssn",
+                    "target": [
+                        {
+                            "code": "http://hl7.org/fhir/sid/us-ssn",
+                            "equivalence": "equivalent"
+                        }
+                    ]
+                },
+                {
+                    "code": "sct",
+                    "target": [
+                        {
+                            "code": "http://snomed.info/sct",
+                            "equivalence": "equivalent"
+                        }
+                    ]
+                },
+                {
+                    "code": "extDataAbsentReason",
+                    "target": [
+                        {
+                            "code": "http://hl7.org/fhir/StructureDefinition/data-absent-reason",
+                            "equivalence": "equivalent"
+                        }
+                    ]
+                },
+                {
+                    "code": "subscriberRelationship",
+                    "target": [
+                        {
+                            "code": "http://terminology.hl7.org/CodeSystem/subscriber-relationship",
+                            "equivalence": "equivalent"
+                        }
+                    ]
+                },
+                {
+                    "code": "v3actCode",
+                    "target": [
+                        {
+                            "code": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+                            "equivalence": "equivalent"
+                        }
+                    ]
+                },
+                {
+                    "code": "loinc",
+                    "target": [
+                        {
+                            "code": "http://loinc.org",
+                            "equivalence": "equivalent"
+                        }
+                    ]
+                },
+                {
+                    "code": "ucum",
+                    "target": [
+                        {
+                            "code": "http://unitsofmeasure.org",
+                            "equivalence": "equivalent"
+                        }
+                    ]
+                },
+                {
+                    "code": "exampleMrn",
+                    "target": [
+                        {
+                            "code": "http://this.is.an.example.uri/mrn",
+                            "equivalence": "equivalent"
+                        }
+                    ]
+                },
+                {
+                    "code": "ILNationalID",
+                    "target": [
+                        {
+                            "code": "http://fhir.health.gov.il/identifier/il-national-id",
+                            "equivalence": "equivalent"
+                        }
+                    ]
+                },
+                {
+                    "code": "clalitServiceCode",
+                    "target": [
+                        {
+                            "code": "http://clalit.org/service-code",
+                            "equivalence": "equivalent"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
