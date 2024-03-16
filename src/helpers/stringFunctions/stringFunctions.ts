@@ -22,10 +22,10 @@ export const initCapOnce = (str: string): string => {
   return str[0].toUpperCase() + str.slice(1);
 };
 
-export const substringBefore = (str: string, chars: string): string | undefined => {
+export const substringBefore = (str: string, chars: string): string => {
   // undefined inputs always return undefined
   if (typeof str === 'undefined') {
-    return undefined;
+    return '';
   };
   const pos = str.indexOf(chars);
   if (pos > -1) {
@@ -35,10 +35,10 @@ export const substringBefore = (str: string, chars: string): string | undefined 
   }
 };
 
-export const substringAfter = (str: string, chars: string): string | undefined => {
+export const substringAfter = (str: string, chars: string): string => {
   // undefined inputs always return undefined
   if (typeof str === 'undefined') {
-    return undefined;
+    return '';
   }
   const pos = str.indexOf(chars);
   if (pos > -1) {

@@ -1,0 +1,52 @@
+{
+    "resourceType": "ConceptMap",
+    "id": "gender",
+    "url": "http://fume.outburn.co.il/Table/gender",
+    "name": "fumeExampleTable",
+    "title": "FUME Example Table",
+    "status": "draft",
+    "group": [
+        {
+            "source": "http://fume.outburn.co.il/cs/example-gender",
+            "target": "http://hl7.org/fhir/administrative-gender",
+            "element": [
+                {
+                    "code": "M",
+                    "target": [
+                        {
+                            "code": "male",
+                            "equivalence": "equal"
+                        }
+                    ]
+                },
+                {
+                    "code": "F",
+                    "target": [
+                        {
+                            "code": "female",
+                            "equivalence": "equal"
+                        }
+                    ]
+                },
+                {
+                    "code": "U",
+                    "target": [
+                        {
+                            "code": "unknown",
+                            "equivalence": "equal"
+                        }
+                    ]
+                },
+                {
+                    "code": "O",
+                    "target": [
+                        {
+                            "code": "other",
+                            "equivalence": "equal"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

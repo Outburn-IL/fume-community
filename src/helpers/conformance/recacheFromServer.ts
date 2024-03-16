@@ -63,22 +63,26 @@ export const getAliasResource = async () => {
     return undefined;
   };
   let resource;
-  const aliasResourceSearch = await getFhirClient().search('ConceptMap', { context: 'http://codes.fume.health|fume', name: 'FumeAliases' });
-  if (typeof aliasResourceSearch === 'object' && aliasResourceSearch.resourceType === 'Bundle' && typeof aliasResourceSearch.total === 'number') {
-    if (aliasResourceSearch.total === 1) {
-      logger.info(`Alias resource found: ${aliasResourceSearch.entry[0].fullUrl as string}`);
-      resource = aliasResourceSearch.entry[0].resource;
-    } else {
-      if (aliasResourceSearch.total === 0) {
-        logger.info('Alias resource not found');
-        resource = {};
+  try {
+    const aliasResourceSearch = await getFhirClient().search('ConceptMap', { context: 'http://codes.fume.health|fume', name: 'FumeAliases' });
+    if (typeof aliasResourceSearch === 'object' && aliasResourceSearch.resourceType === 'Bundle' && typeof aliasResourceSearch.total === 'number') {
+      if (aliasResourceSearch.total === 1) {
+        logger.info(`Alias resource found: ${aliasResourceSearch.entry[0].fullUrl as string}`);
+        resource = aliasResourceSearch.entry[0].resource;
       } else {
-        logger.error('Multiple alias resources found on server!');
+        if (aliasResourceSearch.total === 0) {
+          logger.info('Alias resource not found');
+          resource = {};
+        } else {
+          logger.error('Multiple alias resources found on server!');
+        }
       }
-    }
-  } else {
-    logger.error('Error fetching alias resource!');
-  };
+    } else {
+      logger.error('Error fetching alias resource!');
+    };
+  } catch (e) {
+    resource = {};
+  }
   return resource;
 };
 
@@ -146,5 +150,6 @@ export const recacheFromServer = async (): Promise<boolean> => {
     logger.error(e);
     return false;
   };
+
   return true;
 };
