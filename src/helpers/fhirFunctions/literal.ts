@@ -1,7 +1,6 @@
-import expressions from '../jsonataExpression';
-import { searchSingle } from './searchSingle';
+import { expressions } from '../jsonataExpr';
 
-export const literal = async (query: string, params?: Record<string, any>): Promise<string | undefined> => {
-  const res = await expressions.literal.evaluate({}, { query, searchSingle, params });
+export const literal = (query: string, params?: Record<string, any>): string | undefined => {
+  const res = expressions.literal(query);
   return res;
 };

@@ -6,12 +6,7 @@
 import jsonata from 'jsonata';
 
 export interface InternalJsonataExpression {
-  translateCodeExtract: jsonata.Expression
-  translateCodingExtract: jsonata.Expression
-  searchSingle: jsonata.Expression
-  literal: jsonata.Expression
   initCap: jsonata.Expression
-
   v2normalizeKey: jsonata.Expression
   v2json: jsonata.Expression
   parseFumeExpression: jsonata.Expression
@@ -28,31 +23,6 @@ export interface InternalJsonataExpression {
 };
 
 const expressions: InternalJsonataExpression = {
-  translateCodeExtract: jsonata('$mapFiltered.code'),
-  translateCodingExtract: jsonata(`$result.[
-    {
-      'system': target,
-      'code': code
-    },
-    {
-      'system': source,
-      'code': $input
-    }
-  ]`),
-  searchSingle: jsonata(`(
-    $assert(
-      $bundle.total <= 1, 
-      'The search ' 
-      & $bundle.link[relation='self'].url 
-      & ' returned multiple matches - criteria is not selective enough'
-    );
-    $bundle.entry[search.mode='match'][0].resource
-  )`),
-  literal: jsonata(`(
-    $r := $searchSingle($query, $params);
-    $r.resourceType = 'OperationOutcome' ? $error($string($r));
-    $exists($r.resourceType) ? $r.resourceType & '/' & $r.id : undefined
-  )`),
   initCap: jsonata(`(
     $words := $trim($)~>$split(" ");
     ($words.$initCapOnce($))~>$join(' ')

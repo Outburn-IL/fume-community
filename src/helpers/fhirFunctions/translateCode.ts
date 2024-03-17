@@ -1,7 +1,7 @@
 
 import { getCache } from '../cache';
 import { getTable } from '../conformance';
-import expressions from '../jsonataExpression';
+import { expressions } from '../jsonataExpr';
 import { getLogger } from '../logger';
 
 export const translateCode = async (input: string, tableId: string) => {
@@ -24,7 +24,7 @@ export const translateCode = async (input: string, tableId: string) => {
       if (mapFiltered.length === 1) {
         result = mapFiltered[0].code;
       } else {
-        result = await expressions.translateCodeExtract.evaluate({}, { mapFiltered });
+        result = expressions.translateCodeExtract(mapFiltered);
       }
     }
     return result;
