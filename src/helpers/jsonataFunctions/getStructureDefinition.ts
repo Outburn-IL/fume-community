@@ -1,3 +1,7 @@
+/**
+ * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
+ *   Project name: FUME-COMMUNITY
+ */
 import config from '../../config';
 import { getFhirPackageIndex } from '../conformance';
 import fhirFuncs from '../fhirFunctions';
