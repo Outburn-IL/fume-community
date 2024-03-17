@@ -1,3 +1,7 @@
+/**
+ * © Copyright Outburn Ltd. 2022-2023 All Rights Reserved
+ *   Project name: FUME-COMMUNITY
+ */
 import { getV2DatatypeDef } from './getV2DatatypeDef';
 import { registerV2key } from './registerV2key';
 import { v2codeLookup } from './v2codeLookup';

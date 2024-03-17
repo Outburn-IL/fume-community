@@ -1,3 +1,7 @@
+/**
+ * © Copyright Outburn Ltd. 2022-2023 All Rights Reserved
+ *   Project name: FUME-COMMUNITY
+ */
 import expressions from '../jsonataExpression';
 import { searchSingle } from './searchSingle';
 

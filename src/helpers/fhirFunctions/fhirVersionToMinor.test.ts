@@ -1,3 +1,7 @@
+/**
+ * © Copyright Outburn Ltd. 2022-2023 All Rights Reserved
+ *   Project name: FUME-COMMUNITY
+ */
 import { test } from '@jest/globals';
 
 import { fhirVersionToMinor } from './fhirVersionToMinor';

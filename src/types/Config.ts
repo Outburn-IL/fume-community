@@ -1,4 +1,7 @@
-
+/**
+ * © Copyright Outburn Ltd. 2022-2023 All Rights Reserved
+ *   Project name: FUME-COMMUNITY
+ */
 export interface IConfig {
   SERVER_PORT: number
   SERVER_STATELESS: boolean

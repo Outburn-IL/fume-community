@@ -1,7 +1,8 @@
 /**
  * © Copyright Outburn Ltd. 2022-2023 All Rights Reserved
- *   Project name: FUME
+ *   Project name: FUME-COMMUNITY
  */
+
 import { fhirCorePackages } from './constants';
 import { fhirVersionToMinor } from './helpers/fhirFunctions/fhirVersionToMinor';
 import defaultConfig from './serverConfig';

@@ -1,3 +1,7 @@
+/**
+ * © Copyright Outburn Ltd. 2022-2023 All Rights Reserved
+ *   Project name: FUME-COMMUNITY
+ */
 import axios from 'axios';
 
 import { LOCAL_FHIR_API } from '../config';
