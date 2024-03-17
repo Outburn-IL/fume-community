@@ -11,9 +11,7 @@ export interface InternalJsonataExpression {
   searchSingle: jsonata.Expression
   literal: jsonata.Expression
   initCap: jsonata.Expression
-  duplicate: jsonata.Expression
-  selectKeys: jsonata.Expression
-  omitKeys: jsonata.Expression
+
   v2normalizeKey: jsonata.Expression
   v2json: jsonata.Expression
   parseFumeExpression: jsonata.Expression
@@ -27,7 +25,6 @@ export interface InternalJsonataExpression {
   fixPackageIndexObject: jsonata.Expression
   extractCurrentPackagesFromIndex: jsonata.Expression
   checkPackagesMissingFromIndex: jsonata.Expression
-  isEmpty: jsonata.Expression
 };
 
 const expressions: InternalJsonataExpression = {
@@ -60,9 +57,6 @@ const expressions: InternalJsonataExpression = {
     $words := $trim($)~>$split(" ");
     ($words.$initCapOnce($))~>$join(' ')
   )`),
-  duplicate: jsonata('$join([1..$times].($str))'),
-  selectKeys: jsonata('$in.$sift($, function($v, $k) {$k in $skeys})'),
-  omitKeys: jsonata('$in.$sift($, function($v, $k) {($k in $okeys)=false})'),
   v2normalizeKey: jsonata(`(
     $cached := $lookup($keyMap, $);
     $exists($cached) = false 
@@ -522,25 +516,6 @@ const expressions: InternalJsonataExpression = {
     $missingFromCache := $dirList[$not($ in $$.packages)];
 
     [$append($missingFromIndex,$missingFromCache)];
-  )`),
-  isEmpty: jsonata(`(
-    $_isEmpty := function($input) {(
-      $exists($input) ? ($input in ['',null] 
-      ? true 
-      : (
-        $type($input) = 'object' 
-          ? (
-            $count($keys($input)) = 0 ? true
-            : $count(($keys($input).($lookup($input,$)).$not($_isEmpty($)))[$])=0
-          )
-          : $type($input) = 'array'
-            ? (
-              $count($input[$_isEmpty($)=false]) = 0
-            ) 
-            : false
-      )) : true
-    )};
-    $_isEmpty($value)
   )`)
 };
 

@@ -2,23 +2,23 @@
  * © Copyright Outburn Ltd. 2022-2023 All Rights Reserved
  *   Project name: FUME
  */
-import expressions from './jsonataExpression';
+import { expressions } from './jsonataExpr';
 import { isEmpty as isEmp } from './jsonataFunctions/isEmpty';
 
-const selectKeys = async (obj: object, skeys: string[]): Promise<object> => {
-  const res = await expressions.selectKeys.evaluate({}, { in: obj, skeys });
+const selectKeys = (obj: object, skeys: string[]): object => {
+  const res = expressions.selectKeys(obj, skeys);
   return res;
 };
 
-const omitKeys = async (obj: object, okeys: string[]): Promise<object> => {
-  const res = await expressions.omitKeys.evaluate({}, { in: obj, okeys });
+const omitKeys = (obj: object, okeys: string[]): object => {
+  const res = expressions.omitKeys(obj, okeys);
   return res;
 };
 
-const isEmpty = async (value: any): Promise<boolean> => {
+const isEmpty = (value: any): boolean => {
   if (value === undefined || value === null) return true;
   const res = isEmp(value);
-  return await res;
+  return res;
 };
 
 export { isEmpty, omitKeys, selectKeys };

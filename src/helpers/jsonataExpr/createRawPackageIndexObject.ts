@@ -11,7 +11,7 @@ import { omitKeys } from '../objectFunctions';
 const packageReplace = (pkg) => pkg.replace('#', '@');
 
 export const createRawPackageIndexObject = (packageIndexArray: any): any => {
-  const packages = packageIndexArray.map(async (pkg) => await omitKeys(pkg, ['package', 'packageIndex']));
+  const packages = packageIndexArray.map(async (pkg) => omitKeys(pkg, ['package', 'packageIndex']));
 
   const files = packageIndexArray.flatMap((pkg) =>
     pkg.packageIndex.files.filter(

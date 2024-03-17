@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-export const isEmpty = async (value) => {
+export const isEmpty = (value) => {
   if (value) {
     const type = typeof value;
     if (type) {

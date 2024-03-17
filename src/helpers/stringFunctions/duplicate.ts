@@ -3,10 +3,10 @@
  *   Project name: FUME
  */
 
-import expressions from '../jsonataExpression';
+import { expressions } from '../jsonataExpr';
 
-export const duplicate = async (str: string, times: number): Promise<string> => {
+export const duplicate = (str: string, times: number): string => {
   if (times === 1) return str;
   if (times === 0) return '';
-  return await expressions.duplicate.evaluate({}, { times, str });
+  return expressions.duplicate(times, str);
 };
