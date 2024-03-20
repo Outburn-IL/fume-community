@@ -1,2 +1,2 @@
 dist
-hapi.postgress.data
+**/hapi.postgress.data

@@ -3,10 +3,15 @@
  *   Project name: FUME-COMMUNITY
  */
 import * as compose from 'docker-compose';
+import path from 'path';
 
 async function teardown () {
   console.log('stopping FHIR server...');
-  await compose.stopMany(globalThis.services);
+  await compose.stop({
+    cwd: path.join(__dirname),
+    config: 'docker-compose.yml',
+    log: true
+  });
 
   console.log('closing server');
   globalThis.fumeServer.shutDown();

@@ -7,5 +7,5 @@ node_modules
 .env
 .env.test
 .eslintcache
-hapi.postgress.data
+**/hapi.postgress.data
 
