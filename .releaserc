@@ -10,12 +10,10 @@
       {
         "preset": "angular",
         "releaseRules": [
-          {"type": "breaking", "release": "major"},
-          {"type": "chore", "release": "patch"}
+          {"type": "breaking", "release": "major"}
         ]
       }
     ],
-    "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
     "@semantic-release/npm",
     ["@semantic-release/git", {
