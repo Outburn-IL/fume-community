@@ -48,7 +48,11 @@ async function waitForFhirApi (maxAttempts, currentAttempt = 1) {
 
 async function setup () {
   console.log('starting FHIR server...');
-  await compose.upAll({ cwd: path.join(__dirname), log: true });
+  await compose.upAll({
+    cwd: path.join(__dirname),
+    config: 'docker-compose.yml',
+    log: true
+  });
   const result = await compose.ps({ cwd: path.join(__dirname) });
 
   globalThis.services = result.data.services;
