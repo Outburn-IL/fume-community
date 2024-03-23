@@ -3,16 +3,13 @@
  *   Project name: FUME
  */
 
-import expressions from '../jsonataExpression';
+import { expressions } from '../jsonataExpr';
 import { funcs } from '../jsonataFuncs';
 import { getStructureDefinition } from '../jsonataFunctions';
 import { CastToFhirOptions, FlashMergeOptions } from '../runtime';
 import {
   duplicate,
-  endsWith,
   initCapOnce,
-  splitToLines,
-  startsWith,
   substringAfter,
   substringBefore
 } from '../stringFunctions';
@@ -278,14 +275,7 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
   };
 
   const parseFumeExpression = async (expr: string): Promise<string> => {
-    const bindings = {
-      expr,
-      splitLineFunc: splitToLines,
-      lineParser,
-      startsWith,
-      endsWith
-    };
-    const parsed = await expressions.parseFumeExpression.evaluate({}, bindings);
+    const parsed = await expressions.parseFumeExpression(expr, lineParser);
     // logger.info({ parsed });
     return parsed;
   };
@@ -402,14 +392,7 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
     } else if (nodes.length > 1) {
       // chained path, iterate through each one
       prevRuleNodes.push(0);
-      const bindings = {
-        nodes,
-        construct: constructLine,
-        prefix,
-        value: value ?? '',
-        context: context ?? ''
-      };
-      const line = await expressions.constructLineIterator.evaluate({}, bindings);
+      const line = await expressions.constructLineIterator(nodes, constructLine, prefix, value ?? '', context ?? '');
       return line;
     };
     // didn't find any edef

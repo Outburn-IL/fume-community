@@ -9,8 +9,6 @@ export interface InternalJsonataExpression {
   initCap: jsonata.Expression
   v2normalizeKey: jsonata.Expression
   v2json: jsonata.Expression
-  parseFumeExpression: jsonata.Expression
-  constructLineIterator: jsonata.Expression
   extractNextLink: jsonata.Expression
   bundleToArrayOfResources: jsonata.Expression
   structureMapsToMappingObject: jsonata.Expression
@@ -160,31 +158,6 @@ const expressions: InternalJsonataExpression = {
       $s.\`0\`: $
     };  
   )`),
-  parseFumeExpression: jsonata(`
-    (
-      $lines:=[$splitLineFunc($expr)];
-      $lines:=$lines[$not($startsWith($trim($),"*") and $endsWith($, "undefined "))];
-      $lines:=$append($lines,"");
-      $join(
-        (
-          ($lines)#$i.$lineParser($, $i, $lines)
-        ),
-        "\r\n"
-      )
-    )`
-  ),
-  constructLineIterator: jsonata(`
-    (
-      $first := $nodes[0].$construct($prefix, $, '', $context, true);
-      $middle := $nodes#$i[$i>0 and $i<($count($nodes)-1)].$construct('', $, '', '', true);
-      $last := $nodes[-1].$construct('', $, $value, '', false);
-      $join([
-        $first,
-        $middle,
-        $last
-      ])
-    )`
-  ),
   extractNextLink: jsonata('link[relation=\'next\'].url'),
   bundleToArrayOfResources: jsonata('[$bundleArray.entry.resource]'),
   structureMapsToMappingObject: jsonata(`
