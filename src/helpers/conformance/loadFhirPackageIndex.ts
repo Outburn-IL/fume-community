@@ -2,10 +2,8 @@
 import fs from 'fs-extra';
 import path from 'path';
 
-import expressions from '../jsonataExpression';
+import { expressions } from '../jsonataExpr';
 import { getLogger } from '../logger';
-import { omitKeys } from '../objectFunctions';
-import { isNumeric } from '../stringFunctions';
 import { getCachedPackageDirs, getCachePackagesPath, getFumeIndexFilePath } from './getCachePath';
 
 export type IFhirPackage = any;
@@ -64,24 +62,9 @@ const buildFhirCacheIndex = async () => {
     };
   });
 
-  const bindings = {
-    omitKeys,
-    pathJoin: path.join,
-    require: (filePath: string) => {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const payload = require(filePath);
-        return payload;
-      } catch (e) {
-        getLogger().error(e);
-        throw (e);
-      }
-    },
-    isNumeric
-  };
-  const packageIndexObject = await expressions.createRawPackageIndexObject.evaluate(packageIndexArray, bindings);
+  const packageIndexObject = expressions.createRawPackageIndexObject(packageIndexArray);
 
-  const fixedIndex = await expressions.fixPackageIndexObject.evaluate(packageIndexObject, { isNumeric });
+  const fixedIndex = expressions.fixPackageIndexObject(packageIndexObject);
   return fixedIndex;
 };
 
@@ -92,8 +75,8 @@ const parseFhirPackageIndex = async (): Promise<IFhirPackageIndex> => {
     const dirList: string[] = getCachedPackageDirs();
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const currentIndex = require(fumeIndexPath);
-    const currentPackages = await expressions.extractCurrentPackagesFromIndex.evaluate(currentIndex);
-    const diff: string[] = await expressions.checkPackagesMissingFromIndex.evaluate({ dirList, packages: currentPackages });
+    const currentPackages = Object.keys(currentIndex?.packages);
+    const diff: string[] = expressions.checkPackagesMissingFromIndex(dirList, currentPackages);
     if (diff.length === 0) {
       getLogger().info('Global package index file is up-to-date');
       return require(fumeIndexPath);
