@@ -6,7 +6,6 @@
 import jsonata from 'jsonata';
 
 export interface InternalJsonataExpression {
-  initCap: jsonata.Expression
   v2normalizeKey: jsonata.Expression
   v2json: jsonata.Expression
   extractNextLink: jsonata.Expression
@@ -17,10 +16,6 @@ export interface InternalJsonataExpression {
 };
 
 const expressions: InternalJsonataExpression = {
-  initCap: jsonata(`(
-    $words := $trim($)~>$split(" ");
-    ($words.$initCapOnce($))~>$join(' ')
-  )`),
   v2normalizeKey: jsonata(`(
     $cached := $lookup($keyMap, $);
     $exists($cached) = false 
