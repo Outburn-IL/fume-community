@@ -67,7 +67,8 @@ async function setup () {
   console.log('starting server...');
   globalThis.fumeServer = new FumeServer();
   await globalThis.fumeServer.warmUp({
-    FHIR_SERVER_BASE: LOCAL_FHIR_API
+    FHIR_SERVER_BASE: LOCAL_FHIR_API,
+    FHIR_PACKAGES: 'il.core.fhir.r4@0.11.0'
   });
   globalThis.app = globalThis.fumeServer.getExpressApp();
   console.log('server started!');
