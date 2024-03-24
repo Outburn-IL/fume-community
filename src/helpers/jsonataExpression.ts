@@ -6,7 +6,6 @@
 import jsonata from 'jsonata';
 
 export interface InternalJsonataExpression {
-  v2normalizeKey: jsonata.Expression
   v2json: jsonata.Expression
   extractNextLink: jsonata.Expression
   bundleToArrayOfResources: jsonata.Expression
@@ -16,22 +15,6 @@ export interface InternalJsonataExpression {
 };
 
 const expressions: InternalJsonataExpression = {
-  v2normalizeKey: jsonata(`(
-    $cached := $lookup($keyMap, $);
-    $exists($cached) = false 
-      ? (
-        $titleCased := ($split($initCap($replace($,"'", '')), ' ')~>$join);
-        $dtmFixed := $titleCased.$replace('Date/Time', 'DateTime') ~> $replace('Date / Time', 'DateTime');
-        `.concat(
-      // eslint-disable-next-line @typescript-eslint/indent
-        // eslint-disable-next-line no-useless-escape, @typescript-eslint/indent
-        `$underscored := $replace($dtmFixed, /[-\+".()\\//]/, '_');
-        $registerV2key($, $underscored);
-        $underscored;
-      )
-      : ($cached);
-    
-  )`)),
   v2json: jsonata(`(
     $rawJson := $v2parse($);
     $v2version := $rawJson.segments[0].\`12\`;

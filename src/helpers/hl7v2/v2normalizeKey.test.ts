@@ -13,18 +13,18 @@ describe('v2normalizeKey', () => {
   });
 
   test('normalizes key', async () => {
-    const res = await v2normalizeKey('hello');
+    const res = v2normalizeKey('hello');
     expect(res).toBe('Hello');
   });
 
   test('stores normalized key', async () => {
-    await v2normalizeKey('hello');
+    v2normalizeKey('hello');
     expect(v2keyMap.get('hello')).toBe('Hello');
   });
 
   test('returns from cache, if exists in cache.v2keyMap', async () => {
     v2keyMap.set('hello', 'Hello2');
-    const res = await v2normalizeKey('hello');
+    const res = v2normalizeKey('hello');
     expect(res).toBe('Hello2');
   });
 });
