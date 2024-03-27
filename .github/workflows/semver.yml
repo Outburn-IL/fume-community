@@ -35,7 +35,8 @@ jobs:
                 GITHUB_TOKEN: ${{ secrets.PAT }}
                 NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-            - name: Notify release 
+            - name: Notify release
+              if: steps.semantic-release.outputs.new_release_published == 'true'
               run: |
                 curl -X POST  \
                     -H "Accept: application/vnd.github+json" \
