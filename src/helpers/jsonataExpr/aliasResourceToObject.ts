@@ -7,7 +7,7 @@
 export const aliasResourceToObject = (aliasResource: any): object => {
   const finalObj = {};
   aliasResource?.group[0]?.element.forEach(e => {
-    finalObj[e.code] = e.target.code;
+    finalObj[e.code] = e.target[0].code;
   });
   return finalObj;
 };

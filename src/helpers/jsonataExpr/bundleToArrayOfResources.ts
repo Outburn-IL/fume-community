@@ -5,5 +5,6 @@
 
 // returns the diff between opening and closing parenthesis in  a single line
 export const bundleToArrayOfResources = (bundleArray): any => {
-  return bundleArray.map(entry => entry.resource);
+  const arr = bundleArray.map(entry => entry?.entry[0]?.resource);
+  return !arr.filter(Boolean).length ? [] : arr;
 };

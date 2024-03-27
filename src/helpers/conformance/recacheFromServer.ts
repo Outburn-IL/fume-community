@@ -2,6 +2,7 @@
 import config from '../../config';
 import { getCache } from '../cache';
 import { getFhirClient } from '../fhirServer';
+import { expressions as expressionsNew } from '../jsonataExpr';
 import expressions from '../jsonataExpression';
 import { transform } from '../jsonataFunctions';
 import { getLogger } from '../logger';
@@ -33,7 +34,7 @@ const getNextBundle = async (bundle: Record<string, any>) => {
     throw new Error('FUME running in stateless mode. Cannot get next page of search results bundle.');
   };
   let nextBundle;
-  const nextLink = await expressions.extractNextLink.evaluate(bundle);
+  const nextLink = expressionsNew.extractNextLink(bundle);
   if (typeof nextLink === 'string' && nextLink > '') {
     nextBundle = await getFhirClient().read(nextLink);
   }
@@ -51,7 +52,7 @@ const fullSearch = async (query: string, params?: Record<string, any>) => {
     bundleArray.push(page);
     page = await getNextBundle(page);
   };
-  const resourceArray = await expressions.bundleToArrayOfResources.evaluate({}, { bundleArray });
+  const resourceArray = expressionsNew.bundleToArrayOfResources(bundleArray);
   return resourceArray;
 };
 
@@ -97,12 +98,12 @@ const getAliases = async (createFunc?: Function) => {
   let aliasResource = await getAliasResource();
   if (typeof aliasResource === 'object') {
     if (typeof aliasResource.resourceType === 'string' && aliasResource.resourceType === 'ConceptMap') {
-      aliasObject = await expressions.aliasResourceToObject.evaluate(aliasResource);
+      aliasObject = expressionsNew.aliasResourceToObject(aliasResource);
     } else {
       if (createFunc !== undefined) {
         logger.info('Creating new alias resource...');
         aliasResource = await createFunc();
-        aliasObject = await expressions.aliasResourceToObject.evaluate(aliasResource);
+        aliasObject = expressionsNew.aliasResourceToObject(aliasResource);
       }
     }
   };

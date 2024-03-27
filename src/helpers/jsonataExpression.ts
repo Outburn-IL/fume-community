@@ -7,10 +7,7 @@ import jsonata from 'jsonata';
 
 export interface InternalJsonataExpression {
   v2json: jsonata.Expression
-  extractNextLink: jsonata.Expression
-  bundleToArrayOfResources: jsonata.Expression
   structureMapsToMappingObject: jsonata.Expression
-  aliasResourceToObject: jsonata.Expression
   conceptMapToTable: jsonata.Expression
 };
 
@@ -132,8 +129,6 @@ const expressions: InternalJsonataExpression = {
       $s.\`0\`: $
     };  
   )`),
-  extractNextLink: jsonata('link[relation=\'next\'].url'),
-  bundleToArrayOfResources: jsonata('[$bundleArray.entry.resource]'),
   structureMapsToMappingObject: jsonata(`
     ($[
       resourceType='StructureMap' 
@@ -148,7 +143,6 @@ const expressions: InternalJsonataExpression = {
       id: group[name = 'fumeMapping'].rule[name='evaluate'].extension[url = 'http://fhir.fume.health/StructureDefinition/mapping-expression'].valueExpression.expression
     }`
   ),
-  aliasResourceToObject: jsonata('group.element{code: target.code}'),
   conceptMapToTable: jsonata(`(
     $cm := (resourceType='Bundle' ? [entry[0].resource] : [$]);
   
