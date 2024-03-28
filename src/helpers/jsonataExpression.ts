@@ -7,7 +7,6 @@ import jsonata from 'jsonata';
 
 export interface InternalJsonataExpression {
   v2json: jsonata.Expression
-  structureMapsToMappingObject: jsonata.Expression
   conceptMapToTable: jsonata.Expression
 };
 
@@ -129,20 +128,6 @@ const expressions: InternalJsonataExpression = {
       $s.\`0\`: $
     };  
   )`),
-  structureMapsToMappingObject: jsonata(`
-    ($[
-      resourceType='StructureMap' 
-      and status='active' 
-      and useContext[
-        code.system = 'http://snomed.info/sct'
-        and code.code = '706594005'
-      ].valueCodeableConcept.coding[
-        system = 'http://codes.fume.health'
-      ].code = 'fume'
-    ]){
-      id: group[name = 'fumeMapping'].rule[name='evaluate'].extension[url = 'http://fhir.fume.health/StructureDefinition/mapping-expression'].valueExpression.expression
-    }`
-  ),
   conceptMapToTable: jsonata(`(
     $cm := (resourceType='Bundle' ? [entry[0].resource] : [$]);
   
