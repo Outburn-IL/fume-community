@@ -3,7 +3,6 @@ import config from '../../config';
 import { getCache } from '../cache';
 import { getFhirClient } from '../fhirServer';
 import { expressions as expressionsNew } from '../jsonataExpr';
-import expressions from '../jsonataExpression';
 import { transform } from '../jsonataFunctions';
 import { getLogger } from '../logger';
 
@@ -118,7 +117,7 @@ const getAllMappings = async (): Promise<Record<string, string>> => {
     return {};
   };
   const allStructureMaps = await fullSearch('StructureMap/', { context: 'http://codes.fume.health|fume' });
-  const mappingDict: Record<string, string> = await expressions.structureMapsToMappingObject.evaluate(allStructureMaps);
+  const mappingDict: Record<string, string> = expressionsNew.structureMapsToMappingObject(allStructureMaps);
   if (Object.keys(mappingDict).length > 0) {
     logger.info('Loaded the following mappings from server: ' + Object.keys(mappingDict).join(', '));
   };

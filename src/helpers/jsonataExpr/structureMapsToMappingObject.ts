@@ -18,12 +18,12 @@ export const structureMapsToMappingObject = (data: any): any => {
   );
 
   return filteredData.map(item => ({
-    id: item.group.find(group =>
+    [item.id]: item.group.find(group =>
       group.name === 'fumeMapping'
     ).rule.find(rule =>
       rule.name === 'evaluate'
     ).extension.find(extension =>
       extension.url === 'http://fhir.fume.health/StructureDefinition/mapping-expression'
     ).valueExpression.expression
-  }));
+  }))[0];
 };
