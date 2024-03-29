@@ -5,6 +5,15 @@
   "tagFormat": "v${version}",
   "plugins": [
     "semantic-release-unsquash",
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "angular",
+        "releaseRules": [
+          {"type": "breaking", "release": "major"}
+        ]
+      }
+    ],
     "@semantic-release/release-notes-generator",
     "@semantic-release/npm",
     ["@semantic-release/git", {

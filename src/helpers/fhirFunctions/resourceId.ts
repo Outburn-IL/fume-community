@@ -1,3 +1,7 @@
+/**
+ * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
+ *   Project name: FUME-COMMUNITY
+ */
 import { searchSingle } from './searchSingle';
 
 export const resourceId = (query: string, params?: Record<string, any>): string | undefined => {

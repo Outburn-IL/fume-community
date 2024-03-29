@@ -1,3 +1,7 @@
+/**
+ * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
+ *   Project name: FUME-COMMUNITY
+ */
 import axios from 'axios';
 import * as compose from 'docker-compose';
 import path from 'path';
@@ -44,7 +48,11 @@ async function waitForFhirApi (maxAttempts, currentAttempt = 1) {
 
 async function setup () {
   console.log('starting FHIR server...');
-  await compose.upAll({ cwd: path.join(__dirname), log: true });
+  await compose.upAll({
+    cwd: path.join(__dirname),
+    config: 'docker-compose.yml',
+    log: true
+  });
   const result = await compose.ps({ cwd: path.join(__dirname) });
 
   globalThis.services = result.data.services;
@@ -59,7 +67,8 @@ async function setup () {
   console.log('starting server...');
   globalThis.fumeServer = new FumeServer();
   await globalThis.fumeServer.warmUp({
-    FHIR_SERVER_BASE: LOCAL_FHIR_API
+    FHIR_SERVER_BASE: LOCAL_FHIR_API,
+    FHIR_PACKAGES: 'il.core.fhir.r4@0.13.0'
   });
   globalThis.app = globalThis.fumeServer.getExpressApp();
   console.log('server started!');
