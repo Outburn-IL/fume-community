@@ -8,6 +8,7 @@ import jsonata from 'jsonata';
 export interface InternalJsonataExpression {
   v2json: jsonata.Expression
   conceptMapToTable: jsonata.Expression
+  createRawPackageIndexObject: jsonata.Expression
 };
 
 const expressions: InternalJsonataExpression = {
@@ -150,6 +151,149 @@ const expressions: InternalJsonataExpression = {
               }[]
             }
           )
+        )
+      }
+    )
+  )`),
+  createRawPackageIndexObject: jsonata(`
+  (
+    $packageReplace := $replace(?,'#', '@');
+  
+    $packages := \${$packageReplace(package): $omitKeys($, ["package", "packageIndex"])};
+  
+    $files := ($.packageIndex.files[resourceType in ['StructureDefinition','ValueSet','CodeSystem','ConceptMap']].(
+      $fullPath := $pathJoin(%.%.path, filename);
+      $actualFile := $require($fullPath);
+      $fhirVersion := $exists($actualFile.fhirVersion) ? $actualFile.fhirVersion : ($exists(%.%.packageManifest.fhirVersions) ? %.%.packageManifest.fhirVersions : %.%.packageManifest.\`fhir-version-list\`);
+      $resourceName := ($type($actualFile.name)='string'?$actualFile.name);
+      {
+        'packageId': %.%.$packageReplace(package),
+        'packageName': %.%.packageManifest.name,
+        'packageVersion': %.%.packageManifest.version,
+        'filename': filename,
+        'path': $fullPath,
+        'fhirVersion': $fhirVersion,
+        'resourceType': resourceType,
+        'id': id,
+        'url': url,
+        'name': $resourceName,
+        'version': version,
+        'kind': kind,
+        'type': type,
+        'baseDefinition': $actualFile.baseDefinition,
+        'derivation': $actualFile.derivation,
+        'date': $actualFile.date
+      }
+    )){path: $};
+  
+    {
+      'packages': $packages,
+      'files': $files
+    }.(
+      $structureDefinitions := files.*[resourceType='StructureDefinition'];
+      $valueSets := files.*[resourceType='ValueSet'];
+      $codeSystems := files.*[resourceType='CodeSystem'];
+      $conceptMaps := files.*[resourceType='ConceptMap'];
+      $fhirVersions := $distinct(files.*.fhirVersion);
+      $packages := packages;
+      $files := files;
+  
+      $splitVersionId := function($versionId) {(
+        $parts := $split($versionId, '.');
+        $major := $parts[0];
+        $minor := $parts[1];
+        $patch := $substringBefore($parts[2], '-');
+        $label := $substringAfter($parts[2], '-');
+        {
+          'id': $versionId,
+          'major': $isNumeric($major) ? $number($major) : 0,
+          'minor': $isNumeric($minor) ? $number($minor) : 0,
+          'patch': $isNumeric($patch) ? $number($patch) : 0,
+          'label': $isNumeric($major)=false ? $major : $label != $patch ? $label : ''
+        }
+      )};
+  
+      $toMinorVersionId := function($versionId){
+        $splitVersionId($versionId).($join([$string(major), $string(minor)], '.'))
+      };
+  
+      $minorVersions := $distinct($fhirVersions.$toMinorVersionId($));
+  
+      $minorVersions{
+        'packages': $packages,
+        'files': $files,
+        $: (
+          $mv := $;
+          {
+            'structureDefinitions': (
+              $sdefs := $files.*[resourceType = 'StructureDefinition' and $mv in (fhirVersion.$toMinorVersionId($))];
+              {
+                'byUrl': $sdefs{
+                  url: path,
+                  url & '|' & version: path
+                },
+                'byId': $sdefs{
+                  id: path,
+                  id & '|' & version: path
+                },
+                'byName': $sdefs{
+                  name: path,
+                  name & '|' & version: path
+                }
+              }
+            ),
+            'codeSystems': (
+              $sdefs := $files.*[resourceType = 'CodeSystem' and $mv in (fhirVersion.$toMinorVersionId($))];
+              {
+                'byUrl': $sdefs{
+                  url: path,
+                  url & '|' & version: path
+                },
+                'byId': $sdefs{
+                  id: path,
+                  id & '|' & version: path
+                },
+                'byName': $sdefs{
+                  name: path,
+                  name & '|' & version: path
+                }
+              }
+            ),
+            'valueSets': (
+              $sdefs := $files.*[resourceType = 'ValueSet' and $mv in (fhirVersion.$toMinorVersionId($))];
+              {
+                'byUrl': $sdefs{
+                  url: path,
+                  url & '|' & version: path
+                },
+                'byId': $sdefs{
+                  id: path,
+                  id & '|' & version: path
+                },
+                'byName': $sdefs{
+                  name: path,
+                  name & '|' & version: path
+                }
+              }
+            ),
+            'conceptMaps': (
+              $sdefs := $files.*[resourceType = 'ConceptMap' and $mv in (fhirVersion.$toMinorVersionId($))];
+              {
+                'byUrl': $sdefs{
+                  url: path,
+                  url & '|' & version: path
+                },
+                'byId': $sdefs{
+                  id: path,
+                  id & '|' & version: path
+                },
+                'byName': $sdefs{
+                  name: path,
+                  name & '|' & version: path
+                }
+              }
+            )
+          }
         )
       }
     )

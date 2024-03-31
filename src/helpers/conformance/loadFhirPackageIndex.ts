@@ -5,8 +5,10 @@
 import fs from 'fs-extra';
 import path from 'path';
 
-import { expressions } from '../jsonataExpr';
+import { expressions as expressionsNew } from '../jsonataExpr';
+import expressions from '../jsonataExpression';
 import { getLogger } from '../logger';
+import { isNumeric } from '../stringFunctions';
 import { getCachedPackageDirs, getCachePackagesPath, getFumeIndexFilePath } from './getCachePath';
 
 export type IFhirPackage = any;
@@ -65,9 +67,25 @@ const buildFhirCacheIndex = async () => {
     };
   });
 
-  const packageIndexObject = expressions.createRawPackageIndexObject(packageIndexArray);
+  const bindings = {
+    omitKeys: expressionsNew.omitKeys,
+    pathJoin: path.join,
+    require: (filePath: string) => {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const payload = require(filePath);
+        return payload;
+      } catch (e) {
+        getLogger().error(e);
+        throw (e);
+      }
+    },
+    isNumeric
+  };
 
-  const fixedIndex = expressions.fixPackageIndexObject(packageIndexObject);
+  const packageIndexObject = await expressions.createRawPackageIndexObject.evaluate(packageIndexArray, bindings);
+
+  const fixedIndex = expressionsNew.fixPackageIndexObject(packageIndexObject);
   return fixedIndex;
 };
 
@@ -79,7 +97,7 @@ const parseFhirPackageIndex = async (): Promise<IFhirPackageIndex> => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const currentIndex = require(fumeIndexPath);
     const currentPackages = Object.keys(currentIndex?.packages);
-    const diff: string[] = expressions.checkPackagesMissingFromIndex(dirList, currentPackages);
+    const diff: string[] = expressionsNew.checkPackagesMissingFromIndex(dirList, currentPackages);
     if (diff.length === 0) {
       getLogger().info('Global package index file is up-to-date');
       return require(fumeIndexPath);
