@@ -51,7 +51,7 @@ export const createRawPackageIndexObject = (packageIndexArray: any): any => {
 
   const fhirVersions = [...new Set(files.map((file) => file ? file.fhirVersion : undefined))];
 
-  const minorVersions = [...new Set(fhirVersions.map((version: any) => version ? `${version.split('.')[0]}.${version.split('.')[1]}` : undefined))];
+  const minorVersions = [...new Set(fhirVersions.map((version: any) => typeof version === 'string' ? `${version.split('.')[0]}.${version.split('.')[1]}` : undefined))];
 
   return minorVersions.map((mv) => {
     const filteredFiles = files.filter((file) => `${file.fhirVersion.split('.')[0]}.${file.fhirVersion.split('.')[1] === mv}`);
