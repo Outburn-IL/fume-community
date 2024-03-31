@@ -4,6 +4,7 @@
  */
 
 import fs from 'fs';
+import _ from 'lodash';
 import path from 'path';
 
 import { omitKeys } from '../objectFunctions';
@@ -51,44 +52,44 @@ export const createRawPackageIndexObject = (packageIndexArray: any): any => {
 
   const fhirVersions = [...new Set(files.map((file) => file ? file.fhirVersion : undefined))];
 
-  const minorVersions = [...new Set(fhirVersions.map((version: any) => typeof version === 'string' ? `${version.split('.')[0]}.${version.split('.')[1]}` : undefined))];
+  const minorVersions = [...new Set(fhirVersions.map((version: any) => `${_.split(version, '.')[0]}.${_.split(version, '.')[1]}`))];
 
   return minorVersions.map((mv) => {
-    const filteredFiles = files.filter((file) => `${file.fhirVersion.split('.')[0]}.${file.fhirVersion.split('.')[1] === mv}`);
+    const filteredFiles = files.filter((file) => `${_.split(file.fhirVersion, '.')[0]}.${_.split(file.fhirVersion, '.')[1] === mv}`);
 
     return {
       packages,
       files: filteredFiles,
       structureDefinitions: {
-        byUrl: structureDefinitions.filter((def) => `${def.fhirVersion.split('.')[0]}.${def.fhirVersion.split('.')[1]}` === mv)
+        byUrl: structureDefinitions.filter((def) => `${_.split(def.fhirVersion, '.')[0]}.${_.split(def.fhirVersion, '.')[1]}` === mv)
           .reduce((acc, curr) => ({ ...acc, [curr.url]: curr.path, [`${curr.url}|${curr.version}`]: curr.path }), {}),
-        byId: structureDefinitions.filter((def) => `${def.fhirVersion.split('.')[0]}.${def.fhirVersion.split('.')[1]}` === mv)
+        byId: structureDefinitions.filter((def) => `${_.split(def.fhirVersion, '.')[0]}.${_.split(def.fhirVersion, '.')[1]}` === mv)
           .reduce((acc, curr) => ({ ...acc, [curr.id]: curr.path, [`${curr.id}|${curr.version}`]: curr.path }), {}),
-        byName: structureDefinitions.filter((def) => `${def.fhirVersion.split('.')[0]}.${def.fhirVersion.split('.')[1]}` === mv)
+        byName: structureDefinitions.filter((def) => `${_.split(def.fhirVersion, '.')[0]}.${_.split(def.fhirVersion, '.')[1]}` === mv)
           .reduce((acc, curr) => ({ ...acc, [curr.name]: curr.path, [`${curr.name}|${curr.version}`]: curr.path }), {})
       },
       codeSystems: {
-        byUrl: codeSystems.filter((cs) => `${cs.fhirVersion.split('.')[0]}.${cs.fhirVersion.split('.')[1]}` === mv)
+        byUrl: codeSystems.filter((cs) => `${_.split(cs.fhirVersion, '.')[0]}.${_.split(cs.fhirVersion, '.')[1]}` === mv)
           .reduce((acc, curr) => ({ ...acc, [curr.url]: curr.path, [`${curr.url}|${curr.version}`]: curr.path }), {}),
-        byId: codeSystems.filter((cs) => `${cs.fhirVersion.split('.')[0]}.${cs.fhirVersion.split('.')[1]}` === mv)
+        byId: codeSystems.filter((cs) => `${_.split(cs.fhirVersion, '.')[0]}.${_.split(cs.fhirVersion, '.')[1]}` === mv)
           .reduce((acc, curr) => ({ ...acc, [curr.id]: curr.path, [`${curr.id}|${curr.version}`]: curr.path }), {}),
-        byName: codeSystems.filter((cs) => `${cs.fhirVersion.split('.')[0]}.${cs.fhirVersion.split('.')[1]}` === mv)
+        byName: codeSystems.filter((cs) => `${_.split(cs.fhirVersion, '.')[0]}.${_.split(cs.fhirVersion, '.')[1]}` === mv)
           .reduce((acc, curr) => ({ ...acc, [curr.name]: curr.path, [`${curr.name}|${curr.version}`]: curr.path }), {})
       },
       valueSets: {
-        byUrl: valueSets.filter((vs) => `${vs.fhirVersion.split('.')[0]}.${vs.fhirVersion.split('.')[1]}` === mv)
+        byUrl: valueSets.filter((vs) => `${_.split(vs.fhirVersion, '.')[0]}.${_.split(vs.fhirVersion, '.')[1]}` === mv)
           .reduce((acc, curr) => ({ ...acc, [curr.url]: curr.path, [`${curr.url}|${curr.version}`]: curr.path }), {}),
-        byId: valueSets.filter((vs) => `${vs.fhirVersion.split('.')[0]}.${vs.fhirVersion.split('.')[1]}` === mv)
+        byId: valueSets.filter((vs) => `${_.split(vs.fhirVersion, '.')[0]}.${_.split(vs.fhirVersion, '.')[1]}` === mv)
           .reduce((acc, curr) => ({ ...acc, [curr.id]: curr.path, [`${curr.id}|${curr.version}`]: curr.path }), {}),
-        byName: valueSets.filter((vs) => `${vs.fhirVersion.split('.')[0]}.${vs.fhirVersion.split('.')[1]}` === mv)
+        byName: valueSets.filter((vs) => `${_.split(vs.fhirVersion, '.')[0]}.${_.split(vs.fhirVersion, '.')[1]}` === mv)
           .reduce((acc, curr) => ({ ...acc, [curr.name]: curr.path, [`${curr.name}|${curr.version}`]: curr.path }), {})
       },
       conceptMaps: {
-        byUrl: conceptMaps.filter((cm) => `${cm.fhirVersion.split('.')[0]}.${cm.fhirVersion.split('.')[1]}` === mv)
+        byUrl: conceptMaps.filter((cm) => `${_.split(cm.fhirVersion, '.')[0]}.${_.split(cm.fhirVersion, '.')[1]}` === mv)
           .reduce((acc, curr) => ({ ...acc, [curr.url]: curr.path, [`${curr.url}|${curr.version}`]: curr.path }), {}),
-        byId: conceptMaps.filter((cm) => `${cm.fhirVersion.split('.')[0]}.${cm.fhirVersion.split('.')[1]}` === mv)
+        byId: conceptMaps.filter((cm) => `${_.split(cm.fhirVersion, '.')[0]}.${_.split(cm.fhirVersion, '.')[1]}` === mv)
           .reduce((acc, curr) => ({ ...acc, [curr.id]: curr.path, [`${curr.id}|${curr.version}`]: curr.path }), {}),
-        byName: conceptMaps.filter((cm) => `${cm.fhirVersion.split('.')[0]}.${cm.fhirVersion.split('.')[1]}` === mv)
+        byName: conceptMaps.filter((cm) => `${_.split(cm.fhirVersion, '.')[0]}.${_.split(cm.fhirVersion, '.')[1]}` === mv)
           .reduce((acc, curr) => ({ ...acc, [curr.name]: curr.path, [`${curr.name}|${curr.version}`]: curr.path }), {})
       }
     };
