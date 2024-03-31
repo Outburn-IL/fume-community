@@ -5,9 +5,9 @@
 import fs from 'fs-extra';
 import path from 'path';
 
+import { expressions as expressionsNew } from '../jsonataExpr';
 import expressions from '../jsonataExpression';
 import { getLogger } from '../logger';
-import { omitKeys } from '../objectFunctions';
 import { isNumeric } from '../stringFunctions';
 import { getCachedPackageDirs, getCachePackagesPath, getFumeIndexFilePath } from './getCachePath';
 
@@ -68,7 +68,7 @@ const buildFhirCacheIndex = async () => {
   });
 
   const bindings = {
-    omitKeys,
+    omitKeys: expressionsNew.omitKeys,
     pathJoin: path.join,
     require: (filePath: string) => {
       try {
@@ -82,9 +82,10 @@ const buildFhirCacheIndex = async () => {
     },
     isNumeric
   };
+
   const packageIndexObject = await expressions.createRawPackageIndexObject.evaluate(packageIndexArray, bindings);
 
-  const fixedIndex = await expressions.fixPackageIndexObject.evaluate(packageIndexObject, { isNumeric });
+  const fixedIndex = expressionsNew.fixPackageIndexObject(packageIndexObject);
   return fixedIndex;
 };
 
@@ -95,8 +96,8 @@ const parseFhirPackageIndex = async (): Promise<IFhirPackageIndex> => {
     const dirList: string[] = getCachedPackageDirs();
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const currentIndex = require(fumeIndexPath);
-    const currentPackages = await expressions.extractCurrentPackagesFromIndex.evaluate(currentIndex);
-    const diff: string[] = await expressions.checkPackagesMissingFromIndex.evaluate({ dirList, packages: currentPackages });
+    const currentPackages = Object.keys(currentIndex?.packages);
+    const diff: string[] = expressionsNew.checkPackagesMissingFromIndex(dirList, currentPackages);
     if (diff.length === 0) {
       getLogger().info('Global package index file is up-to-date');
       return require(fumeIndexPath);

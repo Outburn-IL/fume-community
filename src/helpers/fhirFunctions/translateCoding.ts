@@ -3,7 +3,7 @@
  *   Project name: FUME-COMMUNITY
  */
 import { getCache } from '../cache';
-import expressions from '../jsonataExpression';
+import { expressions } from '../jsonataExpr';
 import { getLogger } from '../logger';
 
 export const translateCoding = async (input, tableId) => {
@@ -22,7 +22,7 @@ export const translateCoding = async (input, tableId) => {
       }
     }
 
-    const coding = await expressions.translateCodingExtract.evaluate({}, { result, input });
+    const coding = expressions.translateCodingExtract(result, input);
     return coding;
   } catch (error) {
     getLogger().error({ error });

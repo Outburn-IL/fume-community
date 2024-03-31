@@ -5,7 +5,7 @@
 import config from '../../config';
 import { getCache } from '../cache';
 import { getFhirClient } from '../fhirServer';
-import expressions from '../jsonataExpression';
+import { expressions } from '../jsonataExpr';
 import { transform } from '../jsonataFunctions';
 import { getLogger } from '../logger';
 
@@ -36,7 +36,7 @@ const getNextBundle = async (bundle: Record<string, any>) => {
     throw new Error('FUME running in stateless mode. Cannot get next page of search results bundle.');
   };
   let nextBundle;
-  const nextLink = await expressions.extractNextLink.evaluate(bundle);
+  const nextLink = expressions.extractNextLink(bundle);
   if (typeof nextLink === 'string' && nextLink > '') {
     nextBundle = await getFhirClient().read(nextLink);
   }
@@ -54,7 +54,7 @@ const fullSearch = async (query: string, params?: Record<string, any>) => {
     bundleArray.push(page);
     page = await getNextBundle(page);
   };
-  const resourceArray = await expressions.bundleToArrayOfResources.evaluate({}, { bundleArray });
+  const resourceArray = expressions.bundleToArrayOfResources(bundleArray);
   return resourceArray;
 };
 
@@ -100,12 +100,12 @@ const getAliases = async (createFunc?: Function) => {
   let aliasResource = await getAliasResource();
   if (typeof aliasResource === 'object') {
     if (typeof aliasResource.resourceType === 'string' && aliasResource.resourceType === 'ConceptMap') {
-      aliasObject = await expressions.aliasResourceToObject.evaluate(aliasResource);
+      aliasObject = expressions.aliasResourceToObject(aliasResource);
     } else {
       if (createFunc !== undefined) {
         logger.info('Creating new alias resource...');
         aliasResource = await createFunc();
-        aliasObject = await expressions.aliasResourceToObject.evaluate(aliasResource);
+        aliasObject = expressions.aliasResourceToObject(aliasResource);
       }
     }
   };
@@ -120,7 +120,7 @@ const getAllMappings = async (): Promise<Record<string, string>> => {
     return {};
   };
   const allStructureMaps = await fullSearch('StructureMap/', { context: 'http://codes.fume.health|fume' });
-  const mappingDict: Record<string, string> = await expressions.structureMapsToMappingObject.evaluate(allStructureMaps);
+  const mappingDict: Record<string, string> = expressions.structureMapsToMappingObject(allStructureMaps);
   if (Object.keys(mappingDict).length > 0) {
     logger.info('Loaded the following mappings from server: ' + Object.keys(mappingDict).join(', '));
   };

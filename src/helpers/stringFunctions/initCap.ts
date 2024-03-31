@@ -3,11 +3,10 @@
  *   Project name: FUME-COMMUNITY
  */
 
-import expressions from '../jsonataExpression';
-import { initCapOnce } from './stringFunctions';
+import { expressions } from '../jsonataExpr';
 
-export const initCap = async (str: string): Promise<string> => {
+export const initCap = (str: string): string | undefined => {
   // fork: os
-  const res = await expressions.initCap.evaluate(str, { initCapOnce });
+  const res = expressions.initCap(str);
   return res;
 };
