@@ -6,11 +6,11 @@
 // returns the diff between opening and closing parenthesis in  a single line
 export const fixPackageIndexObject = (packageIndexObject: any): any => {
   const splitVersionId = (versionId) => {
-    const parts = versionId.split('.');
+    const parts = (versionId ?? '').split('.');
     const major = parts[0];
     const minor = parts[1];
-    const patch = parts[2].split('-')[0];
-    const label = parts[2].split('-')[1] || '';
+    const patch = (parts[2] ?? '').split('-')[0];
+    const label = (parts[2] ?? '').split('-')[1] || '';
     return {
       id: versionId,
       major: !isNaN(major) ? parseInt(major) : 0,
