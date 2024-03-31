@@ -42,8 +42,8 @@ export const fixPackageIndexObject = (packageIndexObject: any): any => {
   };
 
   const bestFileById = (filePaths) => {
-    const urls = Array.from(new Set(filePaths.map(fp => packageIndexObject[fp].url)));
-    return urls.map(url => bestFileByUrl(filePaths.filter(fp => packageIndexObject[fp].url === url)));
+    const urls = Array.from(new Set(filePaths.map(fp => packageIndexObject[fp]?.url)));
+    return urls.map(url => bestFileByUrl(filePaths.filter(fp => packageIndexObject[fp]?.url === url)));
   };
 
   const bestFileByName = (filePaths) => {
@@ -83,9 +83,9 @@ export const fixPackageIndexObject = (packageIndexObject: any): any => {
 
   const fixType = (typeObj) => {
     return {
-      byUrl: fixTypeByUrl(typeObj.byUrl),
-      byId: fixTypeById(typeObj.byId),
-      byName: fixTypeByName(typeObj.byName)
+      byUrl: fixTypeByUrl(typeObj?.byUrl),
+      byId: fixTypeById(typeObj?.byId),
+      byName: fixTypeByName(typeObj?.byName)
     };
   };
 
@@ -100,8 +100,8 @@ export const fixPackageIndexObject = (packageIndexObject: any): any => {
 
   return Object.keys(packageIndexObject).filter(key => !['packages', 'files'].includes(key)).map(version => ({
     [version]: {
-      packages: packageIndexObject.packages,
-      files: packageIndexObject.files,
+      packages: packageIndexObject?.packages,
+      files: packageIndexObject?.files,
       ...fixVersion(packageIndexObject[version])
     }
   }));
