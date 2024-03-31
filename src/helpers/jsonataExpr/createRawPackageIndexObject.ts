@@ -1,6 +1,6 @@
 /**
- * © Copyright Outburn Ltd. 2022-2023 All Rights Reserved
- *   Project name: FUME
+ * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
+ *   Project name: FUME-COMMUNITY
  */
 
 import fs from 'fs';
@@ -49,9 +49,9 @@ export const createRawPackageIndexObject = (packageIndexArray: any): any => {
   const codeSystems = files.filter((file) => file.resourceType === 'CodeSystem');
   const conceptMaps = files.filter((file) => file.resourceType === 'ConceptMap');
 
-  const fhirVersions = [...new Set(files.map((file) => file.fhirVersion))];
+  const fhirVersions = [...new Set(files.map((file) => file ? file.fhirVersion : undefined))];
 
-  const minorVersions = [...new Set(fhirVersions.map((version: any) => `${version.split('.')[0]}.${version.split('.')[1]}`))];
+  const minorVersions = [...new Set(fhirVersions.map((version: any) => version ? `${version.split('.')[0]}.${version.split('.')[1]}` : undefined))];
 
   return minorVersions.map((mv) => {
     const filteredFiles = files.filter((file) => `${file.fhirVersion.split('.')[0]}.${file.fhirVersion.split('.')[1] === mv}`);
