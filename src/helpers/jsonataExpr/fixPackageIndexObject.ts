@@ -1,6 +1,6 @@
 /**
- * © Copyright Outburn Ltd. 2022-2023 All Rights Reserved
- *   Project name: FUME
+ * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
+ *   Project name: FUME-COMMUNITY
  */
 
 // returns the diff between opening and closing parenthesis in  a single line
@@ -23,20 +23,20 @@ export const fixPackageIndexObject = (packageIndexObject: any): any => {
   const splitPackageVersion = (filesEntry) => {
     return {
       ...filesEntry,
-      packageVersion: splitVersionId(filesEntry.packageVersion)
+      packageVersion: splitVersionId(filesEntry?.packageVersion)
     };
   };
 
   const bestFileByUrl = (filePaths) => {
     const filesEntries = filePaths.map(fp => splitPackageVersion(packageIndexObject[fp]));
     const sortedEntries = filesEntries.sort((a, b) => {
-      if (a.date > b.date) return -1;
-      if (a.date < b.date) return 1;
-      if (a.packageName !== b.packageName) return a.packageName.localeCompare(b.packageName);
-      if (a.packageVersion.major !== b.packageVersion.major) return b.packageVersion.major - a.packageVersion.major;
-      if (a.packageVersion.minor !== b.packageVersion.minor) return b.packageVersion.minor - a.packageVersion.minor;
-      if (a.packageVersion.patch !== b.packageVersion.patch) return b.packageVersion.patch - a.packageVersion.patch;
-      return a.packageVersion.label.localeCompare(b.packageVersion.label);
+      if (a?.date > b?.date) return -1;
+      if (a?.date < b?.date) return 1;
+      if (a?.packageName !== b?.packageName) return a?.packageName.localeCompare(b?.packageName);
+      if (a?.packageVersion.major !== b?.packageVersion.major) return b?.packageVersion.major - a?.packageVersion.major;
+      if (a?.packageVersion.minor !== b?.packageVersion.minor) return b?.packageVersion.minor - a?.packageVersion.minor;
+      if (a?.packageVersion.patch !== b?.packageVersion.patch) return b?.packageVersion.patch - a?.packageVersion.patch;
+      return a?.packageVersion.label.localeCompare(b?.packageVersion.label);
     });
     return sortedEntries[0].path;
   };
