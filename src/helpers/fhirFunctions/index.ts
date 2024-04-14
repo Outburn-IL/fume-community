@@ -2,6 +2,7 @@
  * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
  *   Project name: FUME-COMMUNITY
  */
+import { capabilities } from './capabilities';
 import { fhirVersionToMinor } from './fhirVersionToMinor';
 import { literal } from './literal';
 import { reference } from './reference';
@@ -21,5 +22,6 @@ export default {
   translateCoding,
   translateCode,
   fhirVersionToMinor,
-  reference
+  reference,
+  capabilities
 };
