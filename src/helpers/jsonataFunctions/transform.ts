@@ -90,6 +90,7 @@ export const transform = async (input, expression: string, extraBindings: Record
     bindings.v2parse = v2.v2parse;
     bindings.v2json = v2.v2json;
     bindings.isNumeric = stringFuncs.isNumeric;
+    bindings.capabilities = fhirFuncs.capabilities;
 
     const { aliases } = getCache();
     // these are debug functions, should be removed in production versions
