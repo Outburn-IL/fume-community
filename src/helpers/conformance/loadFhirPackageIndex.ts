@@ -20,8 +20,7 @@ const createPackageIndexFile = (packagePath: string) => {
     const fileList = fs.readdirSync(path.join(packagePath, 'package'));
     const files = fileList.flatMap((file: string) => {
       if (file.endsWith('.json') && file !== 'package.json') {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const content = require(path.join(packagePath, 'package', file));
+        const content = JSON.parse(fs.readFileSync(path.join(packagePath, 'package', file)).toString());
         const indexEntry = {
           filename: file,
           resourceType: content.resourceType,
@@ -58,8 +57,8 @@ const buildFhirCacheIndex = async () => {
       return {
         package: pack,
         path: path.join(cachePath, pack, 'package'),
-        packageManifest: require(path.join(cachePath, pack, 'package', 'package.json')),
-        packageIndex: require(path.join(cachePath, pack, 'package', '.index.json'))
+        packageManifest: JSON.parse(fs.readFileSync(path.join(cachePath, pack, 'package', 'package.json')).toString()),
+        packageIndex: JSON.parse(fs.readFileSync(path.join(cachePath, pack, 'package', '.index.json')).toString())
       };
     } else {
       getLogger().warn(`Folder '${pack}' found in the local FHIR cache does not seem to be a FHIR package (no package.json file found). Skipping it...`);
@@ -72,8 +71,7 @@ const buildFhirCacheIndex = async () => {
     pathJoin: path.join,
     require: (filePath: string) => {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const payload = require(filePath);
+        const payload = JSON.parse(fs.readFileSync(filePath).toString());
         return payload;
       } catch (e) {
         getLogger().error(e);
@@ -93,13 +91,12 @@ const parseFhirPackageIndex = async (): Promise<IFhirPackageIndex> => {
   if (fs.existsSync(fumeIndexPath)) {
     getLogger().info(`Found global package index file at ${fumeIndexPath}`);
     const dirList: string[] = getCachedPackageDirs();
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const currentIndex = require(fumeIndexPath);
+    const currentIndex = JSON.parse(fs.readFileSync(fumeIndexPath).toString());
     const currentPackages = await expressions.extractCurrentPackagesFromIndex.evaluate(currentIndex);
     const diff: string[] = await expressions.checkPackagesMissingFromIndex.evaluate({ dirList, packages: currentPackages });
     if (diff.length === 0) {
       getLogger().info('Global package index file is up-to-date');
-      return require(fumeIndexPath);
+      return JSON.parse(fs.readFileSync(fumeIndexPath).toString());
     } else {
       getLogger().info('Global package index file is outdated');
     };

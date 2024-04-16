@@ -2,6 +2,8 @@
  * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
  *   Project name: FUME-COMMUNITY
  */
+import fs from 'fs-extra';
+
 import config from '../../config';
 import { getFhirPackageIndex } from '../conformance';
 import fhirFuncs from '../fhirFunctions';
@@ -34,9 +36,7 @@ export const getStructureDefinition = (definitionId: string): any => {
   try {
     const path: string = getStructureDefinitionPath(definitionId);
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const fullDef = require(path); // load file
-    // getLogger().info(`Definition loaded: ${path}`);
+    const fullDef = JSON.parse(fs.readFileSync(path).toString()); // load file
     return fullDef;
   } catch (e) {
     return thrower.throwParseError(`A Problem occured while getting the structure definition of '${definitionId}'. The error is: ${e}`);
