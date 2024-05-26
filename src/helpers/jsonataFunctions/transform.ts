@@ -22,7 +22,6 @@ import compiler from '../parser';
 import runtime from '../runtime';
 import * as stringFuncs from '../stringFunctions';
 import { getStructureDefinition } from './getStructureDefinition';
-import { isEmpty } from './isEmpty';
 import { logInfo, logWarn } from './log';
 import { registerTable } from './registerTable';
 
@@ -68,7 +67,7 @@ export const transform = async (input, expression: string, extraBindings: Record
     bindings.reference = fhirFuncs.reference;
     bindings.resourceId = fhirFuncs.resourceId;
     bindings.initCap = stringFuncs.initCap;
-    bindings.isEmpty = isEmpty;
+    bindings.isEmpty = objectFuncs.isEmpty;
     bindings.matches = stringFuncs.matches;
     bindings.stringify = JSON.stringify;
     bindings.selectKeys = objectFuncs.selectKeys;
