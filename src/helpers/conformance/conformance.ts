@@ -3,6 +3,8 @@
  *   Project name: FUME-COMMUNITY
  */
 
+import fs from 'fs-extra';
+
 import config from '../../config';
 import { getFhirClient } from '../fhirServer';
 import expressions from '../jsonataExpression';
@@ -26,8 +28,7 @@ export const getStructureDefinition = async (definitionId: string): Promise<any>
     throw (error);
   } else {
     const path: string = indexed;
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const fullDef = require(path); // load file
+    const fullDef = JSON.parse(fs.readFileSync(path).toString()); // load file
     return fullDef;
   };
 };
