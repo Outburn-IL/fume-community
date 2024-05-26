@@ -5,6 +5,7 @@
 
 import _ from 'lodash';
 
+import { isEmpty } from '../objectFunctions';
 import thrower from '../thrower';
 
 export interface FlashMergeOptions {
@@ -18,9 +19,10 @@ export interface FlashMergeOptions {
   mandatory?: any // object containing all mandory elements that have fixed children
 };
 
-const deleteEntriesWithSamePath = (obj, path) => {
+const deleteEntriesWithSamePath = async (obj, path) => {
   const tempObj = Object.fromEntries(Object.entries(obj).filter(([key, value]) => value === path || (path.includes('[x]') && String(value).includes(path.slice(0, -3)))));
-  if (!_.isEmpty(tempObj)) {
+  const empty: boolean = await isEmpty(tempObj);
+  if (!empty) {
     const keyName = _.keys(tempObj)[0].split('__path_')[1];
     return Object.fromEntries(Object.entries(obj).filter(([key, value]) => !key.includes(keyName)));
   } else {
@@ -41,12 +43,13 @@ const addToArr = (arr, value) => {
   return arr;
 };
 
-export const flashMerge = (options: FlashMergeOptions, baseObj: any, ruleObj: any): any => {
+export const flashMerge = async (options: FlashMergeOptions, baseObj: any, ruleObj: any): Promise<any> => {
+  const empty: boolean = await isEmpty(ruleObj);
   if (options?.min === 0) {
-    if (_.isEmpty(ruleObj)) return baseObj;
+    if (empty) return baseObj;
   } else {
     let amountOfElements = 1;
-    if (_.isEmpty(ruleObj)) {
+    if (empty) {
       amountOfElements = 0;
     } else {
       try {
@@ -180,7 +183,7 @@ export const flashMerge = (options: FlashMergeOptions, baseObj: any, ruleObj: an
   } else {
     // not an array
     let resObj = { ...newBaseObj };
-    resObj = deleteEntriesWithSamePath(resObj, options.eDefPath);
+    resObj = await deleteEntriesWithSamePath(resObj, options.eDefPath);
     if (primitive) {
       try {
         const parsedValue = JSON.parse(ruleObj[key]);
