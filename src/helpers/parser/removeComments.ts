@@ -16,26 +16,21 @@ export const removeComments = (expr: string): string => {
 
   for (let i = 0; i < exprLen; i++) {
     currentChar = expr.charAt(i);
-    console.log({ currentChar });
     nextChar = i < (exprLen - 1) ? expr.charAt(i + 1) : '';
     prevChar = i > 0 ? expr.charAt(i - 1) : '';
     prevPrevChar = i > 1 ? expr.charAt(i - 2) : '';
 
     if (openedComment !== '') {
       // inside a comment
-      console.log('inside a comment');
-      console.log({ openedComment });
       const twoChars: string = prevChar + currentChar;
 
       if (openedComment === '//' && (currentChar === '\r' || currentChar === '\n')) {
         // this is the end of the // comment
-        console.log('end of comment');
         openedComment = '';
         accExpr += '\n';
       } else {
         if (openedComment === '/*' && twoChars === '*/' && prevPrevChar !== '/') {
           // this is the end of the /* comment
-          console.log('end of comment');
           openedComment = '';
         }
       };
@@ -59,14 +54,11 @@ export const removeComments = (expr: string): string => {
       const twoChars: string = currentChar + nextChar;
       if ((twoChars === '/*' || twoChars === '//') && openedQuote === '') {
         // opening comment, not inside quotes
-        console.log('opened a comment');
         openedComment = twoChars;
-        console.log({ openedComment });
         continue;
       }
     }
     accExpr += currentChar;
-    console.log({ accExpr });
   };
 
   return accExpr;
