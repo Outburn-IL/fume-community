@@ -32,16 +32,16 @@ const evaluate = async (req: Request, res: Response) => {
     let inputJson;
 
     if (req.body.contentType === 'x-application/hl7-v2+er7') {
-      console.log('Content-Type suggests HL7 V2.x message');
-      console.log('Trying to parse V2 message as JSON...');
+      getLogger().info('Content-Type suggests HL7 V2.x message');
+      getLogger().info('Trying to parse V2 message as JSON...');
       inputJson = await v2json(req.body.input);
-      console.log('Parsed V2 message');
+      getLogger().info('Parsed V2 message');
     } else {
       if (req.body.contentType === 'text/csv') {
-        console.log('Content-Type suggests CSV input');
-        console.log('Trying to parse CSV to JSON...');
+        getLogger().info('Content-Type suggests CSV input');
+        getLogger().info('Trying to parse CSV to JSON...');
         inputJson = await parseCsv(req.body.input);
-        console.log('Parsed CSV to JSON');
+        getLogger().info('Parsed CSV to JSON');
       } else {
         inputJson = req.body.input;
       }
