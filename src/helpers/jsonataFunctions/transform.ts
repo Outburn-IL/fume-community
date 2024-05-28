@@ -19,6 +19,7 @@ import * as v2 from '../hl7v2';
 import { getLogger } from '../logger';
 import * as objectFuncs from '../objectFunctions';
 import compiler from '../parser';
+import { removeComments } from '../parser/removeComments';
 import runtime from '../runtime';
 import * as stringFuncs from '../stringFunctions';
 import { getStructureDefinition } from './getStructureDefinition';
@@ -105,6 +106,7 @@ export const transform = async (input, expression: string, extraBindings: Record
     bindings.getMandatoriesOfStructure = compiler.getMandatoriesOfStructure;
     bindings.getElementDefinition = compiler.getElementDefinition;
     bindings.replaceColonsWithBrackets = compiler.replaceColonsWithBrackets;
+    bindings.removeComments = removeComments;
     // end of debug functions
 
     // bind all aliases from cache

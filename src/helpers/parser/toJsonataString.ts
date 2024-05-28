@@ -18,6 +18,7 @@ import {
 } from '../stringFunctions';
 import thrower from '../thrower';
 import { getElementDefinition } from './getElementDefinition';
+import { removeComments } from './removeComments';
 
 export const toJsonataString = async (inExpr: string): Promise<string | undefined> => {
   console.time('Parse to JSONATA');
@@ -417,9 +418,10 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
   };
 
   try {
-    let parsed: string = await parseFumeExpression(inExpr);
+    const withoutComments: string = removeComments(inExpr);
+    let parsed: string = await parseFumeExpression(withoutComments);
     if (!expressionHasFlash) {
-      res = inExpr;
+      res = withoutComments;
     } else {
       // check if expression starts with "("
       const isEnclosed = parsed.trimStart().startsWith('(') && parsed.trimEnd().endsWith('(');

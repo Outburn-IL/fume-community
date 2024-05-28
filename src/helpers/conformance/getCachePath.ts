@@ -6,11 +6,13 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
+import { getLogger } from '../logger';
+
 export const getCachePath = (innerFolder = '') => {
   const cachePath = path.join(os.homedir(), '.fhir', innerFolder);
   if (!fs.existsSync(cachePath)) {
     fs.mkdirSync(cachePath, { recursive: true });
-    console.log(`Directory '${cachePath}' created successfully.`);
+    getLogger().info(`Directory '${cachePath}' created successfully.`);
   }
   return cachePath;
 };
