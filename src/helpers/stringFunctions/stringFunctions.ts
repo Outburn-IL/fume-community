@@ -59,12 +59,8 @@ export const removeEmptyLines = (arr: string[] | string): string[] => {
   return lines.filter((line) => line.trim() !== '');
 };
 
-// takes out all comments from expression
-// TODO: add support for end-of-line // type comments
-export const removeComments = (expr: string): string => expr.replace(/(\/\*[^*]*\*\/)/g, '');
-
 // clean and split an expression. returns a line array
-export const splitToLines = (expr: string): string[] => removeEmptyLines(removeComments(expr).split(/\r?\n/));
+export const splitToLines = (expr: string): string[] => removeEmptyLines(expr.split(/\r?\n/));
 
 export const hashKey = (str: string): string => sha256(str + uuid(str));
 
