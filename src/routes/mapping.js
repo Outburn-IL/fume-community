@@ -10,6 +10,7 @@ import { failOnStateless } from '../middleware/failOnStateless';
 const mapping = express.Router();
 
 mapping.use(failOnStateless);
+mapping.get('/:mappingId/:operation', mappingControl.operation);
 mapping.get('/:mappingId/', mappingControl.get);
 mapping.post('/:mappingId/', mappingControl.transform);
 
