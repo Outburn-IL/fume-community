@@ -7,7 +7,9 @@ import type { Request, Response } from 'express';
 
 import { getCache } from '../helpers/cache';
 import { v2json } from '../helpers/hl7v2';
+import { pretty } from '../helpers/jsonataFunctions';
 import { getLogger } from '../helpers/logger';
+import { toJsonataString } from '../helpers/parser/toJsonataString';
 import { parseCsv } from '../helpers/stringFunctions';
 
 const get = async (req: Request, res: Response) => {
@@ -69,4 +71,30 @@ const transform = async (req: Request, res: Response) => {
   }
 };
 
-export default { get, transform };
+const operation = async (req: Request, res: Response) => {
+  const logger = getLogger();
+  const operationName: string = req.params?.operation;
+  if (operationName === '$transpile') {
+    try {
+      const mappingId: string = req.params.mappingId;
+      const { compiledMappings } = getCache();
+      const mappingFromCache = compiledMappings.get(mappingId);
+      const expressionString = mappingFromCache.expression;
+      const tranpiled = await toJsonataString(expressionString);
+      if (tranpiled) {
+        const prettyExpr = await pretty(tranpiled);
+        res.set('Content-Type', 'application/vnd.outburn.fume');
+        res.status(200).send(prettyExpr);
+      } else {
+        res.status(404).json({ message: `Mapping '${mappingId}' not found` });
+      }
+    } catch (e) {
+      logger.error(e);
+      res.status(500).json({ message: e });
+    }
+  } else {
+    res.status(500).json({ message: `Unknown operation '${operationName}'` });
+  }
+};
+
+export default { get, transform, operation };
