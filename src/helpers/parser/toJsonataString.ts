@@ -427,7 +427,7 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
       const isEnclosed = parsed.trimStart().startsWith('(') && parsed.trimEnd().endsWith('(');
       // parsed = parsed.includes('$__finalize') ? parsed : `${parsed}$__flashInstance := $__finalize($__flashInstance);`
       parsed = !isEnclosed ? `(${parsed})` : parsed; // enclose in () if needed
-      res = parsed;
+      res = parsed.includes('$__finalize') ? parsed : parsed + '~>$__finalize';
     }
   } catch (e) {
     console.timeEnd('Parse to JSONATA');
