@@ -168,7 +168,7 @@ describe('integration tests', () => {
     });
   });
 
-  test.skip('Case 4 - Profiled FLASH with no rules doesn\'t go through finalize', async () => {
+  test('Case 4 - Profiled FLASH with no rules doesn\'t go through finalize', async () => {
     const mapping = 'InstanceOf: bp';
     const requestBody = {
       input: mockInput,
