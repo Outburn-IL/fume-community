@@ -9,6 +9,7 @@ import { failOnStateless } from '../middleware/failOnStateless';
 
 const root = express.Router();
 
+root.post('/:operation', rootControl.operation);
 root.get('/recache', failOnStateless, rootControl.recache);
 root.get('/', rootControl.get);
 root.post('/', rootControl.evaluate);
