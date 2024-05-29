@@ -3,6 +3,21 @@
  *   Project name: FUME-COMMUNITY
  */
 
+const isUrlPart = (charIndex: number, expr: string): boolean => {
+  // the minimum index for a url's // part is after the 'http(s):' part
+  // so undex lower than 7 means it's a comment and not a url
+  if (charIndex < 7) return false;
+  const prevSevenChars: string = expr.substring(charIndex - 7, charIndex);
+  const prevSixChars: string = prevSevenChars.substring(1);
+  if (
+    ['https:', '[https:'].includes(prevSevenChars.trimStart()) || ['http:', '[http:'].includes(prevSixChars.trimStart())
+  ) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
 export const removeComments = (expr: string): string => {
   const exprLen: number = expr.length;
   if (exprLen === 0) return expr;
@@ -52,7 +67,8 @@ export const removeComments = (expr: string): string => {
     } else {
       // not a quote sign
       const twoChars: string = currentChar + nextChar;
-      if ((twoChars === '/*' || twoChars === '//') && openedQuote === '') {
+      const notUrl: boolean = !isUrlPart(i, expr);
+      if (openedQuote === '' && (twoChars === '/*' || (twoChars === '//' && notUrl))) {
         // opening comment, not inside quotes
         openedComment = twoChars;
         continue;
