@@ -9,8 +9,9 @@ import config from '../config';
 import { getCache } from '../helpers/cache';
 import { recacheFromServer } from '../helpers/conformance';
 import { v2json } from '../helpers/hl7v2';
-import { transform } from '../helpers/jsonataFunctions';
+import { pretty, transform } from '../helpers/jsonataFunctions';
 import { getLogger } from '../helpers/logger';
+import { toJsonataString } from '../helpers/parser/toJsonataString';
 import { parseCsv } from '../helpers/stringFunctions';
 
 const get = async (req: Request, res: Response) => {
@@ -87,4 +88,33 @@ const recache = async (req: Request, res: Response) => {
   }
 };
 
-export default { get, evaluate, recache };
+const operation = async (req: Request, res: Response) => {
+  try {
+    const operationName: string = req.params?.operation;
+    if (operationName === '$transpile') {
+      const contentType: string | undefined = req.get('Content-Type');
+      if (contentType === 'text/plain' || contentType === 'application/vnd.outburn.fume') {
+        const inputMapping: string = req.body;
+        const tranpiled: string | undefined = await toJsonataString(inputMapping);
+        if (tranpiled) {
+          const prettyExpr = await pretty(tranpiled);
+          res.set('Content-Type', 'application/vnd.outburn.fume');
+          res.status(200).send(prettyExpr);
+        } else {
+          res.status(500).json({ message: 'Error parsing FUME expression' });
+        }
+      } else {
+        res.status(415).json({ message: `Content-Type '${contentType}' is invalid for the $transpile operation. Please send a valid FUME expression and set Content-Type: 'application/vnd.outburn.fume'` });
+      }
+    } else if (operationName === 'recache' || operationName === '$recache') {
+      res.redirect('/recache');
+    } else {
+      res.status(500).json({ message: `Unknown operation '${operationName}'` });
+    }
+  } catch (e) {
+    getLogger().error(e);
+    res.status(500).json({ message: e });
+  }
+};
+
+export default { get, evaluate, recache, operation };
