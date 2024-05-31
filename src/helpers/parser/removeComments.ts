@@ -2,6 +2,7 @@
  * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
  *   Project name: FUME-COMMUNITY
  */
+import thrower from '../thrower';
 
 const isUrlPart = (charIndex: number, expr: string): boolean => {
   // the minimum index for a url's // part is after the 'http(s):' part
@@ -44,9 +45,17 @@ export const removeComments = (expr: string): string => {
         openedComment = '';
         accExpr += '\n';
       } else {
-        if (openedComment === '/*' && twoChars === '*/' && prevPrevChar !== '/') {
-          // this is the end of the /* comment
-          openedComment = '';
+        if (openedComment === '/*') {
+          if (twoChars === '*/' && prevPrevChar !== '/') {
+            // this is the end of the /* comment
+            openedComment = '';
+          } else {
+            if (i === exprLen - 1) {
+              // end of expression
+              const msg: string = 'Comment has no closing tag';
+              thrower.throwParseError(msg);
+            }
+          }
         }
       };
       continue;
