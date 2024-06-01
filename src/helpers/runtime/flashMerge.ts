@@ -6,7 +6,7 @@
 import _ from 'lodash';
 
 import { isEmpty } from '../objectFunctions';
-import thrower from '../thrower';
+// import thrower from '../thrower';
 
 export interface FlashMergeOptions {
   key: string // name of the element
@@ -44,22 +44,22 @@ const addToArr = (arr, value) => {
 };
 
 export const flashMerge = async (options: FlashMergeOptions, baseObj: any, ruleObj: any): Promise<any> => {
-  const empty: boolean = await isEmpty(ruleObj);
-  if (options?.min === 0) {
-    if (empty) return baseObj;
-  } else {
-    let amountOfElements = 1;
-    if (empty) {
-      amountOfElements = 0;
-    } else {
-      try {
-        amountOfElements = JSON.parse(ruleObj[options.key]).length;
-      } catch (e) {}
-    }
-    if (amountOfElements < Number(options.min)) {
-      thrower.throwRuntimeError(`Element '${options.path ?? ''}' has a minimum cardinality of ${options.min ?? ''}, got ${amountOfElements} instead`);
-    }
-  }
+  // const empty: boolean = await isEmpty(ruleObj);
+  // if (options?.min === 0) {
+  //   if (empty) return baseObj;
+  // } else {
+  //   let amountOfElements = 1;
+  //   if (empty) {
+  //     amountOfElements = 0;
+  //   } else {
+  //     try {
+  //       amountOfElements = JSON.parse(ruleObj[options.key]).length;
+  //     } catch (e) {}
+  //   }
+  //   // if (amountOfElements < Number(options.min)) {
+  //   //   thrower.throwRuntimeError(`Element '${options.path ?? ''}' has a minimum cardinality of ${options.min ?? ''}, got ${amountOfElements} instead`);
+  //   // }
+  // }
   // this function merges key:value into an existing object
   // taking into account cardinality and children of primitives
   const isBaseArray: boolean = typeof options?.baseMax !== 'undefined' && (options?.baseMax > '1' || options?.baseMax === '*');
