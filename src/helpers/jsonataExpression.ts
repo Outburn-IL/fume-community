@@ -199,7 +199,7 @@ const expressions: InternalJsonataExpression = {
   parseFumeExpression: jsonata(`
     (
       $lines:=[$splitLineFunc($expr)];
-      $lines:=$lines[$not($startsWith($trim($),"*") and $endsWith($, "undefined "))];
+      $lines:=$lines[$not($startsWith($trim($),"*") and $endsWith($trim($), "undefined"))];
       $lines:=$append($lines,"");
       $join(
         (
