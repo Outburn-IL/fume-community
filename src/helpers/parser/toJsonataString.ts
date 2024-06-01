@@ -314,7 +314,7 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
     const contextPart = context && context !== '' ? `${context}.` : '';
 
     // take value into __value or create an empty object
-    const valuePart = value && value !== '' ? `$__flashInstance := {'__value': ${value}}` : (value === 'undefined' ? '' : '$__flashInstance := {}');
+    const valuePart = value && value.trim() !== '' ? `$__flashInstance := {'__value': ${value}}` : '$__flashInstance := {}';
 
     // split path to separate nodes
     const nodes = path.split('.');

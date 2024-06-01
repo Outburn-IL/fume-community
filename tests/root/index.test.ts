@@ -150,12 +150,7 @@ describe('integration tests', () => {
         profile: [
           'http://fhir.health.gov.il/StructureDefinition/il-core-patient'
         ]
-      },
-      identifier: [
-        {
-          system: 'http://fhir.health.gov.il/identifier/il-national-id'
-        }
-      ]
+      }
     });
   });
 
