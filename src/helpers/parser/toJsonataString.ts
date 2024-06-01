@@ -393,11 +393,10 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
           min: eDef?.min ?? 0,
           path: pathForCardinality,
           eDefPath,
-          kind,
-          mandatory: mandatoryObj
+          kind
         };
           // construct line
-        const line = `${prefix}$__flashInstance := $__flashMerge(${JSON.stringify(mergeOptions)},$__flashInstance,$__castToFhir(${JSON.stringify(castOptions)}, ${contextPart}(${valuePart};`;
+        const line = `${prefix}$__context := ${contextPart}($);$__flashInstance := $__flashMerge($merge([${JSON.stringify(mergeOptions)},{'mandatory': $count($__context)>0 ? ${JSON.stringify(mandatoryObj)} : undefined }]),$__flashInstance,$__castToFhir(${JSON.stringify(castOptions)}, ${contextPart}(${valuePart};`;
         return line;
       };
     } else if (nodes.length > 1) {
