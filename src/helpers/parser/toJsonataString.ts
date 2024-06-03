@@ -3,6 +3,7 @@
  *   Project name: FUME-COMMUNITY
  */
 
+import { valueSetExpandDictionary } from '../conformance/conformance';
 import expressions from '../jsonataExpression';
 import { funcs } from '../jsonataFuncs';
 import { getStructureDefinition } from '../jsonataFunctions';
@@ -370,6 +371,9 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
         const typeForFixed = jsonPrimitiveProfile ?? baseType;
         const fixed: any = eDef['fixed' + initCapOnce(typeForFixed)] ?? eDef['pattern' + initCapOnce(typeForFixed)];
 
+        const bindingUrl: string = eDef?.binding?.strength === 'required' ? eDef.binding.valueSet : '';
+        const vsDictionary = bindingUrl !== '' ? await valueSetExpandDictionary(bindingUrl) : undefined;
+
         const mandatoryObj = await funcs.getMandatoriesOfElement(rootStructDef.id, currentFshPath);
         let pathForCardinality = currentFshPath;
         if (eDefPath.split('.').length > currentFshPath.split('.').length) {
@@ -383,7 +387,8 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
           baseType,
           kind,
           jsonPrimitiveProfile,
-          fixed
+          fixed,
+          vsDictionary
         };
 
         const mergeOptions: FlashMergeOptions = {

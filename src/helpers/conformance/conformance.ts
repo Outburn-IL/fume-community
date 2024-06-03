@@ -107,3 +107,19 @@ export const getValueSet = async (valueSetId: string): Promise<any> => {
     return resource;
   };
 };
+
+export const codeSystemDictionary = async (codeSystemId: string): Promise<any> => {
+  const resource = await getCodeSystem(codeSystemId);
+  const csContent = resource?.content;
+  if (csContent === 'complete') {
+    return await expressions.codeSystemToDictionary.evaluate(resource);
+  } else {
+    getLogger().warn(`CodeSystem resource '${codeSystemId}' does not contain the full list of codes. Codes in this system cannot be validated`);
+    return undefined;
+  }
+};
+
+export const valueSetExpandDictionary = async (valueSetId: string): Promise<any> => {
+  const resource = await getValueSet(valueSetId);
+  return await expressions.valueSetExpandDictionary.evaluate({}, { vs: resource, valueSetExpand: valueSetExpandDictionary, codeSystemDictionary });
+};

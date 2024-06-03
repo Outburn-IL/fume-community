@@ -7,6 +7,7 @@ import _ from 'lodash';
 import uuidByString from 'uuid-by-string';
 
 import { getStructureDefinition } from '../conformance';
+import expressions from '../jsonataExpression';
 import thrower from '../thrower';
 
 export interface CastToFhirOptions {
@@ -16,6 +17,7 @@ export interface CastToFhirOptions {
   kind?: string // the kind of element as defined in the type's StructureDefinition
   jsonPrimitiveProfile?: string // when baseType is a System primitive, the fhirtype to take contraints from
   fixed?: any // the fixed[x] or pattern[x] from edef
+  vsDictionary?: any[] // codes for required bindings
 };
 
 const primitiveParsers = {}; // cache for primitive value testing functions
@@ -45,6 +47,10 @@ const getPrimitiveParser = async (typeName: string): Promise<Function | undefine
     primitiveParsers[typeName] = resFn; // cache the function
     return resFn;
   }
+};
+
+const testCodingAgainstVS = async (coding: any, vs: any[]): Promise<string | string[] | undefined> => {
+  return await expressions.testCodingAgainstVS.evaluate({}, { coding, vs });
 };
 
 export const castToFhir = async (options: CastToFhirOptions, input: any) => {
@@ -145,6 +151,13 @@ export const castToFhir = async (options: CastToFhirOptions, input: any) => {
       }
       if (parser && await parser(passToParser)) {
         // passed the test
+        if (options.vsDictionary) {
+          // it's a primitive that has binding
+          const vsTest: string = await expressions.testCodeAgainstVS.evaluate({}, { value: passToParser, vs: options.vsDictionary });
+          if (!vsTest) {
+            return thrower.throwRuntimeError(`value '${passToParser}' is invalid for element ${options?.path}. This code is not in the required value set`);
+          }
+        }
         let resValue: string | number | boolean; // only possible primitive types
         if (['decimal', 'integer', 'positiveInt', 'integer64', 'unsignedInt'].includes(baseType)) {
           // numeric in the json
@@ -204,6 +217,16 @@ export const castToFhir = async (options: CastToFhirOptions, input: any) => {
         res[elementName] = { ...resObj };
       }
     };
+
+    if (options.vsDictionary && options.baseType === 'CodeableConcept') {
+      // required bindings on CodeableConcept
+      if (resObj?.coding) {
+        const vsTest = await expressions.testCodeableAgainstVS.evaluate({}, { codeable: resObj, vs: options.vsDictionary, testCodingAgainstVS });
+        if (!vsTest) {
+          return thrower.throwRuntimeError(`Element ${options?.path} is invalid since non of the codings provided are in the required value set`);
+        }
+      }
+    }
   };
   return res;
 };
