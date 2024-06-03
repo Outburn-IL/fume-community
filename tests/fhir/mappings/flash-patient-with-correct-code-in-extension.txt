@@ -1,0 +1,15 @@
+{}.(
+  InstanceOf: Patient
+  * gender = 'female'
+  * birthDate = '2024-06-03T20:36:56.156Z'
+  * address.text = 'b'
+  * active = true
+  * extension[ext-il-hmo]
+    * value
+      * coding
+        * code = 'xxxx'
+        * system = 'http://fhir.health.gov.il/cs/paying-entity-moh-WRONG'
+      * coding
+        * code = '402'
+        * system = 'http://fhir.health.gov.il/cs/paying-entity-moh'
+)

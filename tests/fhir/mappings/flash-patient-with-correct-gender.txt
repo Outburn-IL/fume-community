@@ -1,0 +1,5 @@
+InstanceOf: Patient
+* gender = 'female'
+* birthDate = '2024-06-03T20:36:56.156Z'
+* address.text = 'b'
+* active = true

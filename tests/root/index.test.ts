@@ -133,6 +133,79 @@ describe('integration tests', () => {
     });
   });
 
+  test('Validate Patient.gender code - incorrect', async () => {
+    const fume = getResourceFileContents('mappings', 'flash-patient-with-incorrect-gender.txt');
+    const requestBody = { fume };
+
+    const res = await request(globalThis.app).post('/').send(requestBody);
+
+    expect(res.body.message).toBe('Transformation error: value \'F\' is invalid for element Patient.gender. This code is not in the required value set');
+  });
+
+  test('Validate Patient.gender code - correct', async () => {
+    const fume = getResourceFileContents('mappings', 'flash-patient-with-correct-gender.txt');
+    const requestBody = { fume };
+
+    const res = await request(globalThis.app).post('/').send(requestBody);
+
+    expect(res.body).toStrictEqual({
+      resourceType: 'Patient',
+      gender: 'female',
+      birthDate: '2024-06-03',
+      address: [
+        {
+          text: 'b'
+        }
+      ],
+      active: true
+    });
+  });
+
+  test('Validate Patient.extension codeable - incorrect', async () => {
+    const fume = getResourceFileContents('mappings', 'flash-patient-with-incorrect-code-in-extension.txt');
+    const requestBody = { fume };
+
+    const res = await request(globalThis.app).post('/').send(requestBody);
+
+    expect(res.body.message).toBe('Transformation error: Element extension[ext-il-hmo].value is invalid since none of the codings provided are in the required value set');
+  });
+
+  test('Validate Patient.extension codeable - correct', async () => {
+    const fume = getResourceFileContents('mappings', 'flash-patient-with-correct-code-in-extension.txt');
+    const requestBody = { fume };
+
+    const res = await request(globalThis.app).post('/').send(requestBody);
+
+    expect(res.body).toStrictEqual({
+      resourceType: 'Patient',
+      gender: 'female',
+      birthDate: '2024-06-03',
+      address: [
+        {
+          text: 'b'
+        }
+      ],
+      active: true,
+      extension: [
+        {
+          url: 'http://fhir.health.gov.il/StructureDefinition/ext-il-hmo',
+          valueCodeableConcept: {
+            coding: [
+              {
+                code: 'xxxx',
+                system: 'http://fhir.health.gov.il/cs/paying-entity-moh-WRONG'
+              },
+              {
+                code: '402',
+                system: 'http://fhir.health.gov.il/cs/paying-entity-moh'
+              }
+            ]
+          }
+        }
+      ]
+    });
+  });
+
   test('Case 2 - Slices with fixed values appear even if no children are set', async () => {
     const mapping = `
             InstanceOf: il-core-patient
