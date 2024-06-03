@@ -223,7 +223,7 @@ export const castToFhir = async (options: CastToFhirOptions, input: any) => {
       if (resObj?.coding) {
         const vsTest = await expressions.testCodeableAgainstVS.evaluate({}, { codeable: resObj, vs: options.vsDictionary, testCodingAgainstVS });
         if (!vsTest) {
-          return thrower.throwRuntimeError(`Element ${options?.path} is invalid since non of the codings provided are in the required value set`);
+          return thrower.throwRuntimeError(`Element ${options?.path} is invalid since none of the codings provided are in the required value set`);
         }
       }
     }
