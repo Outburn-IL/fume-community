@@ -330,7 +330,7 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
       };
 
       // fetch element definition
-      const eDef = await getElementDefinition(rootStructDef.id, { originPath: currentFshPath, newPath: currentFshPath });
+      let eDef = await getElementDefinition(rootStructDef.id, { originPath: currentFshPath, newPath: currentFshPath });
       if (eDef) {
         const eDefPath: string = eDef?.path;
         const jsonName: string = await funcs.getJsonElementName(eDef, path);
@@ -352,6 +352,17 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
             };
               // select from types using comparison function
             chosenTypeEntry = eDef?.type?.filter(compareTypes)[0];
+            try {
+              // if there's an explicit type slice, it overrules the polymorphic head element
+              const eDefIDNoRoot: string = eDef.id.split('.').slice(1).join('.');
+              const typeSliceElementId: string = `${eDefIDNoRoot}:${jsonName}`;
+              // try to fetch the explicit type slice
+              const typeSlice = await getElementDefinition(rootStructDef.id, { originPath: typeSliceElementId, newPath: typeSliceElementId });
+              if (typeSlice) {
+                // replace head element with type slice element
+                eDef = typeSlice;
+              }
+            } catch {};
           }
         } else {
           // not polymorphic, there can only be a single type in the array

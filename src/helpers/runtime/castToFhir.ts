@@ -226,6 +226,18 @@ export const castToFhir = async (options: CastToFhirOptions, input: any) => {
           return thrower.throwRuntimeError(`Element ${options?.path} is invalid since none of the codings provided are in the required value set`);
         }
       }
+    };
+
+    if (options.vsDictionary && (options.baseType === 'Quantity' || options.baseType === 'Coding')) {
+      // required bindings on Quantity or Coding
+      if (resObj?.system || resObj?.code) {
+        const vsTest = await testCodingAgainstVS(resObj, options.vsDictionary);
+        if (!vsTest) {
+          const system: string = resObj?.system ?? '';
+          const code: string = resObj?.code ?? '';
+          return thrower.throwRuntimeError(`The code '${system}#${code}' is invalid for element ${options?.path}. This code is not in the required value set`);
+        }
+      }
     }
   };
   return res;
