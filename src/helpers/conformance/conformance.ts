@@ -6,6 +6,7 @@
 import fs from 'fs-extra';
 
 import config from '../../config';
+import { iso3166 } from '../../constants';
 import { getFhirClient } from '../fhirServer';
 import expressions from '../jsonataExpression';
 import { getLogger } from '../logger';
@@ -109,6 +110,7 @@ export const getValueSet = async (valueSetId: string): Promise<any> => {
 };
 
 export const codeSystemDictionary = async (codeSystemId: string): Promise<any> => {
+  if (codeSystemId === 'urn:iso:std:iso:3166') return iso3166;
   const resource = await getCodeSystem(codeSystemId);
   const csContent = resource?.content;
   if (csContent === 'complete') {

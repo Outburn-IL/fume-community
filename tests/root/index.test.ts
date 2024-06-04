@@ -206,6 +206,191 @@ describe('integration tests', () => {
     });
   });
 
+  test('Validate all il-core bindings', async () => {
+    let fume: string;
+    let correct;
+    let wrong;
+    // Extension-admin-parent-name: ['extension[role].valueCode']
+    fume = 'InstanceOf: il-core-patient\n* extension[parentName]\n  * extension[given].value = \'משה\'\n  * extension[role].value = value';
+    correct = await request(globalThis.app).post('/').send({ input: { value: 'FTH' }, fume });
+    wrong = await request(globalThis.app).post('/').send({ input: { value: 'father' }, fume });
+    expect(correct.body).toStrictEqual({
+      resourceType: 'Patient',
+      meta: {
+        profile: [
+          'http://fhir.health.gov.il/StructureDefinition/il-core-patient'
+        ]
+      },
+      extension: [
+        {
+          extension: [
+            {
+              url: 'given',
+              valueString: 'משה'
+            },
+            {
+              url: 'role',
+              valueCode: 'FTH'
+            }
+          ],
+          url: 'http://fhir.health.gov.il/StructureDefinition/ext-administrative-parent-name'
+        }
+      ]
+    });
+    expect(wrong.body.message).toBe('Transformation error: value \'father\' is invalid for element extension[parentName].extension[role].value. This code is not in the required value set');
+
+    // Extension-city-code: ['valueCodeableConcept']
+    // eslint-disable-next-line @typescript-eslint/quotes
+    fume = "InstanceOf: il-core-patient\n* address\n  * city\n    * extension[cityCode]\n      * value\n        * coding\n          * system = 'http://city.codes.org'\n          * code = 'FT'\n        * coding\n          * system = 'http://example.com/towns'\n          * code = 'funkytown'\n        * coding\n          * system = 'http://fhir.health.gov.il/cs/city-symbol'\n          * code = value";
+    correct = await request(globalThis.app).post('/').send({ input: { value: '4000' }, fume });
+    wrong = await request(globalThis.app).post('/').send({ input: { value: 'no-city' }, fume });
+    expect(correct.body).toStrictEqual({
+      resourceType: 'Patient',
+      meta: {
+        profile: [
+          'http://fhir.health.gov.il/StructureDefinition/il-core-patient'
+        ]
+      },
+      address: [
+        {
+          _city: {
+            extension: [
+              {
+                url: 'http://fhir.health.gov.il/StructureDefinition/ext-city-code',
+                valueCodeableConcept: {
+                  coding: [
+                    {
+                      system: 'http://city.codes.org',
+                      code: 'FT'
+                    },
+                    {
+                      system: 'http://example.com/towns',
+                      code: 'funkytown'
+                    },
+                    {
+                      system: 'http://fhir.health.gov.il/cs/city-symbol',
+                      code: '4000'
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    });
+    expect(wrong.body.message).toBe('Transformation error: Element address.city.extension[cityCode].value is invalid since none of the codings provided are in the required value set');
+
+    // Extension-hebrew-date: ['extension[day].valueCodeableConcept', 'extension[month].valueCodeableConcept']
+    // eslint-disable-next-line @typescript-eslint/quotes
+    fume = "InstanceOf: Condition\r\n* onsetDateTime = '2024-06-04T11:52:33.016Z'\r\n  * ($split(value,'-')#$i{$string($i): $}).extension[ext-hebrew-date]\r\n    * extension[day].value\r\n      * coding\r\n        * system = 'http://fhir.health.gov.il/cs/hebrew-date-day'\r\n        * code = `0`\r\n    * extension[month].value\r\n      * coding \r\n        * system = 'http://fhir.health.gov.il/cs/hebrew-date-month'\r\n        * code = `1`\r\n    * extension[year].value = 'התש\"ח'";
+    correct = await request(globalThis.app).post('/').send({ input: { value: '25-11' }, fume });
+    wrong = await request(globalThis.app).post('/').send({ input: { value: '35-19' }, fume });
+    expect(correct.body).toStrictEqual({
+      resourceType: 'Condition',
+      onsetDateTime: '2024-06-04T11:52:33.016Z',
+      _onsetDateTime: {
+        extension: [
+          {
+            url: 'http://fhir.health.gov.il/StructureDefinition/ext-hebrew-date',
+            extension: [
+              {
+                url: 'day',
+                valueCodeableConcept: {
+                  coding: [
+                    {
+                      system: 'http://fhir.health.gov.il/cs/hebrew-date-day',
+                      code: '25'
+                    }
+                  ]
+                }
+              },
+              {
+                url: 'month',
+                valueCodeableConcept: {
+                  coding: [
+                    {
+                      system: 'http://fhir.health.gov.il/cs/hebrew-date-month',
+                      code: '11'
+                    }
+                  ]
+                }
+              },
+              {
+                url: 'year',
+                valueString: 'התש"ח'
+              }
+            ]
+          }
+        ]
+      }
+    });
+    expect(wrong.body.message).toBe('Transformation error: Element onsetDateTime.extension[ext-hebrew-date].extension[day].value is invalid since none of the codings provided are in the required value set');
+
+    // IL-Core-Vital-Signs: ['valueQuantity']
+    // eslint-disable-next-line @typescript-eslint/quotes
+    fume = "InstanceOf: il-core-vital-signs\r\n* status = 'final'\r\n* code.coding\r\n  * system = 'http://loinc.org'\r\n  * code = '8310-5'\r\n* subject.display = 'aaa'\r\n* effectiveDateTime = '2024-06-04T13:36:49.823Z'\r\n* valueQuantity\r\n  * system = 'http://unitsofmeasure.org'\r\n  * code = value\r\n  * value = '100'";
+    correct = await request(globalThis.app).post('/').send({ input: { value: 'kg' }, fume });
+    wrong = await request(globalThis.app).post('/').send({ input: { value: 'parsecs' }, fume });
+    expect(correct.body).toStrictEqual({
+      resourceType: 'Observation',
+      meta: {
+        profile: [
+          'http://fhir.health.gov.il/StructureDefinition/il-core-vital-signs'
+        ]
+      },
+      category: [
+        {
+          coding: [
+            {
+              system: 'http://terminology.hl7.org/CodeSystem/observation-category',
+              code: 'vital-signs'
+            }
+          ]
+        }
+      ],
+      status: 'final',
+      code: {
+        coding: [
+          {
+            system: 'http://loinc.org',
+            code: '8310-5'
+          }
+        ]
+      },
+      subject: {
+        display: 'aaa'
+      },
+      effectiveDateTime: '2024-06-04T13:36:49.823Z',
+      valueQuantity: {
+        system: 'http://unitsofmeasure.org',
+        code: 'kg',
+        value: 100
+      }
+    });
+    expect(wrong.body.message).toBe('Transformation error: The code \'http://unitsofmeasure.org#parsecs\' is invalid for element Observation.valueQuantity. This code is not in the required value set');
+
+    // IL-Core-Address: country
+    // eslint-disable-next-line @typescript-eslint/quotes
+    fume = "InstanceOf: il-core-patient\r\n* address\r\n  * country = value";
+    correct = await request(globalThis.app).post('/').send({ input: { value: 'ISR' }, fume });
+    wrong = await request(globalThis.app).post('/').send({ input: { value: 'lalaland' }, fume });
+    expect(correct.body).toStrictEqual({
+      resourceType: 'Patient',
+      meta: {
+        profile: [
+          'http://fhir.health.gov.il/StructureDefinition/il-core-patient'
+        ]
+      },
+      address: [
+        {
+          country: 'ISR'
+        }
+      ]
+    });
+    expect(wrong.body.message).toBe('Transformation error: value \'lalaland\' is invalid for element address.country. This code is not in the required value set');
+  });
+
   test('Case 2 - Slices with fixed values appear even if no children are set', async () => {
     const mapping = `
             InstanceOf: il-core-patient

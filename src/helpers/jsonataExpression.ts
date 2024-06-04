@@ -554,52 +554,53 @@ const expressions: InternalJsonataExpression = {
     $_isEmpty($value)
   )`),
   codeSystemToDictionary: jsonata('concept.**[$type($)="object"]{code:display}'),
-  valueSetExpandDictionary: jsonata(`
-  $vs.(  
-    $expandInclude := function($include){(
-      $exists(filter) ? undefined : (
-        $vs := $include.valueSet.$valueSetExpand($);
-        $concepts := $exists($include.concept) ? $include.{system: concept{code: display}} : ($exists($include.system) ? $include.{system: $codeSystemDictionary(system)});
-        $exists($vs) ? (
-          $exists($include.system) ? (
-            $system = $include.system;
-            [{
-              $system: $concepts.*.$sift(function($v,$k){(
-                $exists(
-                  $vs.$lookup($system) ~> $lookup($k)
-                )
-              )})
-            }]
-          ) : (
-            $vs
-          )
-        ) : [$concepts]
-      )
-    )};
-  
-    $countIncludes := $count(compose.include);
-    $countExcludes := $count(compose.exclude);
-  
-    $includes := [compose.include.$expandInclude($)];
-    $excludes := [compose.exclude.$expandInclude($)];
-  
-    $count($includes)=$countIncludes and $count($excludes)=$countExcludes ? (
-      [$includes.(
-        $currInclude := $;
-        $systems := $keys($currInclude);
-        $systems.(
-          $system := $;
-          $filteredDictionary := $lookup($currInclude, $system) ~> $sift(function($v,$k){(
-            $not($exists($excludes.(
-              $lookup($, $system) ~> $lookup($k)
-            )))
-          )});
-          {$system: $filteredDictionary}
+  valueSetExpandDictionary: jsonata(`(
+    $compose := $vs.(  
+      $expandInclude := function($include){(
+        $exists(filter) ? undefined : (
+          $vs := $include.valueSet.$valueSetExpand($);
+          $concepts := $exists($include.concept) ? $include.{system: concept{code: display}} : ($exists($include.system) ? $include.{system: $codeSystemDictionary(system)});
+          $count($vs) > 0 ? (
+            $exists($include.system) ? (
+              $system = $include.system;
+              {
+                $system: $concepts.*.$sift(function($v,$k){(
+                  $exists(
+                    $vs.$lookup($system) ~> $lookup($k)
+                  )
+                )})
+              }
+            ) : (
+              $vs
+            )
+          ) : $concepts
         )
-      )]
-    )
-  )
-  `),
+      )};
+    
+      $countIncludes := $count(compose.include);
+      $countExcludes := $count(compose.exclude);
+    
+      $includes := compose.$expandInclude(include);
+      $excludes := compose.$expandInclude(exclude);
+    
+      $count($includes)=$countIncludes and $count($excludes)=$countExcludes ? (
+        [$includes.(
+          $currInclude := $;
+          $systems := $keys($currInclude);
+          $systems.(
+            $system := $;
+            $filteredDictionary := $lookup($currInclude, $system) ~> $sift(function($v,$k){(
+              $not($exists($excludes.(
+                $lookup($, $system) ~> $lookup($k)
+              )))
+            )});
+            {$system: $filteredDictionary}
+          )
+        )]
+      )
+    );
+    $count($compose) > 0 ? $compose
+  )`),
   testCodeAgainstVS: jsonata(`(
     $allCodes := $merge($vs.*);
     $lookup($allCodes, $value);
