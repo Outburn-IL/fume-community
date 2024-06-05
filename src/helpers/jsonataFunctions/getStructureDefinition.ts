@@ -10,7 +10,7 @@ import fhirFuncs from '../fhirFunctions';
 import { getLogger } from '../logger';
 import thrower from '../thrower';
 
-const getStructureDefinitionPath = (definitionId: string): any => {
+export const getStructureDefinitionPath = (definitionId: string): any => {
   const serverConfig = config.getServerConfig();
   const fhirVersionMinor = fhirFuncs.fhirVersionToMinor(serverConfig.FHIR_VERSION);
   const fhirPackageIndex = getFhirPackageIndex();
