@@ -35,9 +35,10 @@ export const getStructureDefinitionPath = (definitionId: string): any => {
 export const getStructureDefinition = (definitionId: string): any => {
   try {
     const path: string = getStructureDefinitionPath(definitionId);
-
-    const fullDef = JSON.parse(fs.readFileSync(path).toString()); // load file
-    return fullDef;
+    if (path) {
+      const fullDef = JSON.parse(fs.readFileSync(path).toString()); // load file
+      return fullDef;
+    } else return undefined;
   } catch (e) {
     return thrower.throwParseError(`A Problem occured while getting the structure definition of '${definitionId}'. The error is: ${e}`);
   }
