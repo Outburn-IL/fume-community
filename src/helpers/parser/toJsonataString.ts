@@ -3,6 +3,7 @@
  *   Project name: FUME-COMMUNITY
  */
 
+import { valueSetExpandDictionary } from '../conformance/conformance';
 import expressions from '../jsonataExpression';
 import { funcs } from '../jsonataFuncs';
 import { getStructureDefinition } from '../jsonataFunctions';
@@ -329,7 +330,7 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
       };
 
       // fetch element definition
-      const eDef = await getElementDefinition(rootStructDef.id, { originPath: currentFshPath, newPath: currentFshPath });
+      let eDef = await getElementDefinition(rootStructDef.id, { originPath: currentFshPath, newPath: currentFshPath });
       if (eDef) {
         const eDefPath: string = eDef?.path;
         const jsonName: string = await funcs.getJsonElementName(eDef, path);
@@ -351,6 +352,17 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
             };
               // select from types using comparison function
             chosenTypeEntry = eDef?.type?.filter(compareTypes)[0];
+            try {
+              // if there's an explicit type slice, it overrules the polymorphic head element
+              const eDefIDNoRoot: string = eDef.id.split('.').slice(1).join('.');
+              const typeSliceElementId: string = `${eDefIDNoRoot}:${jsonName}`;
+              // try to fetch the explicit type slice
+              const typeSlice = await getElementDefinition(rootStructDef.id, { originPath: typeSliceElementId, newPath: typeSliceElementId });
+              if (typeSlice) {
+                // replace head element with type slice element
+                eDef = typeSlice;
+              }
+            } catch {};
           }
         } else {
           // not polymorphic, there can only be a single type in the array
@@ -370,6 +382,9 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
         const typeForFixed = jsonPrimitiveProfile ?? baseType;
         const fixed: any = eDef['fixed' + initCapOnce(typeForFixed)] ?? eDef['pattern' + initCapOnce(typeForFixed)];
 
+        const bindingUrl: string = eDef?.binding?.strength === 'required' ? eDef.binding.valueSet : '';
+        const vsDictionary = bindingUrl !== '' ? await valueSetExpandDictionary(bindingUrl) : undefined;
+
         const mandatoryObj = await funcs.getMandatoriesOfElement(rootStructDef.id, currentFshPath);
         let pathForCardinality = currentFshPath;
         if (eDefPath.split('.').length > currentFshPath.split('.').length) {
@@ -383,7 +398,8 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
           baseType,
           kind,
           jsonPrimitiveProfile,
-          fixed
+          fixed,
+          vsDictionary
         };
 
         const mergeOptions: FlashMergeOptions = {

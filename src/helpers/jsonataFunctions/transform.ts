@@ -107,6 +107,8 @@ export const transform = async (input, expression: string, extraBindings: Record
     bindings.getElementDefinition = compiler.getElementDefinition;
     bindings.replaceColonsWithBrackets = compiler.replaceColonsWithBrackets;
     bindings.removeComments = removeComments;
+    bindings.getCodeSystem = conformance.getCodeSystem;
+    bindings.getValueSet = conformance.getValueSet;
     // end of debug functions
 
     // bind all aliases from cache
