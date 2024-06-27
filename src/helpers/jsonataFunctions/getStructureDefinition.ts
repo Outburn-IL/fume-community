@@ -33,7 +33,21 @@ export const getStructureDefinitionPath = (definitionId: string): any => {
 };
 
 export const getStructureDefinition = (definitionId: string): any => {
+  // First check if this is a BackboneElement referenced by contentRefernce (strats with #)
   try {
+    if (definitionId.startsWith('#')) {
+      // Take the base type name
+      const elementId: string = definitionId.substring(1);
+      const baseType: string = elementId.split('.')[0];
+      const baseSnapshot = getStructureDefinition(baseType);
+      const allElements: any[] = baseSnapshot?.snapshot?.element;
+      const backboneElements = allElements.filter((e) => e?.id === elementId || String(e?.id).startsWith(elementId + '.'));
+      return {
+        derivation: 'specialization',
+        differential: { element: backboneElements },
+        snapshot: { element: backboneElements }
+      };
+    };
     const path: string = getStructureDefinitionPath(definitionId);
     if (path) {
       const fullDef = JSON.parse(fs.readFileSync(path).toString()); // load file
