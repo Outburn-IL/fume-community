@@ -6,7 +6,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 
-import { getStructureDefinitionPath } from '../jsonataFunctions/getStructureDefinition';
+import { getStructureDefinition, getStructureDefinitionPath } from '../jsonataFunctions/getStructureDefinition';
 import { generateSnapshot } from '../snapshotBuilder';
 import * as stringFuncs from '../stringFunctions';
 
@@ -14,7 +14,11 @@ const diskCachePath: string = path.join('.', 'snapshots');
 fs.ensureDirSync(diskCachePath);
 
 export const getSnapshot = async (rootType: string) => {
+  if (rootType.startsWith('#')) {
+    return getStructureDefinition(rootType);
+  }
   // fetch a snapshot from disk cache or build it and save to cache
+
   const originalDefinitionPath: string | undefined = getStructureDefinitionPath(rootType);
   if (originalDefinitionPath) {
     // found the definition path in index, turn it into a hashkey

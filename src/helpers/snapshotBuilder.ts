@@ -367,7 +367,6 @@ const expressions = {
                       $thisDiff := $inputObject.wipDifferential[id=$this.id];
                 
                       $thisProfileUrl := $count($thisDiff.type) = 1 and $exists($thisDiff.type.profile) ? $thisDiff.type[0].profile[0];
-                
                       $thisProfileDef := $exists($thisProfileDef) ? $getStructureDefinition($thisProfileUrl);
                       $thisProfileDiff := $exists($thisProfileDef) ? $thisProfileDef.differential.element;
                 
@@ -412,10 +411,12 @@ const expressions = {
                           /* poly */
                           'Element'
                         ) : (
-                          /* mono */
-                          $exists($this.type[0].profile) ? (
-                            $this.type[0].profile[0]
-                          ) : $this.type[0].code
+                          /* mono or contentReference */
+                          $exists($this.contentReference) ? $this.contentReference : (
+                            $exists($this.type[0].profile) ? (
+                              $this.type[0].profile[0]
+                            ) : $this.type[0].code
+                          )
                         )
                       );
                       
