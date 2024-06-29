@@ -426,7 +426,7 @@ const expressions = {
                       
                       $childrenToAdd := $count($diffChildren) > 0 ? (
                        
-                        $count($thisAllSlicesChildren) = 0 and $exists($thisProfile) ? (
+                        $count($thisAllSlicesChildren) = 0 and $exists($thisProfile) and $not($startsWith($thisProfile, 'http://hl7.org/fhirpath/System.')) ? (
                         /* when A is empty, B should be done using simple snapshot generation. */
                           
                           $thisProfileSnapshot := $getSnapshot($thisProfile).snapshot.element;
@@ -460,7 +460,7 @@ const expressions = {
                               )
                             ) : (
                               /*    if A's head is mono */
-                              $exists($thisProfile) ? (
+                              $exists($thisProfile) and $not($thisProfile.$startsWith($, 'http://hl7.org/fhirpath/System.')) ? (
                                 /*      apply the diff of the profile */
                                 $thisProfileDef := $getStructureDefinition($thisProfile);
                                 $thisProfileDef.derivation = 'constraint' ? (
@@ -537,8 +537,9 @@ const expressions = {
               /* when all diffs were applied, or no change in diffs and we have reached max depth */
 
               /* throw warning if not all diffs could be applid */
-              $count($nextObj.wipDifferential) > 0 ? (
-                $warning('Snapshot generation incomplete, there are differentials that cannot be applied! (' & $join($nextObj.wipDifferential.id, ', ') & ')');
+              $remainingDiffs := $nextObj.wipDifferential[id in $diff.id];
+              $count($remainingDiffs) > 0 ? (
+                $warning('Snapshot generation incomplete, there are differentials that cannot be applied! (' & $join($remainingDiffs.id, ', ') & ')');
               );
               
               /* and return snapshot */
@@ -567,7 +568,7 @@ const expressions = {
           /* remove contentReference if there's a type */
           $res := $res ~> |$[$exists(type) and $exists(contentReference)]|{},['contentReference']|;
         )};
-    
+
         $profileDef := $getStructureDefinition($profileId);
         $profileDef.derivation = 'constraint' ? (
           /* it's a profile */
