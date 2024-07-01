@@ -5,12 +5,150 @@
 
 import jsonata from 'jsonata';
 
-import { getStructureDefinition, logInfo, logWarn } from './jsonataFunctions';
+import { getStructureDefinition as getRawDefinition, logInfo, logWarn } from './jsonataFunctions';
 import { omitKeys } from './objectFunctions';
 import parser from './parser';
 import { endsWith, startsWith } from './stringFunctions';
 
 const expressions = {
+  polyNameWithoutX: jsonata(`(
+    /* take last node name and remove the [x] part */
+    /* $polyId is the element id */
+    ($polyId.$split('.')[-1]) ~> $substringBefore('[x]');
+  )`),
+  fixMonoPolySlicesIterator: jsonata(`
+  (
+    /* @param: $depth (num) */
+    /* @param: $diff (array of elements)*/
+    
+    /* find all polymorphics with a single type in this depth level */
+    $monoPolyHeads := [$diff[$endsWith(id, '[x]') and $count(type) = 1 and $count($split(id,'.')) = $depth+1]];
+
+
+    /* if non found, return $diff unchanged */
+    $count($monoPolyHeads) = 0 ? $diff : (
+      /* for each monopoly head, find slice entries */
+      $monoPolySliceHeads := $monoPolyHeads#$i.(
+        $head := $;
+        $typeName := $head.type[0].code;
+        $titleCaseType := $toTitleCase($typeName);
+        $nodeName := $polyNameWithoutX($head.id);
+        $sliceName := $nodeName & $titleCaseType;
+        $sliceHead := $diff[id = $head.id & ':' & $sliceName]; 
+        $exists($sliceHead) ? {
+          '__head': $head,
+          '__headChildren': $diff[$startsWith(id, $head.id & '.')].$merge([$,{'__relativeId': $substringAfter(id, $head.id & '.')}]),
+          '__slice': $sliceHead,
+          '__sliceChildren': $diff[$startsWith(id, $sliceHead.id & '.')].$merge([$,{'__relativeId': $substringAfter(id, $sliceHead.id & '.')}])
+        }
+      );
+
+      /* if no slice entries found, return $diff unchanged */
+      $count($monoPolySliceHeads) = 0 ? $diff : (
+        /* create an array with corrected elements that can be used later to fix $diff */
+        $correctionArray := $monoPolySliceHeads.(
+          /* for each slice head: */
+          /* 1. merge into monopoly head, preserving monopoly id and removing slice attributes */
+          /* 2. merge children into monopoly children, preserving monopoly id's */
+          /* 3. fix remaining children id's */
+          $mergedHead := ($mergeElementDefinition([__head, __slice, {'id': __head.id}])) ~> $omitKeys(['slicing', 'sliceName']);
+          $headChildren := __headChildren;
+          $sliceChildren := __sliceChildren;
+          $headId := __head.id;
+          $sliceId := __slice.id;
+          $mergedHeadChildren := $headChildren.(
+            $headChild := $;
+            $sliceChild := $sliceChildren[__relativeId = $headChild.__relativeId];
+            $mergeElementDefinition(
+              [
+                $headChild, 
+                $sliceChild, 
+                {'id': $headChild.id, '__sliceChildId': $sliceChild.id}
+              ]
+            )
+          );
+          $remainingSliceChildren := $sliceChildren[$not(__relativeId in $headChildren.__relativeId)].$merge([
+            $,
+            {
+              'id': $headId & '.' & __relativeId,
+              '__sliceChildId': id
+            }
+          ]);
+
+          {
+            '__headId': $headId,
+            '__sliceId': $sliceId,
+            '__mergedHead': $mergedHead,
+            '__mergedChildren': [$mergedHeadChildren, $remainingSliceChildren]
+          }
+        );
+        /* then go through $diff, rearrange it and return it */
+        $headMap := $correctionArray{__headId: __mergedHead};
+        $headOmitMap := $correctionArray{__sliceId: {}};
+        $childMap := [($correctionArray.__mergedChildren)]{id: $};
+        $childOmitMap := [($correctionArray.__mergedChildren)]{__sliceChildId: {}};
+        $diff.(
+          /* check if in headMap, if so - return it */
+          $headOverride := $lookup($headMap, id);
+          $exists($headOverride) ? $headOverride : (
+            /* check if in headOmit, if so - omit it */
+            $headOmit := $lookup($headOmitMap, id);
+            $exists($headOmit) ? undefined : (
+              /* check in child map, if there - return it */
+              $childOverride := $lookup($childMap, id);
+              $exists($childOverride) ? $childOverride : (
+                /* check in child omit, if there - omit it */
+                $childOmit := $lookup($childOmitMap, id);
+                $exists($childOmit) ? undefined : (
+                  /* element not affected - return unchanged */
+                  $
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+  `),
+  fixMonoPolySlicesDiff: jsonata(`
+    (
+      /* $def is the raw StructureDefinition resource */
+      $def.derivation = 'constraint' ? (
+        $originalDiff := $def.differential.element[];
+        $maxDepth := $max($originalDiff.($count($split(id, '.')))) - 1;
+        $newDiff := $reduce(
+          [1..$maxDepth],
+          $fixMonoPolySlicesIterator,
+          $originalDiff
+        );
+        $merge([$def, {'differential': {'element': [$newDiff]}}]);
+      ) : (
+        /* derivation is not 'constraint', this is a base type or logical model. */
+        /* returning $def unchanged */
+        $def
+      );
+    )  
+  `),
+  fixMonoPolySlicesSnap: jsonata(`
+    (
+      /* $def is the raw StructureDefinition resource */
+      $def.derivation = 'constraint' ? (
+        $originalSnap := $def.snapshot.element[];
+        $maxDepth := $max($originalSnap.($count($split(id, '.')))) - 1;
+        $newSnap := $reduce(
+          [1..$maxDepth],
+          $fixMonoPolySlicesIterator,
+          $originalSnap
+        );
+        $merge([$def, {'snapshot': {'element': [$newSnap]}}]);
+      ) : (
+        /* derivation is not 'constraint', this is a base type or logical model. */
+        /* returning $def unchanged */
+        $def
+      );
+    )  
+  `),
   toNamedMonoPoly: jsonata(`
     (
       /* this function gets an element definition of a mono-poly element */
@@ -243,16 +381,17 @@ const expressions = {
   noDuplicateElements: jsonata('$count(($elementArray{id: $count($)}.*)[$>1])=0'),
   repositionSlices: jsonata(`
     (
+      /* @params: $wipSnapshot, $originalBase, $level */
       /* reorder slice entries so original ones that exist in the snapshot come first */
       
       $assert($wipSnapshot ~> $noDuplicateElements,'Duplicate elements! (tag: 2)');
       /* get all id's of original slices of this level from original snapshot */
       
       $originalSlicesId := ($getSliceEntriesId($originalBase))[$getLevel($) = $level];
-      
+
       /* get all non-slice entries of this level from the wip snapshot */
-      $nonSliceEntries := $wipSnapshot[$getLevel($) = $level and $exists(sliceName) = false];
-      
+      $nonSliceEntries := $wipSnapshot[$getLevel($) = $level and ($exists(sliceName) = false or $endsWith(id, '[x]'))];
+
       $res := ($wipSnapshot[
         /* filter wip snapshot so only elements that aren't slices or aren't at this level remain */
         $getLevel($) != $level 
@@ -343,7 +482,6 @@ const expressions = {
               $assert($wipSnapshot ~> $noDuplicateElements,'Duplicate elements! (tag: 3)');
               $wipSnapshot := $repositionSlices($wipSnapshot, $originalBase, $level);
               
-              
               $assert($wipSnapshot ~> $noDuplicateElements,'Duplicate elements! (tag: 4)');
     
               /* put children back in the wip array */
@@ -379,7 +517,6 @@ const expressions = {
                       [$this, $thisSnapChildren]
                     ) : (
                       /* if it doesn't have children in the snapshot: */
-                
                       /* A. fetch children of all slices from snapshot. if there are any, */
                       /*    it means we are in a new slice, and there are rules that apply on all slices' children. */
                       /*    + Another option that should behave just like "all slices" is contenReference */
@@ -400,7 +537,7 @@ const expressions = {
                           $unslicedId;
                         )
                       );
-                      
+
                       $allSlicesHead := $inputObject.wipSnapshot[id=$allSlicesId];
                       $thisAllSlicesChildren := $exists($allSlicesId) ? [$inputObject.wipSnapshot[$startsWith(id, $allSlicesId & '.')]] : [];                      
                       
@@ -430,7 +567,6 @@ const expressions = {
                         /* when A is empty, B should be done using simple snapshot generation. */
                           
                           $thisProfileSnapshot := $getSnapshot($thisProfile).snapshot.element;
-                          
                           ($changeRoot($thisProfileSnapshot, $this))[id != $this.id];
                         ) : (
                           /* when A is not empty:*/
@@ -539,7 +675,7 @@ const expressions = {
               /* throw warning if not all diffs could be applid */
               $remainingDiffs := $nextObj.wipDifferential[id in $diff.id];
               $count($remainingDiffs) > 0 ? (
-                $warning('Snapshot generation incomplete, there are differentials that cannot be applied! (' & $join($remainingDiffs.id, ', ') & ')');
+                $warning('Snapshot generation incomplete, there are differentials that cannot be applied! (' & $join($remainingDiffs.id, ', ') & '). ProfileId: "' & $profileId & '"');
               );
               
               /* and return snapshot */
@@ -593,10 +729,46 @@ const expressions = {
       )};
 
       $ss := $generateSnapshot($profileId);
-      /* remove _diffId and __fromDefinition tags from results */
-      $ss ~> |snapshot.element|{},['_diffId', '__fromDefinition']|;
+      /* remove internal proccessing tags from results */
+      $ss 
+      ~> |*.element|{},['_diffId', '__fromDefinition', '__rootChildren', '__sliceChildren']| 
+      ~> $fixMonoPolySlicesSnap;
     )
   `)
+};
+
+const toTitleCase = (str: string) => {
+  const firstChar: string = str.charAt(0).toUpperCase();
+  const rest: string = str.slice(1);
+  const res: string = firstChar + rest;
+  return res;
+};
+
+const polyNameWithoutX = async (polyId: string) => {
+  const res: string = await expressions.polyNameWithoutX.evaluate({}, { polyId, info: logInfo });
+  return res;
+};
+
+const fixMonoPolySlicesIterator = async (diff: any[], depth: number) => {
+  /* fix a single depth level - used in the $reduce function */
+  return await expressions.fixMonoPolySlicesIterator.evaluate({}, { diff, depth, endsWith, polyNameWithoutX, startsWith, mergeElementDefinition, toTitleCase, omitKeys, info: logInfo });
+};
+
+const fixMonoPolySlicesDiff = async (def: any) => {
+  /* for every polymorphoic with a single type, */
+  /* merge the diff head element with the slice element */
+  return await expressions.fixMonoPolySlicesDiff.evaluate({}, { def, fixMonoPolySlicesIterator });
+};
+
+const fixMonoPolySlicesSnap = async (def: any) => {
+  /* for every polymorphoic with a single type, */
+  /* merge the diff head element with the slice element */
+  return await expressions.fixMonoPolySlicesSnap.evaluate({}, { def, fixMonoPolySlicesIterator });
+};
+
+const getStructureDefinition = async (definitionId: string) => {
+  const rawDef = getRawDefinition(definitionId);
+  return await fixMonoPolySlicesDiff(rawDef);
 };
 
 const isPoly = (element: any) => {
@@ -701,7 +873,7 @@ const noDuplicateElements = async (elementArray: any | any[]) => {
 };
 
 const repositionSlices = async (wipSnapshot: any | any[], originalBase: any | any[], level: number) => {
-  return await expressions.repositionSlices.evaluate({}, { wipSnapshot, originalBase, level, noDuplicateElements, getSliceEntriesId, getLevel, startsWith, endsWith });
+  return await expressions.repositionSlices.evaluate({}, { wipSnapshot, originalBase, level, noDuplicateElements, getSliceEntriesId, getLevel, startsWith, endsWith, info: logInfo });
 };
 
 const getSliceEntriesId = async (elements: any | any[]) => {
@@ -710,5 +882,5 @@ const getSliceEntriesId = async (elements: any | any[]) => {
 };
 
 export const generateSnapshot = async (profileId: string) => {
-  return await expressions.generateSnapshot.evaluate({}, { profileId, getSliceEntriesId, info: logInfo, warning: logWarn, startsWith, endsWith, fetchDiffElement, isPoly, mergeElementDefinition, fetchSliceEntries, getStructureDefinition, changeRoot, removeSliceFromId, getLevel, fixDiffIds, noDuplicateElements, repositionSlices, getSnapshot: parser.getSnapshot });
+  return await expressions.generateSnapshot.evaluate({}, { profileId, getSliceEntriesId, info: logInfo, warning: logWarn, startsWith, endsWith, fetchDiffElement, isPoly, mergeElementDefinition, fetchSliceEntries, getStructureDefinition, changeRoot, removeSliceFromId, getLevel, fixDiffIds, noDuplicateElements, repositionSlices, getSnapshot: parser.getSnapshot, fixMonoPolySlicesSnap });
 };
