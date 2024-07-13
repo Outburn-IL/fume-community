@@ -13,6 +13,7 @@ import { pretty, transform } from '../helpers/jsonataFunctions';
 import { getLogger } from '../helpers/logger';
 import { toJsonataString } from '../helpers/parser/toJsonataString';
 import { parseCsv } from '../helpers/stringFunctions';
+import { parseXml } from '../helpers/xml';
 
 const get = async (req: Request, res: Response) => {
   return res.status(200).json(
@@ -30,23 +31,34 @@ const get = async (req: Request, res: Response) => {
 
 const evaluate = async (req: Request, res: Response) => {
   try {
-    let inputJson;
+    let contentType = req.body.contentType;
+    if (!req.body.contentType || req.body.contentType === '') {
+      getLogger().info('Content-Type is empty - defaulting to \'application/json\'');
+      contentType = 'application/json';
+    }
 
-    if (req.body.contentType === 'x-application/hl7-v2+er7') {
+    let inputJson;
+    if (contentType === 'x-application/hl7-v2+er7') {
       getLogger().info('Content-Type suggests HL7 V2.x message');
       getLogger().info('Trying to parse V2 message as JSON...');
       inputJson = await v2json(req.body.input);
       getLogger().info('Parsed V2 message');
+    } else if (contentType === 'text/csv') {
+      getLogger().info('Content-Type suggests CSV input');
+      getLogger().info('Trying to parse CSV to JSON...');
+      inputJson = await parseCsv(req.body.input);
+      getLogger().info('Parsed CSV to JSON');
+    } else if (contentType === 'application/xml') {
+      getLogger().info('Content-Type suggests XML input');
+      getLogger().info('Trying to parse XML to JSON...');
+      inputJson = parseXml(req.body.input);
+      getLogger().info('Parsed XML to JSON');
+    } else if (contentType === 'application/json') {
+      getLogger().info('Content-Type suggests JSON input');
+      inputJson = req.body.input;
     } else {
-      if (req.body.contentType === 'text/csv') {
-        getLogger().info('Content-Type suggests CSV input');
-        getLogger().info('Trying to parse CSV to JSON...');
-        inputJson = await parseCsv(req.body.input);
-        getLogger().info('Parsed CSV to JSON');
-      } else {
-        inputJson = req.body.input;
-      }
-    };
+      throw new Error(`Unsupported Content-Type: '${contentType}'`);
+    }
 
     const extraBindings = config.getBindings();
     const response = await transform(inputJson, req.body.fume, extraBindings);
