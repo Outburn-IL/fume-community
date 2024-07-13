@@ -13,6 +13,7 @@ import { pretty, transform } from '../helpers/jsonataFunctions';
 import { getLogger } from '../helpers/logger';
 import { toJsonataString } from '../helpers/parser/toJsonataString';
 import { parseCsv } from '../helpers/stringFunctions';
+import { parseXml } from '../helpers/xml';
 
 const get = async (req: Request, res: Response) => {
   return res.status(200).json(
@@ -47,6 +48,11 @@ const evaluate = async (req: Request, res: Response) => {
       getLogger().info('Trying to parse CSV to JSON...');
       inputJson = await parseCsv(req.body.input);
       getLogger().info('Parsed CSV to JSON');
+    } else if (contentType === 'application/xml') {
+      getLogger().info('Content-Type suggests XML input');
+      getLogger().info('Trying to parse XML to JSON...');
+      inputJson = parseXml(req.body.input);
+      getLogger().info('Parsed XML to JSON');
     } else if (contentType === 'application/json') {
       getLogger().info('Content-Type suggests JSON input');
       inputJson = req.body.input;
