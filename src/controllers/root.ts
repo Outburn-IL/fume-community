@@ -29,7 +29,7 @@ const get = async (req: Request, res: Response) => {
 
 const evaluate = async (req: Request, res: Response) => {
   try {
-    const inputJson = convertInputToJson(req.body.input, req.body.contentType);
+    const inputJson = await convertInputToJson(req.body.input, req.body.contentType);
     const extraBindings = config.getBindings();
     const response = await transform(inputJson, req.body.fume, extraBindings);
     return res.status(200).json(response);

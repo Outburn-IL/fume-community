@@ -40,7 +40,7 @@ const transform = async (req: Request, res: Response) => {
     const mappingId = req.params.mappingId;
     const mappingFromCache = getCache().compiledMappings.get(mappingId);
     const contentType = req.get('Content-Type');
-    const inputJson = convertInputToJson(req.body, contentType);
+    const inputJson = await convertInputToJson(req.body, contentType);
 
     if (mappingFromCache) {
       const result = await mappingFromCache.function(inputJson);
