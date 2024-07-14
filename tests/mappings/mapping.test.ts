@@ -82,4 +82,24 @@ describe('api tests', () => {
       ]
     });
   });
+
+  test('execute existing mapping with XML input', async () => {
+    const res = await request(globalThis.app)
+      .post('/Mapping/testMappingRoute')
+      .set('Content-Type', 'application/xml')
+      .send('<root><given>a</given><family value="B" /></root>');
+    expect(res.body).toStrictEqual({
+      resourceType: 'Patient',
+      id: '356a192b-7913-504c-9457-4d18c28d46e6',
+      active: true,
+      name: [
+        {
+          given: [
+            'a'
+          ],
+          family: 'B'
+        }
+      ]
+    });
+  });
 });
