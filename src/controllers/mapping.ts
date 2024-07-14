@@ -6,11 +6,10 @@
 import type { Request, Response } from 'express';
 
 import { getCache } from '../helpers/cache';
-import { v2json } from '../helpers/hl7v2';
+import { convertInputToJson } from '../helpers/inputConverters';
 import { pretty } from '../helpers/jsonataFunctions';
 import { getLogger } from '../helpers/logger';
 import { toJsonataString } from '../helpers/parser/toJsonataString';
-import { parseCsv } from '../helpers/stringFunctions';
 
 const get = async (req: Request, res: Response) => {
   const logger = getLogger();
@@ -41,21 +40,7 @@ const transform = async (req: Request, res: Response) => {
     const mappingId = req.params.mappingId;
     const mappingFromCache = getCache().compiledMappings.get(mappingId);
     const contentType = req.get('Content-Type');
-    let inputJson;
-
-    if (contentType?.startsWith('x-application/hl7-v2+er7')) {
-      logger.info('Content-Type header suggests HL7 V2.x message');
-      const bodyString = req.body;
-      logger.info('Trying to parse V2 message as JSON...');
-      inputJson = await v2json(bodyString);
-    } else {
-      if (contentType?.startsWith('text/csv')) {
-        logger.info('Content-Type header suggests CSV input');
-        inputJson = await parseCsv(req.body);
-      } else {
-        inputJson = req.body;
-      }
-    };
+    const inputJson = convertInputToJson(req.body, contentType);
 
     if (mappingFromCache) {
       const result = await mappingFromCache.function(inputJson);

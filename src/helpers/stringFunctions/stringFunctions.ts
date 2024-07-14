@@ -5,11 +5,8 @@
 
 // import jsonata from 'jsonata';
 import { randomUUID } from 'crypto';
-import csvToJson from 'csvtojson';
 import { sha256 } from 'js-sha256';
 import uuidByString from 'uuid-by-string';
-
-import { getLogger } from '../logger';
 
 export const startsWith = (str: string, startStr: string): boolean => str.startsWith(startStr);
 
@@ -65,18 +62,6 @@ export const splitToLines = (expr: string): string[] => removeEmptyLines(expr.sp
 export const hashKey = (str: string): string => sha256(str + uuid(str));
 
 export const uuid = (seed?: string): string => seed ? uuidByString(seed) : randomUUID();
-
-export const parseCsv = async (csv: string) => {
-  // fork: os
-  getLogger().info('Parsing CSV...');
-  let json = {};
-  try {
-    json = await csvToJson().fromString(csv);
-  } catch (e) {
-    json = [];
-  }
-  return json;
-};
 
 export const matches = (str: string, regex: string) => {
   /* match whole string (like fhirpath) */

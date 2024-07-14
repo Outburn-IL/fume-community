@@ -2,9 +2,9 @@
  * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
  *   Project name: FUME-COMMUNITY
  */
-import { getCache } from '../cache';
-import expressions from '../jsonataExpression';
-import { initCap } from '../stringFunctions';
+import { getCache } from '../../cache';
+import expressions from '../../jsonataExpression';
+import { initCap } from '../../stringFunctions';
 import { registerV2key } from './registerV2key';
 
 export const v2normalizeKey = async (key: string) => {
