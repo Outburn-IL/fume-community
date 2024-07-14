@@ -3,7 +3,7 @@
  *   Project name: FUME-COMMUNITY
  */
 
-import { parseXml } from '../xml/xmlToJson';
+import { parseXml } from './xmlToJson';
 
 export {
   parseXml

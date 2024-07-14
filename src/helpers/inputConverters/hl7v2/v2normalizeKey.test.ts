@@ -4,8 +4,8 @@
  */
 import { test } from '@jest/globals';
 
-import { ICache } from '../../types';
-import { getCache, initCache } from '../cache';
+import { ICache } from '../../../types';
+import { getCache, initCache } from '../../cache';
 import { v2normalizeKey } from './v2normalizeKey';
 
 describe('v2normalizeKey', () => {

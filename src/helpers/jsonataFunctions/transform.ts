@@ -15,7 +15,8 @@ import { IAppBinding } from '../../types';
 import { getCache } from '../cache';
 import * as conformance from '../conformance';
 import fhirFuncs from '../fhirFunctions';
-import * as v2 from '../hl7v2';
+import { parseCsv } from '../inputConverters';
+import * as v2 from '../inputConverters/hl7v2';
 import { getLogger } from '../logger';
 import * as objectFuncs from '../objectFunctions';
 import compiler from '../parser';
@@ -86,7 +87,7 @@ export const transform = async (input, expression: string, extraBindings: Record
     bindings.resolve = fhirFuncs.resolve;
     bindings.warning = logWarn;
     bindings.info = logInfo;
-    bindings.parseCsv = stringFuncs.parseCsv;
+    bindings.parseCsv = parseCsv;
     bindings.v2parse = v2.v2parse;
     bindings.v2json = v2.v2json;
     bindings.isNumeric = stringFuncs.isNumeric;

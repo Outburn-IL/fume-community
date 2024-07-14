@@ -4,8 +4,8 @@
  */
 import { test } from '@jest/globals';
 
-import { ICache } from '../../types';
-import { getCache, initCache } from '../cache';
+import { ICache } from '../../../types';
+import { getCache, initCache } from '../../cache';
 import { registerV2key } from './registerV2key';
 
 describe('registerV2key', () => {
