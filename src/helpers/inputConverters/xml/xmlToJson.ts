@@ -34,6 +34,7 @@ export const parseXml = (xml: string) => {
 const parseXmlWithXhtmlHandling = (xml: string): any => {
   const options: Record<string, any> = {
     ignoreAttributes: false,
+    ignoreDeclaration: true,
     attributeNamePrefix: ATTRIBUTE_PREFIX,
     allowBooleanAttributes: true,
     alwaysCreateTextNode: true,
@@ -76,16 +77,20 @@ const getXhtmlPaths = (currentPath, currentValue, xhtmlPaths) => {
 
 const standardizeJson = (json, rootKey: string): Record<string, any> => {
   const parsedXml = recursiveStandardize(json, rootKey);
-  const value = parsedXml[rootKey];
+
+  const namespaceIndex = rootKey.indexOf(':');
+  const baseRootKey = namespaceIndex === -1 ? rootKey : rootKey.slice(namespaceIndex + 1);
+
+  const value = parsedXml[baseRootKey];
   if (typeof value === 'object') {
     const namespaceIndex = rootKey.indexOf(':');
     if (namespaceIndex !== -1) {
       value._namespace = rootKey.slice(0, namespaceIndex);
       if (!value.resourceType) {
-        value._xmlTagName = rootKey.slice(namespaceIndex + 1);
+        value._xmlTagName = baseRootKey;
       }
     } else if (!value.resourceType) {
-      value._xmlTagName = rootKey;
+      value._xmlTagName = baseRootKey;
     }
   }
   return value;

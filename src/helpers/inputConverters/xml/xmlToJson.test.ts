@@ -75,14 +75,12 @@ describe('xmlToJson', () => {
     );
   });
 
-  test.skip('namespaced xml', async () => {
+  test('namespaced xml', async () => {
     const xml: string = `
 <tst1:Patient xmlns:tst1="http://test.tst.example.com/HIJ/FIRE/test1.xsd" xmlns:tst2="http://test.tst.example.com/HIJ/FIRE/test2.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <tst2:Header>
     <tst2:TransactionID>kdkdkdkdkdkdkdk</tst2:TransactionID>
     <tst2:TransactionName>TBD</tst2:TransactionName>
-    <tst2:MessageID>N1AD14A36</tst2:MessageID>
-    <tst2:MessageName>TBD</tst2:MessageName>
     <tst2:HospitalCode>09909</tst2:HospitalCode>
     <tst2:EventType>CREATE</tst2:EventType>
     <tst2:EventDateTime>2024-07-10T11:31:34.959+03:00</tst2:EventDateTime>
@@ -115,7 +113,7 @@ describe('xmlToJson', () => {
 </tst1:Patient>
 `;
     expect(parseXml(xml)).toEqual({
-      header: {
+      Header: {
         TransactionID: 'kdkdkdkdkdkdkdk',
         _TransactionID: {
           _namespace: 'tst2'
@@ -123,7 +121,16 @@ describe('xmlToJson', () => {
         TransactionName: 'TBD',
         _TransactionName: { _namespace: 'tst2' },
         HospitalCode: '09909',
-        _HospitalCode: { _namespace: 'tst2' }
+        _HospitalCode: { _namespace: 'tst2' },
+        EventType: 'CREATE',
+        _EventType: {
+          _namespace: 'tst2'
+        },
+        EventDateTime: '2024-07-10T11:31:34.959+03:00',
+        _EventDateTime: {
+          _namespace: 'tst2'
+        },
+        _namespace: 'tst2'
       },
       CreatePatientType: {
         PatientID: '0000000026',
@@ -160,6 +167,10 @@ describe('xmlToJson', () => {
         _namespace: 'tst1'
       },
       _namespace: 'tst1',
+      'xmlns:tst1': 'http://test.tst.example.com/HIJ/FIRE/test1.xsd',
+      'xmlns:tst2': 'http://test.tst.example.com/HIJ/FIRE/test2.xsd',
+      'xmlns:xsd': 'http://www.w3.org/2001/XMLSchema',
+      'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
       _xmlTagName: 'Patient'
     });
   });
@@ -242,7 +253,7 @@ describe('xmlToJson', () => {
     );
   });
 
-  test.skip('xml declaration tag', () => {
+  test('xml declaration tag', () => {
     const xml: string = `
 <?xml version="1.0" encoding="UTF-8"?>
 
