@@ -220,7 +220,7 @@ export const castToFhir = async (options: CastToFhirOptions, input: any) => {
 
     if (options.vsDictionary && options.baseType === 'CodeableConcept') {
       // required bindings on CodeableConcept
-      if (resObj?.coding) {
+      if (Object.keys(resObj).filter((k: string) => k.startsWith('coding')).length > 0) {
         const vsTest = await expressions.testCodeableAgainstVS.evaluate({}, { codeable: resObj, vs: options.vsDictionary, testCodingAgainstVS });
         if (!vsTest) {
           return thrower.throwRuntimeError(`Element ${options?.path} is invalid since none of the codings provided are in the required value set`);
