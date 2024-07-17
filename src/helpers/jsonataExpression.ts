@@ -37,16 +37,12 @@ export interface InternalJsonataExpression {
 
 const expressions: InternalJsonataExpression = {
   translateCodeExtract: jsonata('$mapFiltered.code'),
-  translateCodingExtract: jsonata(`$result.[
-    {
+  translateCodingExtract: jsonata(`
+    $result.{
       'system': target,
-      'code': code
-    },
-    {
-      'system': source,
-      'code': $input
-    }
-  ]`),
+      'code': code,
+      'display': display
+    }`),
   searchSingle: jsonata(`(
     $assert(
       $bundle.total <= 1, 
@@ -261,7 +257,8 @@ const expressions: InternalJsonataExpression = {
               ].code.{
                 "code": $, 
                 "source": %.%.%.source, 
-                "target": %.%.%.target
+                "target": %.%.%.target,
+                "display": %.display
               }[]
             }
           )
@@ -614,7 +611,7 @@ const expressions: InternalJsonataExpression = {
     )
   )`),
   testCodeableAgainstVS: jsonata(`(
-    $codings := $codeable.coding;
+    $codings := $codeable.$sift(function($v, $k){$substring($k,0,6) = 'coding'}).*;
     $codings.$testCodingAgainstVS($, $vs);
   )`)
 };
