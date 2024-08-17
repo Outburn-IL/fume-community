@@ -3,6 +3,7 @@
  *   Project name: FUME-COMMUNITY
  */
 import cors from 'cors';
+import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import express from 'express';
 import type { Server } from 'http';
 
@@ -39,13 +40,17 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
   private cacheConfig: Partial<Record<IAppCacheKeys, InitCacheConfig>> = {};
   private logger = getLogger();
 
+  // default app middleware does nothing - just calls next
+  private appMiddleware: RequestHandler = (req: Request, res: Response, next: NextFunction) => {
+    next();
+  };
+
   constructor () {
     this.app = express();
     this.app.use(express.urlencoded({ extended: true, limit: '50mb' }));
     this.app.use(express.json({ limit: '50mb', type: ['application/json', 'application/fhir+json'] }));
     this.app.use(express.text({ limit: '50mb', type: ['text/plain', 'application/vnd.outburn.fume', 'x-application/hl7-v2+er7', 'text/csv', 'application/xml'] }));
     this.app.use(cors());
-    this.app.use('/', routes);
   }
 
   public async shutDown (): Promise<void> {
@@ -112,6 +117,14 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
       }
     };
 
+    // mount middleware on application level
+    // all requests will pass through this function
+    this.app.use(this.appMiddleware);
+
+    // mount routes handler
+    // if the middleware calls next(), the request handling will proceed here
+    this.app.use('/', routes);
+
     // catch any routes that are not found
     // This allows consumers to extend the server with their own routes
     // and still have a default 404 handler
@@ -129,9 +142,18 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
   }
 
   /**
-     * Register a logger to replace the default logger
-     * @param logger
-     */
+   * Register application level middleware to intercept all requests
+   * @param middleware
+   */
+  public registerAppMiddleware (middleware: RequestHandler) {
+    this.appMiddleware = middleware;
+    this.logger.info('Registered application middleware...');
+  };
+
+  /**
+   * Register a logger to replace the default logger
+   * @param logger
+   */
   public registerLogger (logger: ILogger) {
     this.logger = logger;
     setLogger(logger);
