@@ -3,7 +3,7 @@
  *   Project name: FUME-COMMUNITY
  */
 import axios from 'axios';
-import * as compose from 'docker-compose';
+import { v2 as compose } from 'docker-compose';
 import path from 'path';
 
 import { FumeServer } from '../src/server';
@@ -47,7 +47,7 @@ async function waitForFhirApi (maxAttempts, currentAttempt = 1) {
 }
 
 async function setup () {
-  console.log('starting FHIR server...');
+  console.log('Starting FHIR server (using docker compose V2)...');
   await compose.upAll({
     cwd: path.join(__dirname),
     config: 'docker-compose.yml',
