@@ -45,7 +45,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     this.app.use(express.json({ limit: '50mb', type: ['application/json', 'application/fhir+json'] }));
     this.app.use(express.text({ limit: '50mb', type: ['text/plain', 'application/vnd.outburn.fume', 'x-application/hl7-v2+er7', 'text/csv', 'application/xml'] }));
     this.app.use(cors());
-    this.app.use('/', routes);
+    this.app.use('/', routes); // move to warmup
   }
 
   public async shutDown (): Promise<void> {
