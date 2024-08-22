@@ -146,7 +146,8 @@ const expressions: InternalJsonataExpression = {
   
     $translateField := function($field, $segDef, $fieldIndex){(
       $fieldDef := $segDef.fields[$fieldIndex];
-      $fieldDesc := $fieldDef.desc;
+      $fieldDef := $exists($fieldDef)=false ? {'name': $segDef.segmentId & $fieldIndex} : $fieldDef;
+      $fieldDesc := $fieldDef.desc ? $fieldDef.desc : $fieldDef.name;
       $fieldDesc := $type($fieldDesc) = 'string' and $startsWith($fieldDesc,'Set ID - ') and $fieldIndex=0 ? 'SetID' : $fieldDesc;
       $fieldDatatype := $fieldDef.datatype;
       $datatypeDef := $getDatatypeDef($fieldDatatype, $v2version);
