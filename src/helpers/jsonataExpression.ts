@@ -186,17 +186,21 @@ const expressions: InternalJsonataExpression = {
     )};
   
     $translateSegment := function($segment){(
+      $line := $segment.MessageLine;
       $segId := $segment.\`0\`;
       $segDef := $getSegmentDef($segId, $v2version);
       $segment.fields#$i[$i>0].$translateField($, $segDef, $i-1){
         'SegmentDescription': $segDef.desc,
+        'MessageLine': $line,
         $normalizeKey(name): value
       }
     )};
-  
-    $rawJson.segments@$s.$translateSegment($s){
+    
+    $segmentsWithLines := $rawJson.segments#$line.($merge([$, {'MessageLine': $line+1}]));
+
+    $segmentsWithLines@$s.$translateSegment($s){
       $s.\`0\`: $
-    };  
+    };
   )`),
   parseFumeExpression: jsonata(`
     (

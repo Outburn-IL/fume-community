@@ -329,6 +329,7 @@ describe('HL7 v2 tests', () => {
     expect(res.body).toStrictEqual({
       MSH: {
         SegmentDescription: 'Message Header',
+        MessageLine: 1,
         FieldSeparator: '|',
         EncodingCharacters: '^~\\&',
         SendingApplication: {
@@ -357,6 +358,7 @@ describe('HL7 v2 tests', () => {
       },
       PID: {
         SegmentDescription: 'Patient Identification',
+        MessageLine: 2,
         SetID: '58705',
         PatientID: {
           IDNumber: '58705'
@@ -394,6 +396,7 @@ describe('HL7 v2 tests', () => {
       },
       PV1: {
         SegmentDescription: 'Patient Visit',
+        MessageLine: 3,
         PatientClass: '1',
         AssignedPatientLocation: {
           PointOfCare: 'CE'
@@ -415,6 +418,7 @@ describe('HL7 v2 tests', () => {
       OBX: [
         {
           SegmentDescription: 'Observation/Result',
+          MessageLine: 4,
           SetID: '1',
           ValueType: 'NM',
           ObservationIdentifier: {
@@ -435,6 +439,7 @@ describe('HL7 v2 tests', () => {
         },
         {
           SegmentDescription: 'Observation/Result',
+          MessageLine: 5,
           SetID: '2',
           ValueType: 'NM',
           ObservationIdentifier: {
@@ -548,6 +553,7 @@ describe('HL7 v2 tests', () => {
     expect(res.body).toStrictEqual({
       MSH: {
         SegmentDescription: 'Message header segment',
+        MessageLine: 1,
         FieldSeparator: '|',
         EncodingCharacters: '^~\\&',
         SendingApplication: {
@@ -584,6 +590,7 @@ describe('HL7 v2 tests', () => {
       },
       OBX: {
         SegmentDescription: 'Observation segment',
+        MessageLine: 2,
         SetID: '10',
         ValueType: 'TX',
         ObservationIdentifier: {
@@ -632,4 +639,192 @@ describe('HL7 v2 tests', () => {
       }
     });
   });
+
+  test('HL7 v2 line numbering', async () => {
+    const input = getResourceFileContents('inputs', 'HL7-v2-LineNumbering.txt');
+    const requestBody = {
+      input,
+      contentType: 'x-application/hl7-v2+er7',
+      fume: '$'
+    };
+
+    const res = await request(globalThis.app).post('/').send(requestBody);
+
+    expect(res.body).toStrictEqual(
+      {
+        MSH: {
+          SegmentDescription: 'Message header segment',
+          MessageLine: 1,
+          FieldSeparator: '|',
+          EncodingCharacters: '^~\\&',
+          SendingApplication: {
+            NamespaceID: '1',
+            UniversalID: 'Autolab',
+            UniversalIDType: '3.02'
+          },
+          SendingFacility: {
+            NamespaceID: '110',
+            UniversalID: 'some_place'
+          },
+          ReceivingApplication: {
+            NamespaceID: '34',
+            UniversalID: 'HL7_PDF'
+          },
+          ReceivingFacility: {
+            NamespaceID: '2400',
+            UniversalID: 'HL7_PDF'
+          },
+          DateTimeOfMessage: {
+            TimeOfAnEvent: '20240726083203'
+          },
+          MessageType: {
+            MessageType: 'ORU',
+            TriggerEvent: 'R01'
+          },
+          MessageControlID: '12345678',
+          ProcessingID: {
+            ProcessingID: 'P'
+          },
+          VersionID: '2.3',
+          ContinuationPointer: '0^^',
+          MSH20: '5'
+        },
+        ORC: {
+          SegmentDescription: 'Common order segment',
+          MessageLine: 2,
+          PlacerOrderNumber: {
+            EntityIdentifier: '2222222222'
+          },
+          OrderStatus: 'CM',
+          DateTimeOfTransaction: {
+            TimeOfAnEvent: '20240725154900'
+          },
+          EnteredBy: {
+            IDNumber: '207',
+            FamilyName: 'first',
+            GivenName: 'last'
+          },
+          OrderingProvider: {
+            IDNumber: '1234567',
+            FamilyName: 'first',
+            GivenName: 'last'
+          },
+          EnteringOrganization: {
+            Identifier: 'general'
+          },
+          ORC20: 'N',
+          ORC21: 'N',
+          ORC22: '555555555',
+          ORC23: 'N^Y',
+          ORC25: '403aa3gec5fb33efd666666cd45b1e5a'
+        },
+        NTE: [
+          {
+            SegmentDescription: 'Notes and comments segment',
+            MessageLine: 3,
+            SourceOfComment: 'O',
+            Comment: ' Clinical_diagnosis:MDS',
+            NTE4: '0'
+          },
+          {
+            SegmentDescription: 'Notes and comments segment',
+            MessageLine: 5,
+            SetID: '15151515',
+            SourceOfComment: 'O',
+            Comment: 'new_sample',
+            NTE4: '1'
+          },
+          {
+            SegmentDescription: 'Notes and comments segment',
+            MessageLine: 7,
+            SetID: '15471137',
+            SourceOfComment: 'O',
+            Comment: 'updated_result',
+            NTE4: '1'
+          }
+        ],
+        OBR: {
+          SegmentDescription: 'Observation request segment',
+          MessageLine: 4,
+          SetID: '1',
+          FillerOrderNumber: {
+            EntityIdentifier: '830814256'
+          },
+          ObservationDateTime: {
+            TimeOfAnEvent: '20240718195000'
+          },
+          CollectionVolume: {
+            Quantity: '0'
+          },
+          CollectorIdentifier: {
+            GivenName: 'auto'
+          },
+          SpecimenReceivedDateTime: {
+            TimeOfAnEvent: '20240718210300'
+          },
+          SpecimenSource: {
+            SpecimenSourceNameOrCode: {
+              Identifier: '0'
+            }
+          },
+          Quantity_Timing: {
+            Duration: '0'
+          },
+          OBR44: '0',
+          OBR45: '4^green^^^^',
+          OBR46: '1^Blood^^^^'
+        },
+        OBX: {
+          SegmentDescription: 'Observation segment',
+          MessageLine: 6,
+          SetID: '10',
+          ValueType: 'TX',
+          ObservationIdentifier: {
+            Identifier: '0813321000',
+            Text: 'esccol',
+            AlternateText: 'Escherichia coli'
+          },
+          ObservationValue: '.',
+          Units: {
+            Identifier: '0',
+            Text: '""'
+          },
+          ReferencesRange: '^',
+          AbnormalFlags: 'N',
+          ObservResultStatus: 'F',
+          DateLastObsNormalValues: {
+            TimeOfAnEvent: 'M'
+          },
+          UserDefinedAccessChecks: '104^714^ Micro_lab',
+          DateTimeOfTheObservation: {
+            TimeOfAnEvent: '20240725154900'
+          },
+          ProducersID: {
+            Identifier: '9999',
+            Text: 'Micro'
+          },
+          ResponsibleObserver: {
+            IDNumber: '1234567-8',
+            FamilyName: 'First',
+            GivenName: 'last'
+          },
+          OBX18: '0',
+          OBX19: '0^^^^^',
+          OBX20: '^AutoComm^16^^^^^',
+          OBX21: '9999^Micro^^^^',
+          OBX22: '207^general^^^^',
+          OBX24: '0810109809^genct^^^^',
+          OBX26: '1',
+          OBX27: '^system^routing^^^^^',
+          OBX28: '20240725150000',
+          OBX29: '^^',
+          OBX30: 'N',
+          OBX31: '1111111111',
+          OBX32: '2222222222',
+          OBX33: '33333333333'
+        }
+      });
+  }
+
+  );
 });
