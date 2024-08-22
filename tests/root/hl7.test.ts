@@ -534,4 +534,102 @@ describe('HL7 v2 tests', () => {
       effectiveDateTime: '2023-04-05T21:50:00Z'
     });
   }, 15000);
+
+  test('HL7 v2 with unknown fields', async () => {
+    const input = getResourceFileContents('inputs', 'HL7-v2-UnknownFields.txt');
+    const requestBody = {
+      input,
+      contentType: 'x-application/hl7-v2+er7',
+      fume: '$'
+    };
+
+    const res = await request(globalThis.app).post('/').send(requestBody);
+
+    expect(res.body).toStrictEqual({
+      MSH: {
+        SegmentDescription: 'Message header segment',
+        FieldSeparator: '|',
+        EncodingCharacters: '^~\\&',
+        SendingApplication: {
+          NamespaceID: '1',
+          UniversalID: 'Autolab',
+          UniversalIDType: '3.02'
+        },
+        SendingFacility: {
+          NamespaceID: '110',
+          UniversalID: 'some_place'
+        },
+        ReceivingApplication: {
+          NamespaceID: '34',
+          UniversalID: 'HL7_PDF'
+        },
+        ReceivingFacility: {
+          NamespaceID: '2400',
+          UniversalID: 'HL7_PDF'
+        },
+        DateTimeOfMessage: {
+          TimeOfAnEvent: '20240726083203'
+        },
+        MessageType: {
+          MessageType: 'ORU',
+          TriggerEvent: 'R01'
+        },
+        MessageControlID: '12345678',
+        ProcessingID: {
+          ProcessingID: 'P'
+        },
+        VersionID: '2.3',
+        ContinuationPointer: '0^^',
+        MSH20: '5'
+      },
+      OBX: {
+        SegmentDescription: 'Observation segment',
+        SetID: '10',
+        ValueType: 'TX',
+        ObservationIdentifier: {
+          Identifier: '0813321000',
+          Text: 'esccol',
+          AlternateText: 'Escherichia coli'
+        },
+        ObservationValue: '.',
+        Units: {
+          Identifier: '0',
+          Text: '""'
+        },
+        ReferencesRange: '^',
+        AbnormalFlags: 'N',
+        ObservResultStatus: 'F',
+        DateLastObsNormalValues: {
+          TimeOfAnEvent: 'M'
+        },
+        UserDefinedAccessChecks: '104^714^ Micro_lab',
+        DateTimeOfTheObservation: {
+          TimeOfAnEvent: '20240725154900'
+        },
+        ProducersID: {
+          Identifier: '9999',
+          Text: 'Micro'
+        },
+        ResponsibleObserver: {
+          IDNumber: '1234567-8',
+          FamilyName: 'First',
+          GivenName: 'last'
+        },
+        OBX18: '0',
+        OBX19: '0^^^^^',
+        OBX20: '^AutoComm^16^^^^^',
+        OBX21: '9999^Micro^^^^',
+        OBX22: '207^general^^^^',
+        OBX24: '0810109809^genct^^^^',
+        OBX26: '1',
+        OBX27: '^system^routing^^^^^',
+        OBX28: '20240725150000',
+        OBX29: '^^',
+        OBX30: 'N',
+        OBX31: '1111111111',
+        OBX32: '2222222222',
+        OBX33: '33333333333'
+      }
+    });
+  });
 });
