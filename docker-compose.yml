@@ -1,0 +1,19 @@
+version: "3.9"
+services:
+  server:
+    container_name: fume-community
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "42420:42420"
+    volumes:
+      - "./snapshots:/usr/src/app/snapshots"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
+        compress: "true"
+    env_file:
+      - ./.env
