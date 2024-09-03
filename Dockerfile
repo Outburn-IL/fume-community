@@ -1,5 +1,10 @@
 FROM node:22 as builder
 
+LABEL org.opencontainers.image.source=https://github.com/Outburn-IL/fume-community
+LABEL org.opencontainers.image.description="FUME FHIR Conversion & Mapping Engine"
+LABEL org.opencontainers.image.licenses=AGPL-3.0
+LABEL org.opencontainers.image.authors="Outburn Ltd."
+
 # Install node-gyp dependencies
 RUN apt-get update -y && apt-get install -y \
     build-essential \
@@ -11,14 +16,11 @@ RUN npm install -g npm@^10
 # Create app directory
 WORKDIR /usr/src/app
 
-# Install app dependencies
-# COPY package*.json ./
-# COPY tsconfig.json ./
+# Copy app source
 COPY . .
-RUN npm install
 
-# Bundle app source
-# COPY . .
+# Install app dependencies
+RUN npm install
 
 # Build app
 RUN npm run build

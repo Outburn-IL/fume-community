@@ -1,7 +1,6 @@
-version: "3.9"
 services:
   server:
-    container_name: fume-community
+    container_name: fume-fhir-converter
     build:
       context: .
       dockerfile: Dockerfile
