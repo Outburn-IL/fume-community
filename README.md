@@ -1,7 +1,9 @@
 # FUME Community - FHIR Utilized Mapping Engine
 
 FUME is a sophisticated FHIR convertion tool.
-Made by Outburn with :heart:
+Made by [Outburn](https://outburn.co.il) with :heart:
+
+[Release Notes](https://www.fume.health/docs/release-notes/community)
 
 The engine has the following main parts:
 
