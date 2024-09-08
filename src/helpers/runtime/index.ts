@@ -7,6 +7,7 @@ import { castToFhir } from './castToFhir';
 import { checkResourceId } from './checkResourceId';
 import { finalize } from './finalize';
 import { flashMerge } from './flashMerge';
+import { wait } from './wait';
 
 export type { CastToFhirOptions } from './castToFhir';
 export type { flashMerge, FlashMergeOptions } from './flashMerge';
@@ -15,5 +16,6 @@ export default {
   castToFhir,
   checkResourceId,
   flashMerge,
-  finalize
+  finalize,
+  wait
 };
