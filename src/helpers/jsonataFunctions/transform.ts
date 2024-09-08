@@ -66,6 +66,7 @@ export const transform = async (input, expression: string, extraBindings: Record
     bindings.__finalize = runtime.finalize;
     bindings.__castToFhir = runtime.castToFhir;
     bindings.__flashMerge = runtime.flashMerge;
+    bindings.wait = runtime.wait;
     bindings.reference = fhirFuncs.reference;
     bindings.resourceId = fhirFuncs.resourceId;
     bindings.initCap = stringFuncs.initCap;
