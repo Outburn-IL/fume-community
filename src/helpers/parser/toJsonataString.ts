@@ -22,7 +22,6 @@ import { getElementDefinition } from './getElementDefinition';
 import { removeComments } from './removeComments';
 
 export const toJsonataString = async (inExpr: string): Promise<string | undefined> => {
-  console.time('Parse to JSONATA');
   let res: string | undefined;
 
   // decrlare FLASH block variables:
@@ -432,22 +431,16 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
     return thrower.throwParseError(`Invalid path: '${currentFshPath}'`);
   };
 
-  try {
-    const withoutComments: string = removeComments(inExpr);
-    let parsed: string = await parseFumeExpression(withoutComments);
-    if (!expressionHasFlash) {
-      res = withoutComments;
-    } else {
-      // check if expression starts with "("
-      const isEnclosed = parsed.trimStart().startsWith('(') && parsed.trimEnd().endsWith('(');
-      // parsed = parsed.includes('$__finalize') ? parsed : `${parsed}$__flashInstance := $__finalize($__flashInstance);`
-      parsed = !isEnclosed ? `(${parsed})` : parsed; // enclose in () if needed
-      res = parsed.includes('$__finalize') ? parsed : parsed + '~>$__finalize';
-    }
-  } catch (e) {
-    console.timeEnd('Parse to JSONATA');
-    throw (e);
-  };
-  console.timeEnd('Parse to JSONATA');
+  const withoutComments: string = removeComments(inExpr);
+  let parsed: string = await parseFumeExpression(withoutComments);
+  if (!expressionHasFlash) {
+    res = withoutComments;
+  } else {
+    // check if expression starts with "("
+    const isEnclosed = parsed.trimStart().startsWith('(') && parsed.trimEnd().endsWith('(');
+    // parsed = parsed.includes('$__finalize') ? parsed : `${parsed}$__flashInstance := $__finalize($__flashInstance);`
+    parsed = !isEnclosed ? `(${parsed})` : parsed; // enclose in () if needed
+    res = parsed.includes('$__finalize') ? parsed : parsed + '~>$__finalize';
+  }
   return res;
 };
