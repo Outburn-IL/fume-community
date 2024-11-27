@@ -14,7 +14,7 @@ import { getMandatoriesOfStructure } from './getMandatoriesOfStructure';
 const dev = process.env.NODE_ENV === 'dev';
 
 export const getMandatoriesOfElement = async (structId: string, relativePath: string): Promise<any> => {
-  if (dev) console.log({ func: getMandatoriesOfElement, structId,relativePath });
+  if (dev) console.log({ func: getMandatoriesOfElement, structId, relativePath });
   /* for primitives, return the primitive if it has a fixed value */
   /* for complex types, return an object containing all mandatory  */
   /* decendants that have fixed values down the chain */
