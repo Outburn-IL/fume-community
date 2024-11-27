@@ -27,6 +27,8 @@ import { getStructureDefinition } from './getStructureDefinition';
 import { logInfo, logWarn } from './log';
 import { registerTable } from './registerTable';
 
+const dev = process.env.NODE_ENV === 'dev';
+
 const compiledExpression = async (expression: string): Promise<jsonata.Expression> => {
   const { compiledExpressions } = getCache();
   // takes a fume expression string and compiles it into a jsonata expression
@@ -104,11 +106,11 @@ export const transform = async (input, expression: string, extraBindings: Record
     bindings.v2codeLookup = v2.v2codeLookup;
     bindings.v2tableUrl = v2.v2tableUrl;
     bindings.toJsonataString = compiler.toJsonataString;
-    bindings.getMandatoriesOfElement = compiler.getMandatoriesOfElement;
-    bindings.getMandatoriesOfStructure = compiler.getMandatoriesOfStructure;
-    bindings.getElementDefinition = compiler.getElementDefinition;
-    bindings.replaceColonsWithBrackets = compiler.replaceColonsWithBrackets;
-    bindings.removeComments = removeComments;
+    if (dev) bindings.getMandatoriesOfElement = compiler.getMandatoriesOfElement;
+    if (dev) bindings.getMandatoriesOfStructure = compiler.getMandatoriesOfStructure;
+    if (dev) bindings.getElementDefinition = compiler.getElementDefinition;
+    if (dev) bindings.replaceColonsWithBrackets = compiler.replaceColonsWithBrackets;
+    if (dev) bindings.removeComments = removeComments;
     bindings.getCodeSystem = conformance.getCodeSystem;
     bindings.getValueSet = conformance.getValueSet;
     // end of debug functions
