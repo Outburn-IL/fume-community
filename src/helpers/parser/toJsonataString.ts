@@ -383,13 +383,13 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
 
         const jsonPrimitiveProfile: string = chosenTypeEntry?.extension?.filter((ext: any) => ext?.url === 'http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type')[0]?.valueUrl;
 
+        const mandatoryObj = await funcs.getMandatoriesOfElement(rootStructDef.id, currentFshPath);
         const typeForFixed = jsonPrimitiveProfile ?? baseType;
-        const fixed: any = eDef['fixed' + initCapOnce(typeForFixed)] ?? eDef['pattern' + initCapOnce(typeForFixed)];
+        const fixed: any = (eDef['fixed' + initCapOnce(typeForFixed)] ?? eDef['pattern' + initCapOnce(typeForFixed)]) ?? mandatoryObj;
 
         const bindingUrl: string = eDef?.binding?.strength === 'required' ? eDef.binding.valueSet : '';
         const vsDictionary = bindingUrl !== '' ? await valueSetExpandDictionary(bindingUrl) : undefined;
 
-        const mandatoryObj = await funcs.getMandatoriesOfElement(rootStructDef.id, currentFshPath);
         let pathForCardinality = currentFshPath;
         if (eDefPath.split('.').length > currentFshPath.split('.').length) {
           pathForCardinality = eDefPath.split('.')[0] + '.' + currentFshPath;

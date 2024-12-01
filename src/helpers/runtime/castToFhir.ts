@@ -20,6 +20,8 @@ export interface CastToFhirOptions {
   vsDictionary?: any[] // codes for required bindings
 };
 
+const dev = process.env.NODE_ENV === 'dev';
+
 const primitiveParsers = {}; // cache for primitive value testing functions
 
 const getPrimitiveParser = async (typeName: string): Promise<Function | undefined> => {
@@ -56,7 +58,8 @@ const testCodingAgainstVS = async (coding: any, vs: any[]): Promise<string | str
 export const castToFhir = async (options: CastToFhirOptions, input: any) => {
   // this is the function that is called from parsed flash rules. it only runs
   // at runtime - when the native jsonata build of the flash script is evaluated
-
+  if (dev) console.log({ castToFhir }, options, input);
+  if (typeof input === 'undefined') return {};
   const baseType: string = options?.baseType;
   const kind: string | undefined = options?.kind; // primitive-type | complex-type | resource
   const elementName: string = options?.name;
@@ -220,8 +223,8 @@ export const castToFhir = async (options: CastToFhirOptions, input: any) => {
 
     if (options.vsDictionary && options.baseType === 'CodeableConcept') {
       // required bindings on CodeableConcept
-      if (Object.keys(resObj).filter((k: string) => k.startsWith('coding')).length > 0) {
-        const vsTest = await expressions.testCodeableAgainstVS.evaluate({}, { codeable: resObj, vs: options.vsDictionary, testCodingAgainstVS });
+      if (Object.keys(res[elementName]).filter((k: string) => k.startsWith('coding')).length > 0) {
+        const vsTest = await expressions.testCodeableAgainstVS.evaluate({}, { codeable: res[elementName], vs: options.vsDictionary, testCodingAgainstVS });
         if (!vsTest) {
           return thrower.throwRuntimeError(`Element ${options?.path} is invalid since none of the codings provided are in the required value set`);
         }
@@ -229,12 +232,13 @@ export const castToFhir = async (options: CastToFhirOptions, input: any) => {
     };
 
     if (options.vsDictionary && (options.baseType === 'Quantity' || options.baseType === 'Coding')) {
+      if (dev) console.log(`(castToFhir): Generating ${options.baseType}`, { path: options?.path, name: options?.name });
       // required bindings on Quantity or Coding
-      if (resObj?.system || resObj?.code) {
-        const vsTest = await testCodingAgainstVS(resObj, options.vsDictionary);
+      if (res[elementName]?.system || res[elementName]?.code) {
+        const vsTest = await testCodingAgainstVS(res[elementName], options.vsDictionary);
         if (!vsTest) {
-          const system: string = resObj?.system ?? '';
-          const code: string = resObj?.code ?? '';
+          const system: string = res[elementName]?.system ?? '';
+          const code: string = res[elementName]?.code ?? '';
           return thrower.throwRuntimeError(`The code '${system}#${code}' is invalid for element ${options?.path}. This code is not in the required value set`);
         }
       }
