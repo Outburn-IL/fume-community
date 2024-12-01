@@ -14,20 +14,25 @@ import { getCurrElement } from './getCurrElement';
 import { getSnapshot } from './getSnapshot';
 import { returnPathWithoutX } from './returnPathWithoutX';
 
+const dev = process.env.NODE_ENV === 'dev';
+
 export interface FshPathObject {
   originPath: string
   newPath: string
 };
 
 export const getElementDefinition = async (rootType: string, path: FshPathObject | string) => {
+  if (dev) console.log({ func: getElementDefinition, rootType, path });
   if (typeof path === 'string') {
     path = { originPath: path, newPath: path };
+    if (dev) console.log({ 'typeof path === \'string\'': true, path });
   }
   const { elementDefinition } = getCache();
   // The current root type element determains the existing paths to look out path in.
   const currTypeStructureDefinition = await getSnapshot(rootType);
   // Creating a list of all the current path nodes.
   const pathNodes = path.newPath.split('.');
+  if (dev) console.log({ pathNodes });
 
   // Iterating the nodes, and for each node implementing the logic. The path is being built from the begining to the end
   // for the fact that a diversion in the main path can lead to a "leaf", if we're not jumping to another Base element.
@@ -38,10 +43,13 @@ export const getElementDefinition = async (rootType: string, path: FshPathObject
 
     // First checking the definition cache
     const cachedElementDefinition = elementDefinition.get(rootType + '-' + currPath);
+    if (dev) console.log({ 'fetching from elementDefinition cache': rootType + '-' + currPath, found: !!cachedElementDefinition });
     if (cachedElementDefinition) {
       currElement = cachedElementDefinition;
+      if (dev) console.log({ cachedElementDefinition });
     } else {
       // Checking if the current element path exists in the current sd
+      if (dev) console.log('(getElementDefinition): getCurrElement()', { currTypeStructureDefinition: currTypeStructureDefinition.id, currPath, nodes, 'path.newPath.split(\'.\')': path.newPath.split('.'), rootType });
       currElement = getCurrElement(currTypeStructureDefinition, currPath, nodes, path.newPath.split('.'), rootType);
       if (currElement) {
         // If an element has a contentReference field, ), it will not have a type or a profile, since those are defined in the referenced target element.
