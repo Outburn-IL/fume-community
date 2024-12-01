@@ -1207,7 +1207,7 @@ describe('integration tests', () => {
     });
   });
 
-  test('Correct value[x] name in a fixed value extension profile', async () => {
+  test('Case 30 - Correct value[x] name in a fixed value extension profile', async () => {
     const mapping = `
             InstanceOf: Patient
             * extension[HearingLossDisability]
@@ -1234,6 +1234,49 @@ describe('integration tests', () => {
           }
         }
       ]
+    });
+  });
+
+  test('Case 31 - Issue#110 - Code validation ignores fixed value for system', async () => {
+    const mapping = `
+      Instance: 'specimen-test'
+      InstanceOf: http://fhir.tasmc.org.il/StructureDefinition/tasmc-specimen-core-lab
+      * type
+        * coding[tasmc]
+          * code = '70'
+          * display= 'Tissue'
+        * coding[ilcore]
+          * code = '119376003'
+          * display = 'Tissue specimen (specimen)'
+    `;
+    const requestBody = {
+      input: {},
+      fume: mapping
+    };
+
+    const res = await request(globalThis.app).post('/').send(requestBody);
+    expect(res.body).toStrictEqual({
+      resourceType: 'Specimen',
+      id: 'specimen-test',
+      meta: {
+        profile: [
+          'http://fhir.tasmc.org.il/StructureDefinition/tasmc-specimen-core-lab'
+        ]
+      },
+      type: {
+        coding: [
+          {
+            system: 'http://snomed.info/sct',
+            code: '119376003',
+            display: 'Tissue specimen (specimen)'
+          },
+          {
+            system: 'http://fhir.tasmc.org.il/CodeSystem/tasmc-specimen-type',
+            code: '70',
+            display: 'Tissue'
+          }
+        ]
+      }
     });
   });
 });
