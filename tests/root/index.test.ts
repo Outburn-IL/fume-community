@@ -391,6 +391,21 @@ describe('integration tests', () => {
     expect(wrong.body.message).toBe('Transformation error: value \'lalaland\' is invalid for element address.country. This code is not in the required value set');
   });
 
+  test('Validate Task.intent code', async () => {
+    const fume = `InstanceOf: Task
+* status = 'accepted'
+* intent = 'plan'`;
+    const requestBody = { fume };
+
+    const res = await request(globalThis.app).post('/').send(requestBody);
+
+    expect(res.body).toStrictEqual({
+      resourceType: 'Task',
+      status: 'accepted',
+      intent: 'plan'
+    });
+  });
+
   test('Case 2 - Slices with fixed values appear even if no children are set', async () => {
     const mapping = `
             InstanceOf: il-core-patient
