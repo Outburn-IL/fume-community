@@ -14,6 +14,7 @@ import jsonata from 'jsonata';
 import { IAppBinding } from '../../types';
 import { getCache } from '../cache';
 import * as conformance from '../conformance';
+import { codeSystemDictionary, valueSetExpandDictionary } from '../conformance/conformance';
 import fhirFuncs from '../fhirFunctions';
 import { parseCsv } from '../inputConverters';
 import * as v2 from '../inputConverters/hl7v2';
@@ -111,6 +112,8 @@ export const transform = async (input, expression: string, extraBindings: Record
     if (dev) bindings.getElementDefinition = compiler.getElementDefinition;
     if (dev) bindings.replaceColonsWithBrackets = compiler.replaceColonsWithBrackets;
     if (dev) bindings.removeComments = removeComments;
+    if (dev) bindings.valueSetExpandDictionary = valueSetExpandDictionary;
+    if (dev) bindings.codeSystemDictionary = codeSystemDictionary;
     bindings.getCodeSystem = conformance.getCodeSystem;
     bindings.getValueSet = conformance.getValueSet;
     // end of debug functions
