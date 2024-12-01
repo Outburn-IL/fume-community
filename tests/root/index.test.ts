@@ -329,48 +329,46 @@ describe('integration tests', () => {
 
     // IL-Core-Vital-Signs: ['valueQuantity']
     // eslint-disable-next-line @typescript-eslint/quotes
-
-    // THIS TEST IS CANCELLED UNTIL ISSUE 111 IS RESOLVED! https://github.com/Outburn-IL/fume-community/issues/111
-    // fume = "InstanceOf: il-core-vital-signs\r\n* status = 'final'\r\n* code.coding\r\n  * system = 'http://loinc.org'\r\n  * code = '8310-5'\r\n* subject.display = 'aaa'\r\n* effectiveDateTime = '2024-06-04T13:36:49.823Z'\r\n* valueQuantity\r\n  * system = 'http://unitsofmeasure.org'\r\n  * code = value\r\n  * value = '100'";
-    // correct = await request(globalThis.app).post('/').send({ input: { value: 'kg' }, fume });
-    // wrong = await request(globalThis.app).post('/').send({ input: { value: 'parsecs' }, fume });
-    // expect(correct.body).toStrictEqual({
-    //   resourceType: 'Observation',
-    //   meta: {
-    //     profile: [
-    //       'http://fhir.health.gov.il/StructureDefinition/il-core-vital-signs'
-    //     ]
-    //   },
-    //   category: [
-    //     {
-    //       coding: [
-    //         {
-    //           system: 'http://terminology.hl7.org/CodeSystem/observation-category',
-    //           code: 'vital-signs'
-    //         }
-    //       ]
-    //     }
-    //   ],
-    //   status: 'final',
-    //   code: {
-    //     coding: [
-    //       {
-    //         system: 'http://loinc.org',
-    //         code: '8310-5'
-    //       }
-    //     ]
-    //   },
-    //   subject: {
-    //     display: 'aaa'
-    //   },
-    //   effectiveDateTime: '2024-06-04T13:36:49.823Z',
-    //   valueQuantity: {
-    //     system: 'http://unitsofmeasure.org',
-    //     code: 'kg',
-    //     value: 100
-    //   }
-    // });
-    // expect(wrong.body.message).toBe('Transformation error: The code \'http://unitsofmeasure.org#parsecs\' is invalid for element Observation.valueQuantity. This code is not in the required value set');
+    fume = "InstanceOf: il-core-vital-signs\r\n* status = 'final'\r\n* code.coding\r\n  * system = 'http://loinc.org'\r\n  * code = '8310-5'\r\n* subject.display = 'aaa'\r\n* effectiveDateTime = '2024-06-04T13:36:49.823Z'\r\n* valueQuantity\r\n  * system = 'http://unitsofmeasure.org'\r\n  * code = value\r\n  * value = '100'";
+    correct = await request(globalThis.app).post('/').send({ input: { value: 'kg' }, fume });
+    wrong = await request(globalThis.app).post('/').send({ input: { value: 'parsecs' }, fume });
+    expect(correct.body).toStrictEqual({
+      resourceType: 'Observation',
+      meta: {
+        profile: [
+          'http://fhir.health.gov.il/StructureDefinition/il-core-vital-signs'
+        ]
+      },
+      category: [
+        {
+          coding: [
+            {
+              system: 'http://terminology.hl7.org/CodeSystem/observation-category',
+              code: 'vital-signs'
+            }
+          ]
+        }
+      ],
+      status: 'final',
+      code: {
+        coding: [
+          {
+            system: 'http://loinc.org',
+            code: '8310-5'
+          }
+        ]
+      },
+      subject: {
+        display: 'aaa'
+      },
+      effectiveDateTime: '2024-06-04T13:36:49.823Z',
+      valueQuantity: {
+        system: 'http://unitsofmeasure.org',
+        code: 'kg',
+        value: 100
+      }
+    });
+    expect(wrong.body.message).toBe('Transformation error: The code \'http://unitsofmeasure.org#parsecs\' is invalid for element Observation.valueQuantity. This code is not in the required value set');
 
     // IL-Core-Address: country
     // eslint-disable-next-line @typescript-eslint/quotes

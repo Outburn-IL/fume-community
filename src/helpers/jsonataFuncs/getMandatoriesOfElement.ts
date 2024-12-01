@@ -23,8 +23,10 @@ export const getMandatoriesOfElement = async (structId: string, relativePath: st
   const rootStructSnapshot = rootStruct.snapshot?.element;
 
   /* take the element definition of the requested (parent) element */
+  if (dev) console.log('calling getElementDefinition', {structId, relativePath});
   const parentElement = await getElementDefinition(structId, relativePath);
   const fromDefinition = parentElement?.__fromDefinition;
+  if (dev) console.log({fromDefinition});
 
   /* check if returned element is from the root definition */
   if (rootStruct?.url === fromDefinition) {

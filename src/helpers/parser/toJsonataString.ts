@@ -21,7 +21,10 @@ import thrower from '../thrower';
 import { getElementDefinition } from './getElementDefinition';
 import { removeComments } from './removeComments';
 
+const dev = process.env.NODE_ENV === 'dev';
+
 export const toJsonataString = async (inExpr: string): Promise<string | undefined> => {
+  if (dev) console.log(toJsonataString);
   let res: string | undefined;
 
   // decrlare FLASH block variables:
@@ -329,6 +332,7 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
       };
 
       // fetch element definition
+      if (dev) console.log('(toJsonataString): getElementDefinition()', { originPath: currentFshPath, newPath: currentFshPath });
       let eDef = await getElementDefinition(rootStructDef.id, { originPath: currentFshPath, newPath: currentFshPath });
       if (eDef) {
         const eDefPath: string = eDef?.path;
@@ -356,6 +360,7 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
               const eDefIDNoRoot: string = eDef.id.split('.').slice(1).join('.');
               const typeSliceElementId: string = `${eDefIDNoRoot}:${jsonName}`;
               // try to fetch the explicit type slice
+              if (dev) console.log('(toJsonataString): getElementDefinition()', { 'rootStructDef.id': rootStructDef.id }, { originPath: typeSliceElementId, newPath: typeSliceElementId });
               const typeSlice = await getElementDefinition(rootStructDef.id, { originPath: typeSliceElementId, newPath: typeSliceElementId });
               if (typeSlice) {
                 // replace head element with type slice element

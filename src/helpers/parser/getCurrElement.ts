@@ -11,8 +11,16 @@ import { getCache } from '../cache';
 import { initCapOnce, replaceColonsWithBrackets } from '../stringFunctions';
 import { returnPathWithoutX } from './returnPathWithoutX';
 
+const dev = process.env.NODE_ENV === 'dev';
+
+const lastNode = (path: string) => {
+  const nodes = path.split('.');
+  return nodes[nodes.length - 1];
+};
+
 // Generate all the options for the next node's path, based on the optional types (value[x])
 const generateNodeIdOptions = (element: any) => {
+  if (dev) console.log({ generateNodeIdOptions, element });
   const fshOptions: string[] = [];
   const elementId: string = returnPathWithoutX(element.id);
   const elementType = _.get(element, 'type');
@@ -25,6 +33,7 @@ const generateNodeIdOptions = (element: any) => {
   elementType.forEach(t => {
     fshOptions.push(elementId + initCapOnce(t.code));
   });
+  if (dev) console.log('(generateNodeIdOptions)', { fshOptions });
   return fshOptions;
 };
 
@@ -38,22 +47,37 @@ const generateNodeIdOptions = (element: any) => {
  * 5 - A slice entry: nodeName[sliceName] = nodeName:sliceName
  **/
 export const getCurrElement = (currTypeStructureDefinition, currPath, nodes, pathNodes, rootType) => {
+  if (dev) console.log({ getCurrElement, 'currTypeStructureDefinition.id': currTypeStructureDefinition.id, currPath, nodes, pathNodes, rootType });
   const { elementDefinition } = getCache();
   const cachedElementDefinition = elementDefinition.get(rootType + '-' + currPath);
+  if (dev) console.log({ '(getCurrElement) fetching from elementDefinition cache': rootType + '-' + currPath, found: !!cachedElementDefinition });
   if (cachedElementDefinition) {
     return cachedElementDefinition;
   } else {
-    const element = currTypeStructureDefinition.snapshot.element.find(e => {
-      return ((e.id === currTypeStructureDefinition?.type + '.' + currPath) ||
-            (e.id === currTypeStructureDefinition?.type + '.' + currPath + '[x]' && e?.type.length === 1) ||
-            (replaceColonsWithBrackets(e.id) === currTypeStructureDefinition?.type + '.' + currPath)) ||
-            (e.id.split('.').length === (pathNodes.length + 1) &&
-            (pathNodes[nodes - 1] === e.id.split('.').slice(1).join('.') ||
-            generateNodeIdOptions(e).find(o => o === currPath) ||
-            pathNodes[nodes - 1] === _.get(returnPathWithoutX(e.id.split('.').slice(1).join('.')).split('[x]:'), '1', false))) ||
-            generateNodeIdOptions(e).find((o: any) => o.split('.').slice(1).join('.') === currPath);
+    const elements = currTypeStructureDefinition.snapshot.element.filter(e => {
+      return (
+        (
+          e.id === currTypeStructureDefinition?.type + '.' + currPath
+        ) || (
+          e.id === currTypeStructureDefinition?.type + '.' + currPath + '[x]' && e?.type.length === 1
+        ) || (
+          replaceColonsWithBrackets(e.id) === currTypeStructureDefinition?.type + '.' + currPath
+        ) || (
+          e.path.endsWith('[x]') &&
+          e.id === e.path + ':' + currPath &&
+          e.type.length === 1 &&
+          currPath === lastNode(e.path).split('[x]')[0] + initCapOnce(e.type[0].code) &&
+          currPath.split('.').length === e.id.split('.').length - 1
+        )
+      ) || (
+        e.id.split('.').length === (pathNodes.length + 1) && (
+          pathNodes[nodes - 1] === e.id.split('.').slice(1).join('.') ||
+          generateNodeIdOptions(e).find(o => o === currPath) ||
+          pathNodes[nodes - 1] === _.get(returnPathWithoutX(e.id.split('.').slice(1).join('.')).split('[x]:'), '1', false)
+        )
+      ) || generateNodeIdOptions(e).find((o: any) => o.split('.').slice(1).join('.') === currPath);
     });
-
-    return element;
+    if (dev) console.log('(getCurrElement)', { elements });
+    return elements[elements.length - 1];
   }
 };
