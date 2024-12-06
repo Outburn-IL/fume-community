@@ -8,6 +8,7 @@ import express from 'express';
 import type { Server } from 'http';
 
 import config from './config';
+import { fumeFhirPackageId } from './constants';
 import { getCache, IAppCacheKeys, initCache, InitCacheConfig } from './helpers/cache';
 import * as conformance from './helpers/conformance';
 import { FhirClient, setFhirClient } from './helpers/fhirServer';
@@ -73,7 +74,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     this.logger.info('FUME initializing...');
     config.setServerConfig(options);
     const serverConfig: IConfig = config.getServerConfig();
-    const { SERVER_PORT, FHIR_SERVER_BASE, FHIR_VERSION, EXCLUDE_FHIR_PACKAGES, FHIR_PACKAGES, SEARCH_BUNDLE_PAGE_SIZE, FHIR_SERVER_TIMEOUT, SERVER_STATELESS } = serverConfig;
+    const { SERVER_PORT, FHIR_SERVER_BASE, FHIR_VERSION, FHIR_PACKAGES, SEARCH_BUNDLE_PAGE_SIZE, FHIR_SERVER_TIMEOUT, SERVER_STATELESS } = serverConfig;
     this.logger.info(serverConfig);
 
     // initialize caches
@@ -83,19 +84,18 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     this.logger.info(`Default FHIR version is set to ${FHIR_VERSION}`);
     // translate fhir version to package id
     const fhirVersionCorePackageId = config.getFhirCorePackage();
-    // load package or throw error
+    // download package or throw error
     if (fhirVersionCorePackageId) {
-      const loadRes = await conformance.loadPackage(fhirVersionCorePackageId);
-      if (loadRes && loadRes?.errors?.length > 0) {
-        throw new Error(`Errors loading package for FHIR version ${FHIR_VERSION}: ${loadRes.errors.join(', ')}`);
+      const loadRes = await conformance.downloadPackages([fhirVersionCorePackageId]);
+      if (!loadRes) {
+        throw new Error(`Errors loading package for FHIR version ${FHIR_VERSION}`);
       }
     } else {
       throw new Error(`FHIR version ${FHIR_VERSION} is unsupported/invalid!`);
     };
-    // load additional packages, if defined
-    if (FHIR_PACKAGES.trim() !== '') {
-      await conformance.loadPackages(FHIR_PACKAGES.split(','), FHIR_PACKAGES.split(','), EXCLUDE_FHIR_PACKAGES.split(','));
-    };
+    // load packages
+    const packageList: string[] = [fhirVersionCorePackageId, fumeFhirPackageId].concat(FHIR_PACKAGES.split(','));
+    await conformance.downloadPackages(packageList);
 
     // load index of all packages found in global fhir cache (on disk)
     await conformance.loadFhirPackageIndex();
