@@ -10,3 +10,4 @@ snapshots
 .eslintcache
 **/hapi.postgress.data
 
+fhirPackageIndex.json
