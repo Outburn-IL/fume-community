@@ -1,3 +1,2 @@
 npx lint-staged
-git add .
 npm run test:unit
