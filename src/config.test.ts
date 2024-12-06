@@ -8,7 +8,6 @@ import { test } from '@jest/globals';
 import config from './config';
 
 const serverDefaults = {
-  EXCLUDE_FHIR_PACKAGES: '',
   FHIR_PACKAGES: 'il.core.fhir.r4@0.11.0,hl7.fhir.us.core@6.0.0,fhir.outburn.co.il@0.0.1,laniado.test.fhir.r4',
   FHIR_SERVER_AUTH_TYPE: 'NONE',
   FHIR_SERVER_BASE: 'http://hapi-fhir.outburn.co.il/fhir',
@@ -38,7 +37,6 @@ describe('setServerConfig', () => {
       FHIR_SERVER_BASE: 'http://hapi-fhir.outburn.co.il/fhir-test   '
     });
     expect(config.getServerConfig()).toEqual({
-      EXCLUDE_FHIR_PACKAGES: '',
       FHIR_PACKAGES: 'il.core.fhir.r4@0.11.0,hl7.fhir.us.core@6.0.0,fhir.outburn.co.il@0.0.1,laniado.test.fhir.r4',
       FHIR_SERVER_AUTH_TYPE: 'NONE',
       FHIR_SERVER_BASE: 'http://hapi-fhir.outburn.co.il/fhir-test',
@@ -57,7 +55,6 @@ describe('setServerConfig', () => {
       SERVER_STATELESS: false
     });
     expect(config.getServerConfig()).toEqual({
-      EXCLUDE_FHIR_PACKAGES: '',
       FHIR_PACKAGES: 'il.core.fhir.r4@0.11.0,hl7.fhir.us.core@6.0.0,fhir.outburn.co.il@0.0.1,laniado.test.fhir.r4',
       FHIR_SERVER_AUTH_TYPE: 'NONE',
       FHIR_SERVER_BASE: '',
