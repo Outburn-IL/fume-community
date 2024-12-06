@@ -10,6 +10,15 @@ import type { IAppBinding, IConfig } from './types';
 
 const additionalBindings: Record<string, IAppBinding> = {}; // additional functions to bind when running transformations
 let serverConfig: IConfig = { ...defaultConfig };
+let fhirPackages: Record<string, string> = {};
+
+const setFhirPackages = (packages: Record<string, string>) => {
+  fhirPackages = packages;
+};
+
+const getFhirPackages = () => {
+  return fhirPackages;
+};
 
 const setServerConfig = <ConfigType extends IConfig>(config: Partial<ConfigType>) => {
   let fhirServerBase: string | undefined = config.FHIR_SERVER_BASE ? config.FHIR_SERVER_BASE.trim() : undefined;
@@ -60,5 +69,7 @@ export default {
   getServerConfig,
   setServerConfig,
   setBinding,
-  getBindings
+  getBindings,
+  setFhirPackages,
+  getFhirPackages
 };

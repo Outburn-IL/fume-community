@@ -19,7 +19,7 @@ describe('loadFhirPackageIndex', () => {
   test('Creates the cache folder if it does not exist', async () => {
     let counter = 0;
     (fs.existsSync as jest.Mock).mockImplementation((name: string) => {
-      if (name.includes('fume.index.json')) {
+      if (name.includes('fhirPackageIndex.json')) {
         return false;
       }
       if (counter === 0) {
@@ -32,12 +32,12 @@ describe('loadFhirPackageIndex', () => {
     (fs.readdirSync as jest.Mock).mockReturnValue([]);
     await loadFhirPackageIndex();
     expect(fs.mkdirSync).toHaveBeenCalledTimes(1);
-    expect(fs.mkdirSync).toHaveBeenCalledWith(path.join(os.homedir(), '.fhir'), { recursive: true });
+    expect(fs.mkdirSync).toHaveBeenCalledWith(path.join(os.homedir(), '.fhir', 'packages'), { recursive: true });
   });
 
   test('Doesnt create the cache folder if it exists', async () => {
     (fs.existsSync as jest.Mock).mockImplementation((name: string) => {
-      if (name.includes('fume.index.json')) {
+      if (name.includes('fhirPackageIndex.json')) {
         return false;
       }
       return true;

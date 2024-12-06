@@ -27,5 +27,5 @@ export const getCachedPackageDirs = () => {
 };
 
 export const getFumeIndexFilePath = () => {
-  return path.join(getCachePath(), 'fume.index.json');
+  return path.join('.', 'fhirPackageIndex.json');
 };
