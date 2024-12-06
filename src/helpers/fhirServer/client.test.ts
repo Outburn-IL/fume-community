@@ -18,8 +18,7 @@ const mockConfig = {
   SERVER_STATELESS: false,
   FHIR_VERSION: '4.0.1',
   SEARCH_BUNDLE_PAGE_SIZE: 200,
-  FHIR_PACKAGES: '',
-  EXCLUDE_FHIR_PACKAGES: ''
+  FHIR_PACKAGES: ''
 };
 
 describe('FhirClient', () => {

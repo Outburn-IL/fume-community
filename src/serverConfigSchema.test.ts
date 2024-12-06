@@ -11,7 +11,6 @@ describe('FumeConfigSchema', () => {
   test('Check schema defaults', async () => {
     const config = FumeConfigSchema.parse({});
     expect(config).toStrictEqual({
-      EXCLUDE_FHIR_PACKAGES: '',
       FHIR_PACKAGES: '',
       FHIR_SERVER_AUTH_TYPE: 'NONE',
       FHIR_SERVER_BASE: 'http://hapi-fhir.outburn.co.il/fhir',

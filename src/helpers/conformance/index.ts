@@ -4,10 +4,11 @@
  */
 import { getCodeSystem, getStructureDefinition, getTable, getValueSet } from './conformance';
 import { getFhirPackageIndex, IFhirPackageIndex, loadFhirPackageIndex } from './loadFhirPackageIndex';
-import { loadPackage, loadPackages } from './loadPackages';
+import { downloadPackages } from './loadPackages';
 import { getAliasResource, recacheFromServer } from './recacheFromServer';
 
 export {
+  downloadPackages,
   getAliasResource,
   getCodeSystem,
   getFhirPackageIndex,
@@ -16,7 +17,5 @@ export {
   getValueSet,
   IFhirPackageIndex,
   loadFhirPackageIndex,
-  loadPackage,
-  loadPackages,
   recacheFromServer
 };
