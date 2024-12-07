@@ -279,9 +279,7 @@ const expressions: InternalJsonataExpression = {
   
     $files := ($.packageIndex.files[resourceType in ['StructureDefinition','ValueSet','CodeSystem','ConceptMap']].(
       $fullPath := $pathJoin(%.%.path, filename);
-      $actualFile := $require($fullPath);
-      $fhirVersion := $exists($actualFile.fhirVersion) ? $actualFile.fhirVersion : ($exists(%.%.packageManifest.fhirVersions) ? %.%.packageManifest.fhirVersions : %.%.packageManifest.\`fhir-version-list\`);
-      $resourceName := ($type($actualFile.name)='string'?$actualFile.name);
+      $fhirVersion := ($exists(%.%.packageManifest.fhirVersions) ? %.%.packageManifest.fhirVersions : %.%.packageManifest.\`fhir-version-list\`);
       {
         'packageId': %.%.$packageReplace(package),
         'packageName': %.%.packageManifest.name,
@@ -292,13 +290,13 @@ const expressions: InternalJsonataExpression = {
         'resourceType': resourceType,
         'id': id,
         'url': url,
-        'name': $resourceName,
+        'name': name,
         'version': version,
         'kind': kind,
         'type': type,
-        'baseDefinition': $actualFile.baseDefinition,
-        'derivation': $actualFile.derivation,
-        'date': $actualFile.date
+        'baseDefinition': baseDefinition,
+        'derivation': derivation,
+        'date': date
       }
     )){path: $};
   
