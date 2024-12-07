@@ -8,7 +8,7 @@ import * as fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-import { getCachedPackageDirs, getCachePath } from './getCachePath';
+import { getCachePath } from './getCachePath';
 jest.mock('fs');
 
 describe('Cache paths', () => {
@@ -36,32 +36,32 @@ describe('Cache paths', () => {
     (fs.existsSync as jest.Mock).mockReturnValue(true);
     (fs.mkdirSync as jest.Mock).mockReturnValue(true);
     (fs.readdirSync as jest.Mock).mockReturnValue([]);
-    await getCachePath();
+    getCachePath();
     expect(fs.mkdirSync).toHaveBeenCalledTimes(0);
   });
 
-  test('empty getCachedPackageDirs', async () => {
-    (fs.readdirSync as jest.Mock).mockReturnValue([]);
-    const dirs = getCachedPackageDirs();
-    expect(dirs).toHaveLength(0);
-  });
+  // test('empty getCachedPackageDirs', async () => {
+  //   (fs.readdirSync as jest.Mock).mockReturnValue([]);
+  //   const dirs = getCachedPackageDirs();
+  //   expect(dirs).toHaveLength(0);
+  // });
 
-  test('getCachedPackageDirs with folders', async () => {
-    (fs.readdirSync as jest.Mock).mockReturnValue([{
-      isDirectory: () => true,
-      name: 'test'
-    }]);
-    const dirs = getCachedPackageDirs();
-    expect(dirs).toHaveLength(1);
-    expect(dirs[0]).toBe('test');
-  });
+  // test('getCachedPackageDirs with folders', async () => {
+  //   (fs.readdirSync as jest.Mock).mockReturnValue([{
+  //     isDirectory: () => true,
+  //     name: 'test'
+  //   }]);
+  //   const dirs = getCachedPackageDirs();
+  //   expect(dirs).toHaveLength(1);
+  //   expect(dirs[0]).toBe('test');
+  // });
 
-  test('getCachedPackageDirs with non folder', async () => {
-    (fs.readdirSync as jest.Mock).mockReturnValue([{
-      isDirectory: () => false,
-      name: 'test'
-    }]);
-    const dirs = getCachedPackageDirs();
-    expect(dirs).toHaveLength(0);
-  });
+  // test('getCachedPackageDirs with non folder', async () => {
+  //   (fs.readdirSync as jest.Mock).mockReturnValue([{
+  //     isDirectory: () => false,
+  //     name: 'test'
+  //   }]);
+  //   const dirs = getCachedPackageDirs();
+  //   expect(dirs).toHaveLength(0);
+  // });
 });

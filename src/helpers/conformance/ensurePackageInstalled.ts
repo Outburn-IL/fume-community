@@ -11,33 +11,103 @@ import { pipeline } from 'stream/promises';
 import * as tar from 'tar';
 import temp from 'temp';
 
+import config from '../../config';
+import { BaseResource } from '../../types/BaseResource';
+import { FileInPackageIndex } from '../../types/FileInPackageIndex';
+import { PackageIdentifier } from '../../types/PackageIdentifier';
+import { PackageIndex } from '../../types/PackageIndex';
+import { PackageManifest } from '../../types/PackageManifest';
 import { getLogger } from '../logger';
 import { getCachePackagesPath } from './getCachePath';
 
-interface PackageObject {
-  id: string
-  version: string
-};
-
 const cachePath = getCachePackagesPath();
 const registryUrl = 'https://packages.fhir.org';
-const fallbackTarballUrl = (packageObject: PackageObject) => `https://packages.simplifier.net/${packageObject.id}/-/${packageObject.id}-${packageObject.version}.tgz`;
+const fallbackTarballUrl = (packageObject: PackageIdentifier) => `https://packages.simplifier.net/${packageObject.id}/-/${packageObject.id}-${packageObject.version}.tgz`;
 
 /**
  * Takes a PackageObject and returns the corresponding directory name of the package
  * @param packageObject A PackageObject with both name and version keys
  * @returns (string) Directory name in the standard format `name#version`
  */
-const toDirName = (packageObject: PackageObject): string => packageObject.id + '#' + packageObject.version;
+const toDirName = (packageObject: PackageIdentifier): string => packageObject.id + '#' + packageObject.version;
+
+const getPackageDirPath = (packageObject: PackageIdentifier): string => {
+  const dirName = toDirName(packageObject);
+  const packPath = path.join(cachePath, dirName);
+  return packPath;
+};
+
+const getPackageIndexPath = (packageObject: PackageIdentifier): string => path.join(getPackageDirPath(packageObject), 'package', '.fume.index.json');
+
+/**
+ * Scans a package folder and generates a new `.fume.index.json` file
+ * @param packagePath The path where the package is installed
+ * @returns PackageIndex
+ */
+const generatePackageIndex = async (packageObject: PackageIdentifier): Promise<PackageIndex> => {
+  getLogger().info(`Generating new .fume.index.json file for package ${packageObject.id}@${packageObject.version}...`);
+  const packagePath = getPackageDirPath(packageObject);
+  const indexPath = getPackageIndexPath(packageObject);
+  const evalAttribute = (att: any | any[]) => (typeof att === 'string' ? att : undefined);
+  try {
+    const fileList = await fs.readdir(path.join(packagePath, 'package'));
+    const files = await Promise.all(
+      fileList.filter(
+        file => file.endsWith('.json') && file !== 'package.json' && !file.endsWith('.index.json')
+      ).map(
+        async (file: string) => {
+          const content: BaseResource = JSON.parse(await fs.readFile(path.join(packagePath, 'package', file), { encoding: 'utf8' }));
+          const indexEntry: FileInPackageIndex = {
+            filename: file,
+            resourceType: content.resourceType,
+            id: content.id,
+            url: evalAttribute(content.url),
+            name: evalAttribute(content.name),
+            version: evalAttribute(content.version),
+            kind: evalAttribute(content.kind),
+            type: evalAttribute(content.type),
+            supplements: evalAttribute(content.supplements),
+            content: evalAttribute(content.content),
+            baseDefinition: evalAttribute(content.baseDefinition),
+            derivation: evalAttribute(content.derivation),
+            date: evalAttribute(content.date)
+          };
+          return indexEntry;
+        }
+      )
+    );
+    const indexJson: PackageIndex = {
+      'index-version': 2,
+      files
+    };
+    await fs.writeFile(indexPath, JSON.stringify(indexJson, null, 2));
+    return indexJson;
+  } catch (e) {
+    getLogger().error(e);
+    throw (e);
+  };
+};
+
+const getPackageIndexFile = async (packageObject: PackageIdentifier): Promise<PackageIndex> => {
+  const path = getPackageIndexPath(packageObject);
+  if (await fs.exists(path)) {
+    const contents: string = await fs.readFile(path, { encoding: 'utf8' });
+    const parsed: PackageIndex = JSON.parse(contents);
+    return parsed;
+  };
+  /* If we got here it means the index file is missing */
+  /* Hence, we need to build it */
+  const newIndex: PackageIndex = await generatePackageIndex(packageObject);
+  return newIndex;
+};
 
 /**
  * Checks if the package folder is found in the package cache
  * @param packageObject An object with `name` and `version` keys
  * @returns `true` if the package folder was found, `false` otherwise
  */
-const isInstalled = (packageObject: PackageObject): boolean => {
-  const dirName = toDirName(packageObject);
-  const packPath = path.join(cachePath, dirName);
+const isInstalled = (packageObject: PackageIdentifier): boolean => {
+  const packPath = getPackageDirPath(packageObject);
   return fs.existsSync(packPath);
 };
 
@@ -81,7 +151,7 @@ const checkLatestPackageDist = async (packageName: string): Promise<string> => {
  * @param packageId (string) Raw package identifier string. Could be `name@version`, `name#version` or just `name`
  * @returns a PackageObject with name and version
  */
-const toPackageObject = async (packageId: string): Promise<PackageObject> => {
+const toPackageObject = async (packageId: string): Promise<PackageIdentifier> => {
   const packageName: string = packageId.split('#')[0].split('@')[0];
   let packageVersion: string = getVersionFromPackageString(packageId);
   if (packageVersion === 'latest') packageVersion = await checkLatestPackageDist(packageName);
@@ -93,7 +163,7 @@ const toPackageObject = async (packageId: string): Promise<PackageObject> => {
  * @param packageObject
  * @returns Tarball URL
  */
-const getTarballUrl = async (packageObject: PackageObject): Promise<string> => {
+const getTarballUrl = async (packageObject: PackageIdentifier): Promise<string> => {
   let tarballUrl: string;
   try {
     const packageData = await getPackageDataFromRegistry(packageObject.id);
@@ -111,7 +181,7 @@ const getTarballUrl = async (packageObject: PackageObject): Promise<string> => {
  * @param tempDirectory
  * @returns The final path of the package in the cache
  */
-const cachePackageTarball = async (packageObject: PackageObject, tempDirectory: string): Promise<string> => {
+const cachePackageTarball = async (packageObject: PackageIdentifier, tempDirectory: string): Promise<string> => {
   const finalPath = path.join(cachePath, toDirName(packageObject));
   if (!isInstalled(packageObject)) {
     await fs.move(tempDirectory, finalPath);
@@ -124,7 +194,7 @@ const cachePackageTarball = async (packageObject: PackageObject, tempDirectory: 
  * Downloads the tarball file into a temp folder and returns the path
  * @param packageObject
  */
-const downloadTarball = async (packageObject: PackageObject): Promise<string> => {
+const downloadTarball = async (packageObject: PackageIdentifier): Promise<string> => {
   const tarballUrl: string = await getTarballUrl(packageObject);
   const res = await axios.get(tarballUrl, { responseType: 'stream' });
   if (res?.status === 200 && res?.data) {
@@ -144,16 +214,20 @@ const downloadTarball = async (packageObject: PackageObject): Promise<string> =>
   }
 };
 
-const getDependencies = async (packageObject: PackageObject) => {
+const getManifest = async (packageObject: PackageIdentifier): Promise<PackageManifest> => {
   const manifestPath: string = path.join(cachePath, toDirName(packageObject), 'package', 'package.json');
   const manifestFile = await fs.readFile(manifestPath, { encoding: 'utf8' });
   if (manifestFile) {
     const manifest = JSON.parse(manifestFile);
-    return manifest?.dependencies ?? {};
+    return manifest;
   } else {
     getLogger().warn(`Could not find package manifest for ${packageObject.id}@${packageObject.version}`);
-    return {};
+    return { name: packageObject.id, version: packageObject.version };
   }
+};
+
+const getDependencies = async (packageObject: PackageIdentifier) => {
+  return (await getManifest(packageObject))?.dependencies;
 };
 
 /**
@@ -165,17 +239,22 @@ const getDependencies = async (packageObject: PackageObject) => {
 const ensure = async (packageId: string) => {
   const packageObject = await toPackageObject(packageId);
   const installed = isInstalled(packageObject);
+  let installedPath: string;
   if (!installed) {
     try {
       const tempPath: string = await downloadTarball(packageObject);
-      await cachePackageTarball(packageObject, tempPath);
+      installedPath = await cachePackageTarball(packageObject, tempPath);
     } catch (e) {
       getLogger().error(e);
       throw new Error(`Failed to install package ${packageId}`);
     }
+  } else {
+    installedPath = getPackageDirPath(packageObject);
   };
+  const packageIndex: PackageIndex = await getPackageIndexFile(packageObject);
+  config.addFhirPackage(packageObject, await getManifest(packageObject), installedPath, packageIndex);
   // package itself is installed now. Ensure dependencies.
-  const deps: Record<string, string> = await getDependencies(packageObject);
+  const deps = await getDependencies(packageObject);
   for (const pack in deps) {
     await ensure(pack + '@' + deps[pack]);
   };
