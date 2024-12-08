@@ -378,7 +378,19 @@ const expressions = {
       [$res];
     )
   `),
-  noDuplicateElements: jsonata('$count(($elementArray{id: $count($)}.*)[$>1])=0'),
+  noDuplicateElements: jsonata(`
+    (
+      $res := $count(($elementArray{id: $count($distinct($))}.*)[$>1])=0;
+      $res = false ? (
+        (($elementArray{id: $count($distinct($))} ~> $spread)[*>1] ~> $keys)@$id.(
+          $e := $elementArray[id = $id];
+          $info($e.id);
+          $info($e);
+        )
+      );
+      $res;
+    )
+  `),
   repositionSlices: jsonata(`
     (
       /* @params: $wipSnapshot, $originalBase, $level */
@@ -729,10 +741,13 @@ const expressions = {
       )};
 
       $ss := $generateSnapshot($profileId);
-      /* remove internal proccessing tags from results */
+      
+      $ss := (/* remove internal proccessing tags from results */
       $ss 
       ~> |*.element|{},['_diffId', '__fromDefinition', '__rootChildren', '__sliceChildren']| 
-      ~> $fixMonoPolySlicesSnap;
+      ~> $fixMonoPolySlicesSnap);
+
+      $merge([$ss, {'snapshot': { 'element': [$distinct($ss.snapshot.element)]}}]);
     )
   `)
 };
@@ -869,7 +884,7 @@ const changeRoot = async (elementArray: any | any[], newRootElement: any) => {
 };
 
 const noDuplicateElements = async (elementArray: any | any[]) => {
-  return await expressions.noDuplicateElements.evaluate({}, { elementArray });
+  return await expressions.noDuplicateElements.evaluate({}, { elementArray, info: logInfo });
 };
 
 const repositionSlices = async (wipSnapshot: any | any[], originalBase: any | any[], level: number) => {
