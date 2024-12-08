@@ -7,17 +7,27 @@ import { fhirCorePackages } from './constants';
 import { fhirVersionToMinor } from './helpers/fhirFunctions/fhirVersionToMinor';
 import defaultConfig from './serverConfig';
 import type { IAppBinding, IConfig } from './types';
+import { PackageIdentifier } from './types/PackageIdentifier';
+import { PackageIndex } from './types/PackageIndex';
+import { PackageManifest } from './types/PackageManifest';
 
 const additionalBindings: Record<string, IAppBinding> = {}; // additional functions to bind when running transformations
 let serverConfig: IConfig = { ...defaultConfig };
-let fhirPackages: Record<string, string> = {};
+let fhirPackages: Record<string, PackageManifest> = {};
 
-const setFhirPackages = (packages: Record<string, string>) => {
+const setFhirPackages = (packages: Record<string, PackageManifest>) => {
   fhirPackages = packages;
 };
 
 const getFhirPackages = () => {
   return fhirPackages;
+};
+
+const addFhirPackage = (identifier: PackageIdentifier, manifest: PackageManifest, path: string, packageIndex: PackageIndex) => {
+  const key = identifier.id + '@' + identifier.version;
+  if (!fhirPackages[key]) {
+    fhirPackages[key] = { ...manifest, installedPath: path, '.index.json': packageIndex };
+  }
 };
 
 const setServerConfig = <ConfigType extends IConfig>(config: Partial<ConfigType>) => {
@@ -71,5 +81,6 @@ export default {
   setBinding,
   getBindings,
   setFhirPackages,
-  getFhirPackages
+  getFhirPackages,
+  addFhirPackage
 };

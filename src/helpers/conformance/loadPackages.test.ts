@@ -5,24 +5,24 @@
 
 import { test } from '@jest/globals';
 // import * as fpl from 'fhir-package-loader';
-import mockAxios from 'jest-mock-axios';
+// import mockAxios from 'jest-mock-axios';
 
-import * as cached from './getCachePath';
+// import * as cached from './getCachePath';
 // import { loadPackages } from './loadPackages';
 // jest.mock('fhir-package-loader');
 // const mockFpl = jest.mocked(fpl, { shallow: true });
-const mockCached = jest.mocked(cached, { shallow: true });
+// const mockCached = jest.mocked(cached, { shallow: true });
 
 describe('loadPackages', () => {
-  beforeEach(() => {
-    mockCached.getCachedPackageDirs = jest.fn().mockReturnValue([]);
-    mockCached.getCachePackagesPath = jest.fn().mockReturnValue('cachePath');
-  });
+  // beforeEach(() => {
+  //   mockCached.getCachedPackageDirs = jest.fn().mockReturnValue([]);
+  //   mockCached.getCachePackagesPath = jest.fn().mockReturnValue('cachePath');
+  // });
 
-  afterEach(() => {
-    mockAxios.reset();
-    jest.resetAllMocks();
-  });
+  // afterEach(() => {
+  //   mockAxios.reset();
+  //   jest.resetAllMocks();
+  // });
 
   // test('Load empty list of packages', async () => {
   //   await loadPackages([], []);
