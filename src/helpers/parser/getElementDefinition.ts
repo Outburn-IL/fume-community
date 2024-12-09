@@ -7,7 +7,10 @@
 
 import _ from 'lodash';
 
+import config from '../../config';
 import { getCache } from '../cache';
+import { getFhirPackageIndex } from '../conformance';
+import { getLogger } from '../logger';
 import { initCapOnce, replaceColonsWithBrackets } from '../stringFunctions';
 import thrower from '../thrower';
 import { getCurrElement } from './getCurrElement';
@@ -29,7 +32,7 @@ export const getElementDefinition = async (rootType: string, path: FshPathObject
   }
   const { elementDefinition } = getCache();
   // The current root type element determains the existing paths to look out path in.
-  const currTypeStructureDefinition = await getSnapshot(rootType);
+  const currTypeStructureDefinition = await getSnapshot(rootType, config.getFhirVersion(), getFhirPackageIndex(), getLogger());
   // Creating a list of all the current path nodes.
   const pathNodes = path.newPath.split('.');
   if (dev) console.log({ pathNodes });
@@ -76,7 +79,7 @@ export const getElementDefinition = async (rootType: string, path: FshPathObject
         if (_.get(baseElem, ['type', '0'])) {
           let baseElemSnapshot;
           try {
-            baseElemSnapshot = await getSnapshot(pathNodes[nodes - 1].split('[')[1].split(']')[0]);
+            baseElemSnapshot = await getSnapshot(pathNodes[nodes - 1].split('[')[1].split(']')[0], config.getFhirVersion(), getFhirPackageIndex(), getLogger());
 
             if (baseElemSnapshot) {
               // Fixing the fsh to the element id standard if relevant. (bracets to colon)

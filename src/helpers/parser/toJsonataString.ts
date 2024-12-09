@@ -3,10 +3,13 @@
  *   Project name: FUME-COMMUNITY
  */
 
+import config from '../../config';
+import { getFhirPackageIndex } from '../conformance';
 import { valueSetExpandDictionary } from '../conformance/conformance';
 import expressions from '../jsonataExpression';
 import { funcs } from '../jsonataFuncs';
 import { getStructureDefinition } from '../jsonataFunctions';
+import { getLogger } from '../logger';
 import { CastToFhirOptions, FlashMergeOptions } from '../runtime';
 import {
   duplicate,
@@ -92,7 +95,7 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
       // make sure it's a potentially valid FHIR type
       if (!(await funcs.isTypeNameValid(rootTypeId))) return thrower.throwParseError(`value after "InstanceOf:" must be a valid type name, id or URL, and cannot be an expression. Found: "${rootTypeId}"`);
       // try to fetch the type's StructureDefinition resource
-      rootStructDef = await getStructureDefinition(rootTypeId);
+      rootStructDef = await getStructureDefinition(rootTypeId, config.getFhirVersion(), getFhirPackageIndex(), getLogger());
       // throw error if StructureDefinition can't be fetched
       if (rootStructDef === undefined) return thrower.throwParseError(`can't find definition of ${rootTypeId}!`);
       // currentFshPath = rootStructDef.type;
@@ -377,7 +380,7 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
         let kind: string = '';
         if (!baseType.startsWith('http://hl7.org/fhirpath/System.')) {
           // fetch StructureDefintion of type
-          const typeStructDef = await getStructureDefinition(baseType);
+          const typeStructDef = await getStructureDefinition(baseType, config.getFhirVersion(), getFhirPackageIndex(), getLogger());
           kind = typeStructDef?.kind;
         };
 

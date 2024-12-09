@@ -4,7 +4,7 @@
  */
 
 import config from './config';
-import { getAliasResource } from './helpers/conformance';
+import { getAliasResource, getFhirPackageIndex } from './helpers/conformance';
 import { parseCsv } from './helpers/inputConverters';
 import { v2json } from './helpers/inputConverters/hl7v2';
 import expressions from './helpers/jsonataExpression';
@@ -45,5 +45,6 @@ export const fumeUtils = {
   getFhirVersionMinor: config.getFhirVersionMinor,
   toJsonataString: parser.toJsonataString,
   getSnapshot: parser.getSnapshot,
-  v2json
+  v2json,
+  getFhirPackageIndex
 };
