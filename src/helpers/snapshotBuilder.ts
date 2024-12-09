@@ -5,7 +5,9 @@
 
 import jsonata from 'jsonata';
 
-import { getStructureDefinition as getRawDefinition, logInfo, logWarn } from './jsonataFunctions';
+import { ILogger } from '../types';
+import { IFhirPackageIndex } from './conformance';
+import { getStructureDefinition as getRawDefinition } from './jsonataFunctions';
 import { omitKeys } from './objectFunctions';
 import parser from './parser';
 import { endsWith, startsWith } from './stringFunctions';
@@ -760,30 +762,30 @@ const toTitleCase = (str: string) => {
 };
 
 const polyNameWithoutX = async (polyId: string) => {
-  const res: string = await expressions.polyNameWithoutX.evaluate({}, { polyId, info: logInfo });
+  const res: string = await expressions.polyNameWithoutX.evaluate({}, { polyId });
   return res;
 };
 
-const fixMonoPolySlicesIterator = async (diff: any[], depth: number) => {
+const fixMonoPolySlicesIterator = async (diff: any[], depth: number, logger: ILogger) => {
   /* fix a single depth level - used in the $reduce function */
-  return await expressions.fixMonoPolySlicesIterator.evaluate({}, { diff, depth, endsWith, polyNameWithoutX, startsWith, mergeElementDefinition, toTitleCase, omitKeys, info: logInfo });
+  return await expressions.fixMonoPolySlicesIterator.evaluate({}, { diff, depth, endsWith, polyNameWithoutX, startsWith, mergeElementDefinition, toTitleCase, omitKeys, info: (msg: any) => logger.info(msg) });
 };
 
-const fixMonoPolySlicesDiff = async (def: any) => {
+const fixMonoPolySlicesDiff = async (def: any, logger: ILogger) => {
   /* for every polymorphoic with a single type, */
   /* merge the diff head element with the slice element */
-  return await expressions.fixMonoPolySlicesDiff.evaluate({}, { def, fixMonoPolySlicesIterator });
+  return await expressions.fixMonoPolySlicesDiff.evaluate({}, { def, fixMonoPolySlicesIterator: async (diff: any[], depth: number) => await fixMonoPolySlicesIterator(diff, depth, logger) });
 };
 
-const fixMonoPolySlicesSnap = async (def: any) => {
+const fixMonoPolySlicesSnap = async (def: any, logger: ILogger) => {
   /* for every polymorphoic with a single type, */
   /* merge the diff head element with the slice element */
-  return await expressions.fixMonoPolySlicesSnap.evaluate({}, { def, fixMonoPolySlicesIterator });
+  return await expressions.fixMonoPolySlicesSnap.evaluate({}, { def, fixMonoPolySlicesIterator: async (diff: any[], depth: number) => await fixMonoPolySlicesIterator(diff, depth, logger) });
 };
 
-const getStructureDefinition = async (definitionId: string) => {
-  const rawDef = getRawDefinition(definitionId);
-  return await fixMonoPolySlicesDiff(rawDef);
+const getStructureDefinition = async (definitionId: string, fhirVersion: string, fhirPackageIndex: IFhirPackageIndex, logger: ILogger) => {
+  const rawDef = getRawDefinition(definitionId, fhirVersion, fhirPackageIndex, logger);
+  return await fixMonoPolySlicesDiff(rawDef, logger);
 };
 
 const isPoly = (element: any) => {
@@ -833,24 +835,24 @@ const isExplicitSlice = async (snapElement: any, diffElement: any) => {
   return await expressions.isExplicitSlice.evaluate({}, { snapElement, diffElement, startsWith });
 };
 
-const implicitToExplicitSlice = async (snapElement: any, diffElement: any) => {
+const implicitToExplicitSlice = async (snapElement: any, diffElement: any, logger: ILogger) => {
   /* checks if a diff is an implicit slice on the snapshot element */
   /* and if it is, returns it with the correct id, type and sliceName. */
   /* if it isn't, returns undefined */
   /* this is only relevant for polymorphic snapshot elements */
-  return await expressions.implicitToExplicitSlice.evaluate({}, { snapElement, diffElement, isPoly, polyToMonoPolies, toNamedMonoPoly, toPolySlice, omitKeys, info: logInfo });
+  return await expressions.implicitToExplicitSlice.evaluate({}, { snapElement, diffElement, isPoly, polyToMonoPolies, toNamedMonoPoly, toPolySlice, omitKeys, info: (msg: any) => logger.info(msg) });
 };
 
-const mergeElementDefinition = async (arrayOfElements: any | any[]) => {
-  return await expressions.mergeElementDefinition.evaluate({}, { arrayOfElements, info: logInfo });
+const mergeElementDefinition = async (arrayOfElements: any | any[], logger: ILogger) => {
+  return await expressions.mergeElementDefinition.evaluate({}, { arrayOfElements, info: (msg: any) => logger.info(msg) });
 };
 
-const fetchSliceEntries = async (snapElement: any, diffArray: any | any[]) => {
+const fetchSliceEntries = async (snapElement: any, diffArray: any | any[], logger: ILogger) => {
   /* if there are slice entries for this element, return them */
   /* this includes: */
   /* 1. explicit slices */
   /* 2. implicit slices on type($this) under polymorphics */
-  const res = await expressions.fetchSliceEntries.evaluate({}, { snapElement, diffArray, omitKeys, isExplicitSlice, mergeElementDefinition, implicitToExplicitSlice, info: logInfo });
+  const res = await expressions.fetchSliceEntries.evaluate({}, { snapElement, diffArray, omitKeys, isExplicitSlice, mergeElementDefinition, implicitToExplicitSlice: async (snapElement: any, diffElement: any) => await implicitToExplicitSlice(snapElement, diffElement, logger), info: (msg: any) => logger.info(msg) });
   return res;
 };
 
@@ -858,8 +860,8 @@ const fixDiffIds = async (inputObject: any) => {
   return await expressions.fixDiffIds.evaluate({}, { inputObject, startsWith });
 };
 
-const fetchDiffElement = async (snapElement: any, diffArray: any | any[]) => {
-  return await expressions.fetchDiffElement.evaluate({}, { snapElement, diffArray, isMonoPolyMatch, omitKeys, info: logInfo, getLastAllSlicesId, mergeElementDefinition, polySliceToNamedMonoPoly });
+const fetchDiffElement = async (snapElement: any, diffArray: any | any[], logger: ILogger) => {
+  return await expressions.fetchDiffElement.evaluate({}, { snapElement, diffArray, isMonoPolyMatch, omitKeys, info: (msg: any) => logger.info(msg), getLastAllSlicesId, mergeElementDefinition, polySliceToNamedMonoPoly });
 };
 
 const getLevel = (element: string | any) => {
@@ -883,12 +885,12 @@ const changeRoot = async (elementArray: any | any[], newRootElement: any) => {
   return await expressions.changeRoot.evaluate({}, { elementArray, newRootElement });
 };
 
-const noDuplicateElements = async (elementArray: any | any[]) => {
-  return await expressions.noDuplicateElements.evaluate({}, { elementArray, info: logInfo });
+const noDuplicateElements = async (elementArray: any | any[], logger: ILogger) => {
+  return await expressions.noDuplicateElements.evaluate({}, { elementArray, info: (msg: any) => logger.info(msg) });
 };
 
-const repositionSlices = async (wipSnapshot: any | any[], originalBase: any | any[], level: number) => {
-  return await expressions.repositionSlices.evaluate({}, { wipSnapshot, originalBase, level, noDuplicateElements, getSliceEntriesId, getLevel, startsWith, endsWith, info: logInfo });
+const repositionSlices = async (wipSnapshot: any | any[], originalBase: any | any[], level: number, logger: ILogger) => {
+  return await expressions.repositionSlices.evaluate({}, { wipSnapshot, originalBase, level, noDuplicateElements: async (elementArray: any | any[]) => await noDuplicateElements(elementArray, logger), getSliceEntriesId, getLevel, startsWith, endsWith, info: (msg: any) => logger.info(msg) });
 };
 
 const getSliceEntriesId = async (elements: any | any[]) => {
@@ -896,6 +898,27 @@ const getSliceEntriesId = async (elements: any | any[]) => {
   return res;
 };
 
-export const generateSnapshot = async (profileId: string) => {
-  return await expressions.generateSnapshot.evaluate({}, { profileId, getSliceEntriesId, info: logInfo, warning: logWarn, startsWith, endsWith, fetchDiffElement, isPoly, mergeElementDefinition, fetchSliceEntries, getStructureDefinition, changeRoot, removeSliceFromId, getLevel, fixDiffIds, noDuplicateElements, repositionSlices, getSnapshot: parser.getSnapshot, fixMonoPolySlicesSnap });
+export const generateSnapshot = async (profileId: string, fhirVersion: string, fhirPackageIndex: IFhirPackageIndex, logger: ILogger) => {
+  return await expressions.generateSnapshot.evaluate({},
+    {
+      profileId,
+      getSliceEntriesId,
+      info: (msg: any) => logger.info(msg),
+      warning: (msg: any) => logger.warn(msg),
+      startsWith,
+      endsWith,
+      fetchDiffElement: async (snapElement: any, diffArray: any | any[]) => await fetchDiffElement(snapElement, diffArray, logger),
+      isPoly,
+      mergeElementDefinition,
+      fetchSliceEntries: async (snapElement: any, diffArray: any | any[]) => await fetchSliceEntries(snapElement, diffArray, logger),
+      getStructureDefinition: async (profileId: string) => await getStructureDefinition(profileId, fhirVersion, fhirPackageIndex, logger),
+      changeRoot,
+      removeSliceFromId,
+      getLevel,
+      fixDiffIds,
+      noDuplicateElements: async (elementArray: any | any[]) => await noDuplicateElements(elementArray, logger),
+      repositionSlices: async (wipSnapshot: any | any[], originalBase: any | any[], level: number) => await repositionSlices(wipSnapshot, originalBase, level, logger),
+      getSnapshot: async (profileId: string) => await parser.getSnapshot(profileId, fhirVersion, fhirPackageIndex, logger),
+      fixMonoPolySlicesSnap: async (def: any) => await fixMonoPolySlicesSnap(def, logger)
+    });
 };
