@@ -10,6 +10,9 @@ import _ from 'lodash';
 import { getElementDefinition } from '../parser/getElementDefinition';
 import { getStructureDefinition } from '../jsonataFunctions';
 import { getMandatoriesOfStructure } from './getMandatoriesOfStructure';
+import config from '../../config';
+import { getFhirPackageIndex } from '../conformance';
+import { getLogger } from '../logger';
 
 const dev = process.env.NODE_ENV === 'dev';
 
@@ -19,7 +22,7 @@ export const getMandatoriesOfElement = async (structId: string, relativePath: st
   /* for complex types, return an object containing all mandatory  */
   /* decendants that have fixed values down the chain */
   /* the element is taken from the root structure definition 'snapshot.element' array */
-  const rootStruct = await getSnapshot(structId);
+  const rootStruct = await getSnapshot(structId, config.getFhirVersion(), getFhirPackageIndex(), getLogger());
   const rootStructSnapshot = rootStruct.snapshot?.element;
 
   /* take the element definition of the requested (parent) element */
@@ -80,7 +83,7 @@ export const getMandatoriesOfElement = async (structId: string, relativePath: st
           if (startsWith(code, 'http://hl7.org/fhirpath/System.')) {
             child.__kind = 'primitive-type';
           } else {
-            child.__kind = getStructureDefinition(code).kind;
+            child.__kind = getStructureDefinition(code, config.getFhirVersion(), getFhirPackageIndex(), getLogger()).kind;
           }
         }
         return child;
@@ -138,7 +141,7 @@ export const getMandatoriesOfElement = async (structId: string, relativePath: st
   } else {
     /* if returned element is from a different definition than the root, call this function again */
     /* this time on the element's containing definition */
-    const fromDefinitionSnapshot = await getSnapshot(fromDefinition);
+    const fromDefinitionSnapshot = await getSnapshot(fromDefinition, config.getFhirVersion(), getFhirPackageIndex(), getLogger());
     const baseType = fromDefinitionSnapshot.type;
     const relativeElementId = substringAfter(parentElement.id, baseType + '.');
     return await getMandatoriesOfElement(fromDefinition, relativeElementId ?? '');

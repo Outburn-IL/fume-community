@@ -9,12 +9,15 @@ import { replaceColonsWithBrackets } from '../stringFunctions';
 import { getMandatoriesOfElement } from './getMandatoriesOfElement';
 import { returnPathWithoutX } from '../parser/returnPathWithoutX'
 import { initCapOnce } from '../stringFunctions';
+import { getFhirPackageIndex } from '../conformance';
+import { getLogger } from '../logger';
+import config from '../../config';
 
 const dev = process.env.NODE_ENV === 'dev';
 
 export const getMandatoriesOfStructure = async (structId: string): Promise<any> => {
   if (dev) console.log({ func: getMandatoriesOfStructure, structId });
-  const snapshot = await getSnapshot(structId);
+  const snapshot = await getSnapshot(structId, config.getFhirVersion(), getFhirPackageIndex(), getLogger());
   const rootMandatories = snapshot.snapshot.element.filter(item => item.min > 0 && item.id.split('.').length === 2);
   const res = {};
   for (const item of rootMandatories) {
