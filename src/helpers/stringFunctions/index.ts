@@ -3,6 +3,7 @@
  *   Project name: FUME-COMMUNITY
  */
 
+import { base64decode, base64encode } from './base64';
 import { duplicate } from './duplicate';
 import { initCap } from './initCap';
 import { replaceColonsWithBrackets } from './replaceColonsWithBrackets';
@@ -21,6 +22,8 @@ import {
 } from './stringFunctions';
 
 export {
+  base64decode,
+  base64encode,
   duplicate,
   endsWith,
   hashKey,
