@@ -78,8 +78,7 @@ export const transform = async (input, expression: string, extraBindings: Record
     bindings.stringify = JSON.stringify;
     bindings.selectKeys = objectFuncs.selectKeys;
     bindings.omitKeys = objectFuncs.omitKeys;
-    bindings.startsWith = stringFuncs.startsWith;
-    bindings.endsWith = stringFuncs.endsWith;
+
     bindings.uuid = stringFuncs.uuid;
     bindings.registerTable = registerTable;
     bindings.translateCode = fhirFuncs.translateCode;
@@ -124,6 +123,11 @@ export const transform = async (input, expression: string, extraBindings: Record
       ...bindings,
       ...extraBindings
     };
+
+    expr.registerFunction('base64encode', stringFuncs.base64encode, '<s-:s>');
+    expr.registerFunction('base64decode', stringFuncs.base64decode, '<s-:s>');
+    expr.registerFunction('startsWith', stringFuncs.startsWith, '<s-s:a>');
+    expr.registerFunction('endsWith', stringFuncs.endsWith, '<s-s:a>');
 
     const res = await expr.evaluate(input, bindings);
     return res;
