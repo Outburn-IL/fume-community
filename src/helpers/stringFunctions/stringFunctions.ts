@@ -70,14 +70,17 @@ export const matches = (str: string, regex: string) => {
 };
 
 export const isNumeric = (n: any) => {
-  if (typeof n === 'number') {
-    return true;
+  if (typeof n === 'number') return true;
+  if (typeof n === 'undefined') return false;
+
+  // RegEx taken form the FHIR spec for the decimal datatype: https://www.hl7.org/fhir/r4/datatypes.html
+  const isStrNumeric = (v: string) => /-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?/.test(v);
+
+  if (typeof n === 'string') return isStrNumeric(n);
+
+  if (Array.isArray(n) && n.length === 1 && typeof n[0] === 'string') {
+    return isStrNumeric(n[0]);
   };
-  if (typeof n === 'string') {
-    return !isNaN(parseFloat(n)) && isFinite(parseFloat(n));
-  };
-  if (Array.isArray(n) && n.length === 1) {
-    return isNumeric(n[0]);
-  };
+
   return false;
 };
