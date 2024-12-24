@@ -77,17 +77,17 @@ export const matches = (str: string, regex: string) => {
   return fn.test(str);
 };
 
-export const isNumeric = (n: any) => {
+export const isNumeric = (n: any): boolean | undefined => {
   if (typeof n === 'number') return true;
-  if (typeof n === 'undefined') return false;
+  if (typeof n === 'undefined') return undefined;
 
   // RegEx taken form the FHIR spec for the decimal datatype: https://www.hl7.org/fhir/r4/datatypes.html
-  const isStrNumeric = (v: string) => /-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?/.test(v);
+  const isStrNumeric = (str: string) => /^-?(0|[1-9][0-9]*)(.[0-9]+)?([eE][+-]?[0-9]+)?$/.test(str);
 
   if (typeof n === 'string') return isStrNumeric(n);
 
-  if (Array.isArray(n) && n.length === 1 && typeof n[0] === 'string') {
-    return isStrNumeric(n[0]);
+  if (Array.isArray(n) && n.length === 1) {
+    return isNumeric(n[0]);
   };
 
   return false;

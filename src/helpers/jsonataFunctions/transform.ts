@@ -93,7 +93,6 @@ export const transform = async (input, expression: string, extraBindings: Record
     bindings.parseCsv = parseCsv;
     bindings.v2parse = v2.v2parse;
     bindings.v2json = v2.v2json;
-    bindings.isNumeric = stringFuncs.isNumeric;
     bindings.capabilities = fhirFuncs.capabilities;
 
     const { aliases } = getCache();
@@ -128,6 +127,7 @@ export const transform = async (input, expression: string, extraBindings: Record
     expr.registerFunction('base64decode', stringFuncs.base64decode, '<s-:s>');
     expr.registerFunction('startsWith', stringFuncs.startsWith, '<s-s:a>');
     expr.registerFunction('endsWith', stringFuncs.endsWith, '<s-s:a>');
+    expr.registerFunction('isNumeric', stringFuncs.isNumeric, '<j-:a>');
 
     const res = await expr.evaluate(input, bindings);
     return res;
