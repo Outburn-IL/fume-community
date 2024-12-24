@@ -13,9 +13,9 @@ const serverConfig = config.getServerConfig();
 
 // Returns the mapping as a function, ready to be called directly from JSONata expressions
 const toFunction = (mapping: string) => {
-  return async (input: any) => {
+  return async (input: any, bindings?: Record<string, any>) => {
     const extraBindings = config.getBindings();
-    const res = await transform(input, mapping, extraBindings);
+    const res = await transform(input, mapping, { ...extraBindings, ...bindings });
     return res;
   };
 };
