@@ -12,28 +12,6 @@ import expressions from '../jsonataExpression';
 import { getLogger } from '../logger';
 import { getFhirPackageIndex } from './loadFhirPackageIndex';
 
-export const getStructureDefinition = async (definitionId: string): Promise<any> => {
-  const fhirPackageIndex = getFhirPackageIndex();
-  const packageIndex = fhirPackageIndex[config.getFhirVersionMinor()];
-  const indexed = packageIndex.structureDefinitions.byId[definitionId] ??
-  packageIndex.structureDefinitions.byUrl[definitionId] ??
-  packageIndex.structureDefinitions.byName[definitionId];
-
-  if (!indexed) { // if not indexed, throw warning and return nothing
-    const msg = 'Definition "' + definitionId + '" not found!';
-    getLogger().warn(msg);
-    return undefined;
-  } else if (Array.isArray(indexed)) {
-    const error = new Error(`Found multiple definitions with the same id "${definitionId}"!`);
-    getLogger().error(error);
-    throw (error);
-  } else {
-    const path: string = indexed;
-    const fullDef = JSON.parse(fs.readFileSync(path).toString()); // load file
-    return fullDef;
-  };
-};
-
 export const getTable = async (tableId: string) => {
   if (tableId === undefined || tableId.trim() === '') {
     // exit if no id provided
