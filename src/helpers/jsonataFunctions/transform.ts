@@ -45,8 +45,7 @@ const compiledExpression = async (expression: string): Promise<jsonata.Expressio
   return compiled;
 };
 
-export const transform = async (input, expression: string, extraBindings: Record<string, IAppBinding> = {}) => {
-  // fork: os
+export const transform = async (input: any, expression: string, extraBindings: Record<string, IAppBinding> = {}) => {
   try {
     getLogger().info('Running transformation...');
 
@@ -60,7 +59,7 @@ export const transform = async (input, expression: string, extraBindings: Record
     if (mappingIds) {
       mappingIds.forEach((mappingId) => {
         const mapping: any = compiledMappings.get(mappingId);
-        bindings[mappingId] = mapping?.function;
+        expr.registerFunction(mappingId, mapping?.function, '<x-o?:x>');
       });
     }
 
