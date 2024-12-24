@@ -11,6 +11,7 @@
 import HL7Dictionary from 'hl7-dictionary';
 import jsonata from 'jsonata';
 
+import config from '../../config';
 import { IAppBinding } from '../../types';
 import { getCache } from '../cache';
 import * as conformance from '../conformance';
@@ -97,8 +98,6 @@ export const transform = async (input: any, expression: string, extraBindings: R
     const { aliases } = getCache();
     // these are debug functions, should be removed in production versions
     bindings.fhirCacheIndex = conformance.getFhirPackageIndex();
-    bindings.getSnapshot = compiler.getSnapshot;
-    bindings.getStructureDefinition = getStructureDefinition;
     bindings.getTable = conformance.getTable;
     bindings.v2dictionary = HL7Dictionary.definitions;
     bindings.v2codeLookup = v2.v2codeLookup;
@@ -124,9 +123,19 @@ export const transform = async (input: any, expression: string, extraBindings: R
 
     expr.registerFunction('base64encode', stringFuncs.base64encode, '<s-:s>');
     expr.registerFunction('base64decode', stringFuncs.base64decode, '<s-:s>');
-    expr.registerFunction('startsWith', stringFuncs.startsWith, '<s-s:a>');
-    expr.registerFunction('endsWith', stringFuncs.endsWith, '<s-s:a>');
-    expr.registerFunction('isNumeric', stringFuncs.isNumeric, '<j-:a>');
+    expr.registerFunction('startsWith', stringFuncs.startsWith, '<s-s:b>');
+    expr.registerFunction('endsWith', stringFuncs.endsWith, '<s-s:b>');
+    expr.registerFunction('isNumeric', stringFuncs.isNumeric, '<j-:b>');
+    expr.registerFunction(
+      'getStructureDefinition',
+      (defId: string) => getStructureDefinition(defId, config.getFhirVersion(), conformance.getFhirPackageIndex(), getLogger()),
+      '<s-:o>'
+    );
+    expr.registerFunction(
+      'getSnapshot',
+      async (defId: string) => await compiler.getSnapshot(defId, config.getFhirVersion(), conformance.getFhirPackageIndex(), getLogger()),
+      '<s-:o>'
+    );
 
     const res = await expr.evaluate(input, bindings);
     return res;
