@@ -5,6 +5,7 @@
 
 import type { Request, Response } from 'express';
 
+import { version as engineVersion } from '../../package.json';
 import config from '../config';
 import { getCache } from '../helpers/cache';
 import { recacheFromServer } from '../helpers/conformance';
@@ -16,14 +17,7 @@ import { toJsonataString } from '../helpers/parser/toJsonataString';
 const get = async (req: Request, res: Response) => {
   return res.status(200).json(
     {
-      public_sandbox: 'https://try.fume.health',
-      api_instructions: 'POST a JSON object to this endpoint, containing an input json value and a FUME expression.',
-      example_body: {
-        input: { values: ['value1', 'value2'] },
-        fume: 'values[1]',
-        contentType: 'application/json'
-      },
-      should_return: 'value2'
+      fume_version: `FUME Community v${engineVersion}`
     });
 };
 
