@@ -69,7 +69,7 @@ const operation = async (req: Request, res: Response) => {
     const operationName: string = req.params?.operation;
     if (operationName === '$transpile') {
       const contentType: string | undefined = req.get('Content-Type');
-      if (contentType === 'text/plain' || contentType === 'application/vnd.outburn.fume') {
+      if (typeof contentType === 'string' && (contentType.startsWith('text/plain') || contentType.startsWith('application/vnd.outburn.fume'))) {
         const inputMapping: string = req.body;
         const tranpiled: string | undefined = await toJsonataString(inputMapping);
         if (tranpiled) {
