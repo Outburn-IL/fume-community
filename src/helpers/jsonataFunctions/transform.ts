@@ -70,7 +70,6 @@ export const transform = async (input: any, expression: string, extraBindings: R
     bindings.__castToFhir = runtime.castToFhir;
     bindings.__flashMerge = runtime.flashMerge;
     bindings.wait = runtime.wait;
-    bindings.reference = fhirFuncs.reference;
     bindings.resourceId = fhirFuncs.resourceId;
     bindings.initCap = stringFuncs.initCap;
     bindings.isEmpty = objectFuncs.isEmpty;
@@ -126,6 +125,7 @@ export const transform = async (input: any, expression: string, extraBindings: R
     expr.registerFunction('startsWith', stringFuncs.startsWith, '<s-s:b>');
     expr.registerFunction('endsWith', stringFuncs.endsWith, '<s-s:b>');
     expr.registerFunction('isNumeric', stringFuncs.isNumeric, '<j-:b>');
+    expr.registerFunction('reference', fhirFuncs.reference, '<o-:s>');
     expr.registerFunction(
       'getStructureDefinition',
       (defId: string) => getStructureDefinition(defId, config.getFhirVersion(), conformance.getFhirPackageIndex(), getLogger()),

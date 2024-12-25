@@ -6,8 +6,7 @@
 /**
  * A basic interface for a resource file in a package
  */
-export interface BaseResource {
-  id: string
+export interface FhirResource {
   resourceType: string
   [key: string]: any | any[]
 }
