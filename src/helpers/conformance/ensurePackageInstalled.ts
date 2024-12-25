@@ -12,11 +12,11 @@ import * as tar from 'tar';
 import temp from 'temp';
 
 import config from '../../config';
-import { BaseResource } from '../../types/BaseResource';
 import { FileInPackageIndex } from '../../types/FileInPackageIndex';
 import { PackageIdentifier } from '../../types/PackageIdentifier';
 import { PackageIndex } from '../../types/PackageIndex';
 import { PackageManifest } from '../../types/PackageManifest';
+import { PackageResource } from '../../types/PackageResource';
 import { getLogger } from '../logger';
 import { getCachePackagesPath } from './getCachePath';
 
@@ -56,7 +56,7 @@ const generatePackageIndex = async (packageObject: PackageIdentifier): Promise<P
         file => file.endsWith('.json') && file !== 'package.json' && !file.endsWith('.index.json')
       ).map(
         async (file: string) => {
-          const content: BaseResource = JSON.parse(await fs.readFile(path.join(packagePath, 'package', file), { encoding: 'utf8' }));
+          const content: PackageResource = JSON.parse(await fs.readFile(path.join(packagePath, 'package', file), { encoding: 'utf8' }));
           const indexEntry: FileInPackageIndex = {
             filename: file,
             resourceType: content.resourceType,
