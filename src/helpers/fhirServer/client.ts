@@ -24,7 +24,8 @@ export class FhirClient implements IFhirClient {
 
   private authHeader (authType: string, username?: string, password?: string) {
     if (authType === 'BASIC' && username && password && username > '' && password > '') {
-      return `Basic ${btoa(username + ':' + password)}`;
+      const buff = Buffer.from(`${username}:${password}`, 'utf-8');
+      return `Basic ${buff.toString('base64')}`;
     } else {
       return undefined;
     }
