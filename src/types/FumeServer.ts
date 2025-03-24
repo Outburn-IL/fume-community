@@ -31,5 +31,5 @@ export interface IFumeServer<ConfigType> {
 
   getFhirPackageIndex: () => IFhirPackageIndex
   getFhirPackages: () => any
-  transform: (input: any, expression: string) => Promise<any>
+  transform: (input: any, expression: string, extraBindings?: Record<string, IAppBinding>) => Promise<any>
 }
