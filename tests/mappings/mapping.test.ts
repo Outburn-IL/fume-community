@@ -20,15 +20,22 @@ InstanceOf: Patient
 describe('api tests', () => {
   beforeAll(async () => {
     const testMapping = getResourceFileContents('json', 'test-mapping-route.json');
-    const parsed = JSON.parse(testMapping);
-    await axios.put(`${LOCAL_FHIR_API}/StructureMap/testMappingRoute`, parsed);
-    const mapping = await axios.get(`${LOCAL_FHIR_API}/StructureMap/testMappingRoute`);
-    expect(mapping.status).toBe(200);
+    const mappingAsFunction = getResourceFileContents('json', 'mapping-as-function.json');
+    const parsedtestMapping = JSON.parse(testMapping);
+    const parsedmappingAsFunction = JSON.parse(mappingAsFunction);
+    await axios.put(`${LOCAL_FHIR_API}/StructureMap/testMappingRoute`, parsedtestMapping);
+    await axios.put(`${LOCAL_FHIR_API}/StructureMap/testMappingAsFunction`, parsedmappingAsFunction);
+    // "'testing binding of $a: ' + $a"
+    const mapping1 = await axios.get(`${LOCAL_FHIR_API}/StructureMap/testMappingRoute`);
+    const mapping2 = await axios.get(`${LOCAL_FHIR_API}/StructureMap/testMappingAsFunction`);
+    expect(mapping1.status).toBe(200);
+    expect(mapping2.status).toBe(200);
     await request(globalThis.app).get('/recache');
   });
 
   afterAll(async () => {
     await axios.delete(`${LOCAL_FHIR_API}/StructureMap/testMappingRoute`);
+    await axios.delete(`${LOCAL_FHIR_API}/StructureMap/testMappingAsFunction`);
     await request(globalThis.app).get('/recache');
   });
 
@@ -44,7 +51,7 @@ describe('api tests', () => {
     ;
   });
 
-  test('execute existing mapping', async () => {
+  test('execute existing test mapping', async () => {
     const res = await request(globalThis.app).post('/Mapping/testMappingRoute').send({
       given: 'a', family: 'B'
     });
@@ -61,6 +68,38 @@ describe('api tests', () => {
         }
       ]
     });
+  });
+
+  test('execute existing test mapping as function', async () => {
+    const res = await request(globalThis.app).post('/').send({
+      input: {
+        given: 'a', family: 'B'
+      },
+      contentType: 'application/json',
+      fume: '$testMappingRoute($)'
+    });
+    expect(res.body).toStrictEqual({
+      resourceType: 'Patient',
+      id: '356a192b-7913-504c-9457-4d18c28d46e6',
+      active: true,
+      name: [
+        {
+          given: [
+            'a'
+          ],
+          family: 'B'
+        }
+      ]
+    });
+  });
+
+  test('execute mapping as function and pass bindings', async () => {
+    const res = await request(globalThis.app).post('/').send({
+      input: {},
+      contentType: 'application/json',
+      fume: '$testMappingAsFunction({}, { "a": "a" })'
+    });
+    expect(res.body).toBe('testing binding of $a: a');
   });
 
   test('execute existing mapping with CSV input', async () => {
