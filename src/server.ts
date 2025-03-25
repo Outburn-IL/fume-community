@@ -247,7 +247,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
    * @param expression
    * @returns
    */
-  public async transform (input: any, expression: string) {
-    return await transform(input, expression, config.getBindings());
+  public async transform (input: any, expression: string, bindings: Record<string, IAppBinding> = {}) {
+    return await transform(input, expression, { ...config.getBindings(), bindings });
   }
 }
