@@ -13,7 +13,8 @@ services:
       JVM_OPTS: "-Xms2g -Xms2g"
 
   db:
-    image: postgres
+    image: postgres:latest
+    container_name: db
     restart: always
     environment:
       POSTGRES_PASSWORD: admin
