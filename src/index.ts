@@ -5,6 +5,7 @@
 
 import config from './config';
 import { getAliasResource, getFhirPackageIndex } from './helpers/conformance';
+import fhirFuncs from './helpers/fhirFunctions';
 import { parseCsv } from './helpers/inputConverters';
 import { v2json } from './helpers/inputConverters/hl7v2';
 import expressions from './helpers/jsonataExpression';
@@ -46,5 +47,10 @@ export const fumeUtils = {
   toJsonataString: parser.toJsonataString,
   getSnapshot: parser.getSnapshot,
   v2json,
-  getFhirPackageIndex
+  getFhirPackageIndex,
+  // FHIR functions
+  search: fhirFuncs.search,
+  resolve: fhirFuncs.resolve,
+  literal: fhirFuncs.literal,
+  searchSingle: fhirFuncs.searchSingle
 };
