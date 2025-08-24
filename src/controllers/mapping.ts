@@ -10,6 +10,7 @@ import { convertInputToJson } from '../helpers/inputConverters';
 import { pretty } from '../helpers/jsonataFunctions';
 import { getLogger } from '../helpers/logger';
 import { toJsonataString } from '../helpers/parser/toJsonataString';
+import { createFumeError } from '../types';
 
 const get = async (req: Request, res: Response) => {
   const logger = getLogger();
@@ -50,9 +51,10 @@ const transform = async (req: Request, res: Response) => {
       logger.error(`Mapping '${mappingId}' not found!`);
       res.status(404).json({ message: 'not found' });
     }
-  } catch (error) {
+  } catch (error: any) {
     logger.error({ error });
-    res.status(500).json({ message: error });
+    const fumeError = createFumeError(error);
+    res.status(422).json(fumeError);
   }
 };
 
