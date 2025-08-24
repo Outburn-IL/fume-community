@@ -11,13 +11,15 @@ import ensurePack from './ensurePackageInstalled';
  * @param fhirPackage A string or array of strings in the format `packageId@version`
  */
 export const downloadPackages = async (fhirPackage: string[]) => {
-  try {
-    for (const pack of fhirPackage) {
+  let hadErrors = false;
+  for (const pack of fhirPackage) {
+    try {
       await ensurePack(pack);
-    };
-    return true;
-  } catch (e) {
-    getLogger().error(e);
-    return null;
+    } catch (e: any) {
+      const details = e?.stack ?? e?.message ?? String(e);
+      getLogger().error(`Failed to download package ${pack}: ${details}`);
+      hadErrors = true;
+    }
   }
+  return hadErrors ? null : true;
 };
