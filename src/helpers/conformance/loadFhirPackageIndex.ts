@@ -58,15 +58,25 @@ const parseFhirPackageIndex = async (): Promise<IFhirPackageIndex> => {
       const packPath = config.getFhirPackages()[k].installedPath;
       return packPath ? path.basename(packPath) : undefined;
     }).filter(p => typeof p === 'string');
-    const currentIndex = JSON.parse(await fs.readFile(fumeIndexPath, { encoding: 'utf8' }));
-    const currentPackages = await expressions.extractCurrentPackagesFromIndex.evaluate(currentIndex);
-    const diff: string[] = await expressions.checkPackagesMissingFromIndex.evaluate({ dirList, packages: currentPackages });
-    if (diff.length === 0) {
-      getLogger().info('Global package index file is up-to-date');
-      return currentIndex;
-    } else {
-      getLogger().info('Global package index file is outdated');
-    };
+    try {
+      const fileContent = await fs.readFile(fumeIndexPath, { encoding: 'utf8' });
+      if (!fileContent || fileContent.trim().length === 0) {
+        getLogger().warn('Global package index file is empty. It will be regenerated.');
+      } else {
+        const currentIndex = JSON.parse(fileContent);
+        const currentPackages = await expressions.extractCurrentPackagesFromIndex.evaluate(currentIndex);
+        const diff: string[] = await expressions.checkPackagesMissingFromIndex.evaluate({ dirList, packages: currentPackages });
+        if (diff.length === 0) {
+          getLogger().info('Global package index file is up-to-date');
+          return currentIndex;
+        } else {
+          getLogger().info('Global package index file is outdated');
+        }
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      getLogger().warn(`Global package index file could not be parsed and will be regenerated: ${msg}`);
+    }
   } else {
     getLogger().info('Global package index file is missing');
   }
