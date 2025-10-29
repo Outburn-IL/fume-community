@@ -37,10 +37,10 @@ jobs:
         
       - name: Build Docker image
         run: |
-          docker build --tag $DOCKER_IMAGE_NAME:$RELEASE_VERSION .
+          docker build --tag "$DOCKER_IMAGE_NAME:$RELEASE_VERSION" .
 
       - name: Push Docker image
         run: |
-          docker push $DOCKER_IMAGE_NAME:$RELEASE_VERSION
-          docker tag $DOCKER_IMAGE_NAME:$RELEASE_VERSION $DOCKER_IMAGE_NAME:latest
-          docker push $DOCKER_IMAGE_NAME:latest
+          docker push "$DOCKER_IMAGE_NAME:$RELEASE_VERSION"
+          docker tag "$DOCKER_IMAGE_NAME:$RELEASE_VERSION" "$DOCKER_IMAGE_NAME:latest"
+          docker push "$DOCKER_IMAGE_NAME:latest"
