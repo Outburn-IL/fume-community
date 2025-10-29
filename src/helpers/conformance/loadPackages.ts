@@ -14,6 +14,7 @@ export const downloadPackages = async (fhirPackage: string[]) => {
   let hadErrors = false;
   for (const pack of fhirPackage) {
     try {
+      getLogger().info(`Ensuring FHIR package is installed: ${pack}`);
       await ensurePack(pack);
     } catch (e: any) {
       const details = e?.stack ?? e?.message ?? String(e);

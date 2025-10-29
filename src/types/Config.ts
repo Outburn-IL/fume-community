@@ -13,4 +13,6 @@ export interface IConfig {
   FHIR_SERVER_AUTH_TYPE: string
   FHIR_SERVER_UN: string
   FHIR_SERVER_PW: string
+  FHIR_PACKAGE_REGISTRY_URL?: string
+  FHIR_PACKAGE_REGISTRY_TOKEN?: string
 }

@@ -94,7 +94,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
       throw new Error(`FHIR version ${FHIR_VERSION} is unsupported/invalid!`);
     };
     // load packages
-    const packageList: string[] = [fhirVersionCorePackageId, fumeFhirPackageId].concat(FHIR_PACKAGES.split(','));
+    const packageList: string[] = [fumeFhirPackageId, ...(FHIR_PACKAGES ? FHIR_PACKAGES.split(',') : [])];
     await conformance.downloadPackages(packageList);
 
     // load index of all packages found in global fhir cache (on disk)

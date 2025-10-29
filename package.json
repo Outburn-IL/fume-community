@@ -55,6 +55,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "fast-xml-parser": "^4.5.1",
+    "fhir-package-installer": "^1.4.2",
     "fs-extra": "^11.2.0",
     "hl7-dictionary": "^1.0.1",
     "hl7js": "^0.0.6",
