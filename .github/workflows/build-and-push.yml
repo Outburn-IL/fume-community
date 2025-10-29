@@ -1,4 +1,4 @@
-name: Buid Docker and Push
+name: Build Docker and Push
 
 on:
   workflow_run:
@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: 'main'
 
       - name: login to docker registry
         uses: docker/login-action@v3
