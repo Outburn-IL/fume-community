@@ -16,7 +16,7 @@ jobs:
         runs-on: ubuntu-latest
         outputs:
             new_release_published: ${{ steps.semantic-release.outputs.new_release_published }}
-            release_version: ${{ steps.semantic-release.outputs.release_version }}
+            release_version: ${{ steps.semantic-release.outputs.new_release_version }} # semantic-release-action output
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -74,11 +74,17 @@ jobs:
                 VERSION="${{ needs.semver.outputs.release_version }}"
                 echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
                 echo "Resolved release version: $VERSION"
-
-            - name: Checkout tag commit
-              run: |
-                git checkout "v${RELEASE_VERSION}" || git checkout "${RELEASE_VERSION}" || { echo "Tag for version not found"; exit 1; }
-                echo "On commit: $(git rev-parse HEAD)"
+                if [ -z "$VERSION" ]; then echo "Release version output is empty; failing."; exit 1; fi
+            # Optional: If you really need to build from the exact tag commit, uncomment below.
+            # - name: (Optional) Checkout tag commit
+            #   if: always()
+            #   run: |
+            #     if git rev-parse "v${RELEASE_VERSION}" >/dev/null 2>&1; then
+            #       git checkout "v${RELEASE_VERSION}"
+            #       echo "Checked out tag v${RELEASE_VERSION}"
+            #     else
+            #       echo "Tag v${RELEASE_VERSION} not found; building from main commit $(git rev-parse HEAD)"
+            #     fi
 
             - name: Login to DockerHub
               uses: docker/login-action@v3

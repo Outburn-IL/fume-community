@@ -19,29 +19,50 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          # Use the release tag commit when triggered by a release; fallback to main for manual dispatch.
-          ref: ${{ github.event_name == 'release' && github.event.release.tag_name || 'main' }}
-          # Fetch full history just in case future steps need tags/commits.
+          # Always fetch full history, we'll checkout tag explicitly if release event.
           fetch-depth: 0
 
-      - name: login to docker registry
+      - name: Determine release tag (release event)
+        if: ${{ github.event_name == 'release' }}
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          echo "RELEASE_VERSION=${TAG#v}" >> "$GITHUB_ENV"
+          echo "Resolved release version from tag: ${TAG#v}"
+
+      - name: Determine release version (manual dispatch)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          VERSION=$(jq -r '.version' package.json)
+          echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "Resolved release version from package.json: $VERSION"
+
+      - name: Checkout tag commit (release only)
+        if: ${{ github.event_name == 'release' }}
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          git fetch --tags --force
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            git checkout "$TAG"
+            echo "Checked out tag $TAG"
+          else
+            echo "Tag $TAG not found after fetch"; exit 1;
+          fi
+
+      - name: Validate derived version
+        run: |
+          if [ -z "$RELEASE_VERSION" ]; then echo "RELEASE_VERSION is empty"; exit 1; fi
+          echo "Final version: $RELEASE_VERSION"
+
+      - name: Validate required secrets
+        run: |
+          [ -z "${{ secrets.DOCKERHUB_USERNAME }}" ] && echo "Missing DOCKERHUB_USERNAME secret" && exit 1 || echo "Found DOCKERHUB_USERNAME";
+          [ -z "${{ secrets.DOCKER_HUB_TOKEN }}" ] && echo "Missing DOCKER_HUB_TOKEN secret" && exit 1 || echo "Found DOCKER_HUB_TOKEN";
+
+      - name: Login to Docker registry
         uses: docker/login-action@v3
         with:
-          username: ${{secrets.DOCKERHUB_USERNAME}}
-          password: ${{secrets.DOCKER_HUB_TOKEN}}
-
-      - name: Determine release version
-        id: get_version
-        run: |
-          if [ "${{ github.event_name }}" = "release" ]; then
-            VERSION="${{ github.event.release.tag_name }}"
-            # Strip leading v if present (semantic-release default)
-            VERSION="${VERSION#v}"
-          else
-            VERSION=$(jq -r '.version' package.json)
-          fi
-          echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
-          echo "Resolved release version: $VERSION"
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Build Docker image
         run: |
