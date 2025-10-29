@@ -8,6 +8,6 @@ spring:
     properties:
       hibernate.dialect: ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgres94Dialect
       hibernate.search.enabled: false
-  hapi:
-    fhir:
-      reuse_cached_search_results_millis: -1
+hapi:
+  fhir:
+    reuse_cached_search_results_millis: -1
