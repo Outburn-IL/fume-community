@@ -3,8 +3,7 @@
  *   Project name: FUME-COMMUNITY
  */
 
-import { FhirPackageInstaller } from 'fhir-package-installer';
-import { FpiConfig } from 'fhir-package-installer/dist/types';
+import { FhirPackageInstaller, type FpiConfig } from 'fhir-package-installer';
 
 import config from '../../config';
 import type { ILogger } from '../../types';
