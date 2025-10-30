@@ -8,14 +8,14 @@ import { PackageIdentifier, PackageIndex, PackageManifest } from 'fhir-package-i
 import config from '../../config';
 import { getFpiInstance } from './fpiInstance';
 
-const fpi = getFpiInstance();
-
 /**
  * Ensures that a package and all of its dependencies are installed in the global package cache.
  * If a version is not supplied, the latest release will be looked up and installed.
  * @param packageId string in the format packageId@version | packageId | packageId#version
  */
 const ensure = async (packageId: string): Promise<boolean> => {
+  const fpi = getFpiInstance();
+
   // Install package (fpi handles dependency resolution automatically)
   await fpi.install(packageId);
 
