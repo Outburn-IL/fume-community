@@ -79,6 +79,10 @@ const getFhirPackageRegistryToken = (): string | undefined => {
   return serverConfig.FHIR_PACKAGE_REGISTRY_TOKEN;
 };
 
+const getFhirPackageCacheDir = (): string | undefined => {
+  return serverConfig.FHIR_PACKAGE_CACHE_DIR;
+};
+
 export default {
   getFhirVersion,
   getFhirCorePackage,
@@ -91,5 +95,6 @@ export default {
   getFhirPackages,
   addFhirPackage,
   getFhirPackageRegistryUrl,
-  getFhirPackageRegistryToken
+  getFhirPackageRegistryToken,
+  getFhirPackageCacheDir
 };

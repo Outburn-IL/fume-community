@@ -15,4 +15,5 @@ export interface IConfig {
   FHIR_SERVER_PW: string
   FHIR_PACKAGE_REGISTRY_URL?: string
   FHIR_PACKAGE_REGISTRY_TOKEN?: string
+  FHIR_PACKAGE_CACHE_DIR?: string
 }
