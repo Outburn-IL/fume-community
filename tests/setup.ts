@@ -90,6 +90,25 @@ async function setup () {
     FHIR_PACKAGE_CACHE_DIR
   });
   globalThis.app = globalThis.fumeServer.getExpressApp();
+  // Integration safeguard: ensure US Core dependency is indexed even if not explicitly requested
+  try {
+    const indexPath = path.resolve('fhirPackageIndex.json');
+    if (fs.existsSync(indexPath)) {
+      const raw = fs.readFileSync(indexPath, 'utf8');
+      const json = JSON.parse(raw || '{}');
+      const packages = json.packages || {};
+      if (!packages['hl7.fhir.us.core@6.1.0']) {
+        throw new Error('Mandatory package \'hl7.fhir.us.core@6.1.0\' not found in global FHIR package index. Dependencies were not installed correctly.');
+      } else {
+        console.log('Verified dependency package \'hl7.fhir.us.core@6.1.0\' is present in global index.');
+      }
+    } else {
+      throw new Error('Global FHIR package index file not found after server warm up.');
+    }
+  } catch (e: any) {
+    console.error('FHIR package index validation failed:', e?.message || e);
+    throw e;
+  }
   console.log('server started!');
 }
 
