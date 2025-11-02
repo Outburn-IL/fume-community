@@ -83,6 +83,11 @@ const getFhirPackageCacheDir = (): string | undefined => {
   return serverConfig.FHIR_PACKAGE_CACHE_DIR;
 };
 
+// Allow HTTP registry usage (testing against local mock Artifactory)
+const getFhirPackageRegistryAllowHttp = (): boolean | undefined => {
+  return serverConfig.FHIR_PACKAGE_REGISTRY_ALLOW_HTTP;
+};
+
 export default {
   getFhirVersion,
   getFhirCorePackage,
@@ -96,5 +101,6 @@ export default {
   addFhirPackage,
   getFhirPackageRegistryUrl,
   getFhirPackageRegistryToken,
-  getFhirPackageCacheDir
+  getFhirPackageCacheDir,
+  getFhirPackageRegistryAllowHttp
 };

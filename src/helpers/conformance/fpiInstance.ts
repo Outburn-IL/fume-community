@@ -38,7 +38,8 @@ export const getFpiInstance = (): FhirPackageInstaller => {
       logger: fpiLogger,
       registryUrl: config.getFhirPackageRegistryUrl(),
       registryToken: config.getFhirPackageRegistryToken(),
-      cachePath: config.getFhirPackageCacheDir()
+      cachePath: config.getFhirPackageCacheDir(),
+      allowHttp: config.getFhirPackageRegistryAllowHttp()
     };
 
     fpiInstance = new FhirPackageInstaller(fpiConfig);
