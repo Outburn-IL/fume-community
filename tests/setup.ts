@@ -45,7 +45,7 @@ async function waitForFhirApi (maxAttempts, currentAttempt = 1) {
     }
 
     await new Promise(resolve => setTimeout(resolve, 5000));
-    return waitForFhirApi(maxAttempts, currentAttempt + 1);
+    return await waitForFhirApi(maxAttempts, currentAttempt + 1);
   }
 }
 
