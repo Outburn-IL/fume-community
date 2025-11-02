@@ -4,4 +4,4 @@
  */
 export const LOCAL_FHIR_SERVER_BASE = 'http://localhost:8080';
 export const LOCAL_FHIR_API = `${LOCAL_FHIR_SERVER_BASE}/fhir`;
-export const FHIR_PACKAGE_CACHE_DIR = 'tests/fhir-packages';
+export const FHIR_PACKAGE_CACHE_DIR = 'tests/.fhir-packages';

@@ -4,6 +4,6 @@ module.exports = {
   testTimeout: 30000,
   roots: ['<rootDir>/tests'],
   // Ignore local cached FHIR packages to prevent jest-haste-map naming collisions
-  modulePathIgnorePatterns: ['<rootDir>/tests/fhir-packages'],
-  testPathIgnorePatterns: ['<rootDir>/tests/fhir-packages']
+  modulePathIgnorePatterns: ['<rootDir>/tests/.fhir-packages'],
+  testPathIgnorePatterns: ['<rootDir>/tests/.fhir-packages']
 };

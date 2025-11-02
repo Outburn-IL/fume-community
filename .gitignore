@@ -11,4 +11,4 @@ snapshots
 **/hapi.postgress.data
 
 fhirPackageIndex.json
-tests/fhir-packages
+tests/.fhir-packages
