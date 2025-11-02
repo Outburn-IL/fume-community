@@ -33,8 +33,10 @@ const ensure = async (packageId: string): Promise<boolean> => {
 
   // package itself is installed now. Ensure dependencies.
   const deps = await getDependencies(packageObject);
-  for (const pack in deps) {
-    await ensure(pack + '@' + deps[pack]);
+  if (deps) {
+    await Promise.all(
+      Object.entries(deps).map(([pack, version]) => ensure(pack + '@' + version))
+    );
   }
 
   return true;
