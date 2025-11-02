@@ -15,4 +15,6 @@ export interface IConfig {
   FHIR_SERVER_PW: string
   FHIR_PACKAGE_REGISTRY_URL?: string
   FHIR_PACKAGE_REGISTRY_TOKEN?: string
+  FHIR_PACKAGE_CACHE_DIR?: string
+  FHIR_PACKAGE_REGISTRY_ALLOW_HTTP?: boolean // Allow HTTP registry usage (for testing against local mock Artifactory)
 }

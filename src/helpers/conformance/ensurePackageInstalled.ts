@@ -8,7 +8,9 @@ import { PackageIdentifier, PackageIndex, PackageManifest } from 'fhir-package-i
 import config from '../../config';
 import { getFpiInstance } from './fpiInstance';
 
-const fpi = getFpiInstance();
+const getDependencies = async (packageObject: PackageIdentifier) => {
+  return (await getFpiInstance().getManifest(packageObject))?.dependencies;
+};
 
 /**
  * Ensures that a package and all of its dependencies are installed in the global package cache.
@@ -16,6 +18,8 @@ const fpi = getFpiInstance();
  * @param packageId string in the format packageId@version | packageId | packageId#version
  */
 const ensure = async (packageId: string): Promise<boolean> => {
+  const fpi = getFpiInstance();
+
   // Install package (fpi handles dependency resolution automatically)
   await fpi.install(packageId);
 
@@ -26,6 +30,14 @@ const ensure = async (packageId: string): Promise<boolean> => {
   const packageIndex: PackageIndex = await fpi.getPackageIndexFile(packageObject);
 
   config.addFhirPackage(packageObject, manifest, installedPath, packageIndex);
+
+  // package itself is installed now. Ensure dependencies.
+  const deps = await getDependencies(packageObject);
+  if (deps) {
+    await Promise.all(
+      Object.entries(deps).map(([pack, version]) => ensure(pack + '@' + version))
+    );
+  }
 
   return true;
 };

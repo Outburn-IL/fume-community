@@ -2,5 +2,8 @@ module.exports = {
   globalSetup: './tests/setup.ts',
   globalTeardown: './tests/teardown.ts',
   testTimeout: 30000,
-  roots: ['<rootDir>/tests']
+  roots: ['<rootDir>/tests'],
+  // Ignore local cached FHIR packages to prevent jest-haste-map naming collisions
+  modulePathIgnorePatterns: ['<rootDir>/tests/.fhir-packages'],
+  testPathIgnorePatterns: ['<rootDir>/tests/.fhir-packages']
 };

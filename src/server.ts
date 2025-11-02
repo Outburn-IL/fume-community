@@ -8,7 +8,6 @@ import express from 'express';
 import type { Server } from 'http';
 
 import config from './config';
-import { fumeFhirPackageId } from './constants';
 import { getCache, IAppCacheKeys, initCache, InitCacheConfig } from './helpers/cache';
 import * as conformance from './helpers/conformance';
 import { FhirClient, setFhirClient } from './helpers/fhirServer';
@@ -74,7 +73,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     this.logger.info('FUME initializing...');
     config.setServerConfig(options);
     const serverConfig: IConfig = config.getServerConfig();
-    const { SERVER_PORT, FHIR_SERVER_BASE, FHIR_VERSION, FHIR_PACKAGES, SEARCH_BUNDLE_PAGE_SIZE, FHIR_SERVER_TIMEOUT, SERVER_STATELESS } = serverConfig;
+    const { SERVER_PORT, FHIR_SERVER_BASE, FHIR_VERSION, FHIR_PACKAGES, SEARCH_BUNDLE_PAGE_SIZE, FHIR_SERVER_TIMEOUT, SERVER_STATELESS, FHIR_PACKAGE_CACHE_DIR, FHIR_PACKAGE_REGISTRY_URL, FHIR_PACKAGE_REGISTRY_TOKEN } = serverConfig;
     this.logger.info(serverConfig);
 
     // initialize caches
@@ -82,6 +81,15 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     this.logger.info('Caches initialized');
 
     this.logger.info(`Default FHIR version is set to ${FHIR_VERSION}`);
+    if (FHIR_PACKAGE_CACHE_DIR) {
+      this.logger.info(`FHIR package cache directory set to ${FHIR_PACKAGE_CACHE_DIR}`);
+    }
+    if (FHIR_PACKAGE_REGISTRY_URL) {
+      this.logger.info(`FHIR package registry URL set to ${FHIR_PACKAGE_REGISTRY_URL}`);
+      if (FHIR_PACKAGE_REGISTRY_TOKEN) {
+        this.logger.info('FHIR package registry token is set');
+      }
+    }
     // translate fhir version to package id
     const fhirVersionCorePackageId = config.getFhirCorePackage();
     // download package or throw error
@@ -94,7 +102,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
       throw new Error(`FHIR version ${FHIR_VERSION} is unsupported/invalid!`);
     };
     // load packages
-    const packageList: string[] = [fumeFhirPackageId, ...(FHIR_PACKAGES ? FHIR_PACKAGES.split(',') : [])];
+    const packageList: string[] = FHIR_PACKAGES ? FHIR_PACKAGES.split(',') : [];
     await conformance.downloadPackages(packageList);
 
     // load index of all packages found in global fhir cache (on disk)
