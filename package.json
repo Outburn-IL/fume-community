@@ -61,8 +61,6 @@
     "hl7js": "^0.0.6",
     "js-sha256": "^0.9.0",
     "jsonata": "^2.1.0",
-    "tar": "^7.5.1",
-    "temp": "^0.9.4",
     "uuid-by-string": "^4.0.0",
     "zod": "^3.25.76"
   },
@@ -80,7 +78,6 @@
     "@types/fs-extra": "^11.0.4",
     "@types/jest": "^30.0.0",
     "@types/lodash": "^4.17.20",
-    "@types/temp": "^0.9.4",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "args": "^5.0.3",
     "cross-env": "^7.0.3",
@@ -104,9 +101,9 @@
     "semantic-release": "^23.1.1",
     "semantic-release-unsquash": "^0.2.0",
     "semver": "^7.7.3",
-    "simple-git": "^3.28.0",
+    "simple-git": "^3.30.0",
     "supertest": "^6.3.4",
-    "typescript": "^5.6.3"
+    "typescript": "^5.9.3"
   },
   "exports": {
     ".": "./dist/src/index.js"
