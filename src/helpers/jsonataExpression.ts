@@ -511,7 +511,7 @@ const expressions: InternalJsonataExpression = {
         )
     };
 
-    $versions := $keys($)[$not($ in ["packages", "files"])];
+    $versions := $keys($)[$not($ in ["packages", "files", "_meta"])];
 
     $versions{
         'packages': $$.packages,
