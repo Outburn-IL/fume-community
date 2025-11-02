@@ -7,7 +7,7 @@ import { v2 as compose } from 'docker-compose';
 import path from 'path';
 
 import { FumeServer } from '../src/server';
-import { LOCAL_FHIR_API, LOCAL_FHIR_SERVER_BASE } from './config';
+import { FHIR_PACKAGE_CACHE_DIR, LOCAL_FHIR_API, LOCAL_FHIR_SERVER_BASE } from './config';
 
 /**
  * Disable axios cache during integration tests
@@ -69,7 +69,7 @@ async function setup () {
   await globalThis.fumeServer.warmUp({
     FHIR_SERVER_BASE: LOCAL_FHIR_API,
     FHIR_PACKAGES: 'il.core.fhir.r4@0.14.2,fume.outburn.r4@0.1.0,il.tasmc.fhir.r4@0.1.1',
-    FHIR_PACKAGE_CACHE_DIR: path.join(__dirname, 'fhir-packages')
+    FHIR_PACKAGE_CACHE_DIR
   });
   globalThis.app = globalThis.fumeServer.getExpressApp();
   console.log('server started!');
