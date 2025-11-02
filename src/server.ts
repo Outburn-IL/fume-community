@@ -8,7 +8,6 @@ import express from 'express';
 import type { Server } from 'http';
 
 import config from './config';
-import { fumeFhirPackageId } from './constants';
 import { getCache, IAppCacheKeys, initCache, InitCacheConfig } from './helpers/cache';
 import * as conformance from './helpers/conformance';
 import { FhirClient, setFhirClient } from './helpers/fhirServer';
@@ -103,7 +102,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
       throw new Error(`FHIR version ${FHIR_VERSION} is unsupported/invalid!`);
     };
     // load packages
-    const packageList: string[] = [fumeFhirPackageId, ...(FHIR_PACKAGES ? FHIR_PACKAGES.split(',') : [])];
+    const packageList: string[] = FHIR_PACKAGES ? FHIR_PACKAGES.split(',') : [];
     await conformance.downloadPackages(packageList);
 
     // load index of all packages found in global fhir cache (on disk)
