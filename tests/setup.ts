@@ -4,6 +4,7 @@
  */
 import axios from 'axios';
 import { v2 as compose } from 'docker-compose';
+import fs from 'fs';
 import path from 'path';
 
 import { FumeServer } from '../src/server';
@@ -65,10 +66,27 @@ async function setup () {
   await waitForFhirApi(30);
 
   console.log('starting server...');
+
+  // Ensure at least one package is re-downloaded on repeated test runs by deleting it from the cache if present
+  try {
+    if (FHIR_PACKAGE_CACHE_DIR) {
+      const corePkgDir = path.resolve(FHIR_PACKAGE_CACHE_DIR, 'hl7.fhir.r4.core#4.0.1');
+      if (fs.existsSync(corePkgDir)) {
+        console.log(`Deleting cached FHIR core package to force re-download: ${corePkgDir}`);
+        // Node 14+ supports recursive rm
+        fs.rmSync(corePkgDir, { recursive: true, force: true });
+      } else {
+        console.log(`FHIR core package directory not found (will be downloaded): ${corePkgDir}`);
+      }
+    }
+  } catch (e: any) {
+    console.error('Failed to delete cached FHIR core package:', e?.message || e);
+  }
+
   globalThis.fumeServer = new FumeServer();
   await globalThis.fumeServer.warmUp({
     FHIR_SERVER_BASE: LOCAL_FHIR_API,
-    FHIR_PACKAGES: 'il.core.fhir.r4@0.14.2,fume.outburn.r4@0.1.0,il.tasmc.fhir.r4@0.1.1',
+    FHIR_PACKAGES: 'il.core.fhir.r4@0.14.2,il.tasmc.fhir.r4@0.1.1',
     FHIR_PACKAGE_CACHE_DIR
   });
   globalThis.app = globalThis.fumeServer.getExpressApp();
