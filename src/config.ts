@@ -3,13 +3,12 @@
  *   Project name: FUME-COMMUNITY
  */
 
+import { PackageIdentifier, PackageIndex, PackageManifest } from 'fhir-package-installer';
+
 import { fhirCorePackages } from './constants';
 import { fhirVersionToMinor } from './helpers/fhirFunctions/fhirVersionToMinor';
 import defaultConfig from './serverConfig';
 import type { IAppBinding, IConfig } from './types';
-import { PackageIdentifier } from './types/PackageIdentifier';
-import { PackageIndex } from './types/PackageIndex';
-import { PackageManifest } from './types/PackageManifest';
 
 const additionalBindings: Record<string, IAppBinding> = {}; // additional functions to bind when running transformations
 let serverConfig: IConfig = { ...defaultConfig };
@@ -72,6 +71,23 @@ const getFhirVersionMinor = () => {
   return fhirVersionToMinor(serverConfig.FHIR_VERSION);
 };
 
+const getFhirPackageRegistryUrl = (): string | undefined => {
+  return serverConfig.FHIR_PACKAGE_REGISTRY_URL;
+};
+
+const getFhirPackageRegistryToken = (): string | undefined => {
+  return serverConfig.FHIR_PACKAGE_REGISTRY_TOKEN;
+};
+
+const getFhirPackageCacheDir = (): string | undefined => {
+  return serverConfig.FHIR_PACKAGE_CACHE_DIR;
+};
+
+// Allow HTTP registry usage (testing against local mock Artifactory)
+const getFhirPackageRegistryAllowHttp = (): boolean | undefined => {
+  return serverConfig.FHIR_PACKAGE_REGISTRY_ALLOW_HTTP;
+};
+
 export default {
   getFhirVersion,
   getFhirCorePackage,
@@ -82,5 +98,9 @@ export default {
   getBindings,
   setFhirPackages,
   getFhirPackages,
-  addFhirPackage
+  addFhirPackage,
+  getFhirPackageRegistryUrl,
+  getFhirPackageRegistryToken,
+  getFhirPackageCacheDir,
+  getFhirPackageRegistryAllowHttp
 };

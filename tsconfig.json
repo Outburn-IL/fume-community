@@ -27,7 +27,6 @@
   },
   "include": [
     "**/*.ts"
-    // ,"src/hl7.fhir.r4.core/StructureDefinition*.json"
   ],
   "exclude": [
     "dist/**/*"

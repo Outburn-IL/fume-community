@@ -1,28 +1,27 @@
 services:
-  fhir:
-    container_name: fhir
-    image: "hapiproject/hapi:latest"
-    ports:
-      - "8080:8080"
-    configs:
-      - source: hapi
-        target: /app/config/application.yaml
-    depends_on:
-      - db
-    environment:
-      JVM_OPTS: "-Xms2g -Xms2g"
-
   db:
     image: postgres:latest
-    container_name: db
-    restart: always
+    container_name: fume_community_hapi_db_test
+    restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: admin
       POSTGRES_USER: admin
       POSTGRES_DB: hapi
     volumes:
-      - ./hapi.postgress.data:/var/lib/postgresql/data
+      - hapi_pg_data:/var/lib/postgresql
 
-configs:
   hapi:
-     file: ./hapi.application.yaml
+    container_name: fume_community_hapi_test
+    image: "hapiproject/hapi:latest"
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      JVM_OPTS: "-Xms2g -Xms2g"
+    volumes:
+      - ./hapi.application.yaml:/app/config/application.yaml:ro
+
+volumes:
+  hapi_pg_data:

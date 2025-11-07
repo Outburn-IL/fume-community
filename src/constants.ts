@@ -509,5 +509,3 @@ export const iso3166 = {
   ZMB: 'Zambia',
   ZWE: 'Zimbabwe'
 };
-
-export const fumeFhirPackageId: string = 'fume.outburn.r4@0.1.1';

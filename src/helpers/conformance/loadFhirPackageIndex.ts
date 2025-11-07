@@ -3,6 +3,7 @@
  *   Project name: FUME-COMMUNITY
  */
 import fs from 'fs-extra';
+import os from 'os';
 import path from 'path';
 
 import config from '../../config';
@@ -15,6 +16,14 @@ import { getFumeIndexFilePath } from './getCachePath';
 export type IFhirPackage = any;
 export type IFhirPackageIndex = Record<string, IFhirPackage>;
 let fhirPackageIndex: IFhirPackageIndex = {};
+
+const getExpectedCachePath = () => {
+  // If user configured a custom cache directory use it, else fallback to legacy default
+  const configured = config.getFhirPackageCacheDir();
+  return configured && configured.trim().length > 0
+    ? path.resolve(configured)
+    : path.join(os.homedir(), '.fhir', 'packages');
+};
 
 const buildFhirCacheIndex = async () => {
   getLogger().info('Building global package index (this might take some time...)');
@@ -47,7 +56,15 @@ const buildFhirCacheIndex = async () => {
   const packageIndexObject = await expressions.createRawPackageIndexObject.evaluate(packageIndexArray, bindings);
 
   const fixedIndex = await expressions.fixPackageIndexObject.evaluate(packageIndexObject, { isNumeric });
-  return fixedIndex;
+
+  // attach metadata so we can detect cache path changes and regenerate automatically
+  const cachePath = getExpectedCachePath();
+  const meta = {
+    cachePath,
+    generatedAt: new Date().toISOString(),
+    packageCount: loadedPackageLabels.length
+  };
+  return { _meta: meta, ...fixedIndex };
 };
 
 const parseFhirPackageIndex = async (): Promise<IFhirPackageIndex> => {
@@ -64,13 +81,22 @@ const parseFhirPackageIndex = async (): Promise<IFhirPackageIndex> => {
         getLogger().warn('Global package index file is empty. It will be regenerated.');
       } else {
         const currentIndex = JSON.parse(fileContent);
-        const currentPackages = await expressions.extractCurrentPackagesFromIndex.evaluate(currentIndex);
-        const diff: string[] = await expressions.checkPackagesMissingFromIndex.evaluate({ dirList, packages: currentPackages });
-        if (diff.length === 0) {
-          getLogger().info('Global package index file is up-to-date');
-          return currentIndex;
+        // Check for cache path metadata; if missing or different we must rebuild
+        const expectedCachePath = getExpectedCachePath();
+        const existingCachePath = currentIndex?._meta?.cachePath;
+        if (!existingCachePath) {
+          getLogger().info('Global package index file missing cache path metadata; regenerating.');
+        } else if (path.resolve(existingCachePath) !== expectedCachePath) {
+          getLogger().info(`Global package index cache path differs (index=${existingCachePath}, expected=${expectedCachePath}); regenerating.`);
         } else {
-          getLogger().info('Global package index file is outdated');
+          const currentPackages = await expressions.extractCurrentPackagesFromIndex.evaluate(currentIndex);
+          const diff: string[] = await expressions.checkPackagesMissingFromIndex.evaluate({ dirList, packages: currentPackages });
+          if (diff.length === 0) {
+            getLogger().info('Global package index file is up-to-date');
+            return currentIndex;
+          } else {
+            getLogger().info('Global package index file is outdated (package diff detected)');
+          }
         }
       }
     } catch (err) {
