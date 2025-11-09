@@ -35,7 +35,14 @@ const ensure = async (packageId: string): Promise<boolean> => {
   const deps = await getDependencies(packageObject);
   if (deps) {
     await Promise.all(
-      Object.entries(deps).map(([pack, version]) => ensure(pack + '@' + version))
+      Object.entries(deps).map(async ([pack, version]) => {
+        try {
+          await ensure(pack + '@' + version);
+        } catch (err) {
+          // Print error but do not throw, so other dependencies can proceed
+          fpi.getLogger().error(`Failed to install dependency ${pack}@${version}: ${err}`);
+        }
+      })
     );
   }
 
