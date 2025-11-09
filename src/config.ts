@@ -3,7 +3,7 @@
  *   Project name: FUME-COMMUNITY
  */
 
-import { PackageIdentifier, PackageIndex, PackageManifest } from 'fhir-package-installer';
+import type { PackageIdentifier, PackageIndex, PackageManifest } from 'fhir-package-installer';
 
 import { fhirCorePackages } from './constants';
 import { fhirVersionToMinor } from './helpers/fhirFunctions/fhirVersionToMinor';

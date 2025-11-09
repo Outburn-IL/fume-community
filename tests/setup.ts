@@ -10,7 +10,7 @@ import path from 'path';
 
 import { resetFpiInstance } from '../src/helpers/conformance/fpiInstance';
 import { FumeServer } from '../src/server';
-import { FHIR_PACKAGE_CACHE_DIR, LOCAL_FHIR_API, LOCAL_FHIR_SERVER_BASE } from './config';
+import { FHIR_PACKAGE_CACHE_DIR, LOCAL_FHIR_API } from './config';
 
 /**
  * Disable axios cache during integration tests
@@ -36,7 +36,9 @@ axios.create = function createPatchedAxios (config) {
 async function waitForFhirApi (maxAttempts, currentAttempt = 1) {
   try {
     console.log(`Attempt ${currentAttempt} to query FHIR API...`);
-    await axios.get(LOCAL_FHIR_SERVER_BASE);
+    // Poll the FHIR server capability statement endpoint instead of root
+    // Using /metadata is more explicit and aligns with FHIR spec for server availability
+    await axios.get(`${LOCAL_FHIR_API}/metadata`);
   } catch (error: any) {
     console.error(`Attempt ${currentAttempt} failed:`, error.message);
 
