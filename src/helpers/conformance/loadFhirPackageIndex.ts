@@ -11,11 +11,14 @@ import { getLogger } from '../logger';
 import { omitKeys } from '../objectFunctions';
 import { isNumeric } from '../stringFunctions';
 import { getFpiInstance } from './fpiInstance';
-import { getFumeIndexFilePath } from './getCachePath';
 
 export type IFhirPackage = any;
 export type IFhirPackageIndex = Record<string, IFhirPackage>;
 let fhirPackageIndex: IFhirPackageIndex = {};
+
+const getFumeIndexFilePath = () => {
+  return path.join(path.resolve('.'), 'fhirPackageIndex.json');
+};
 
 const buildFhirCacheIndex = async () => {
   getLogger().info('Building global package index (this might take some time...)');
