@@ -77,11 +77,11 @@ const parseFhirPackageIndex = async (): Promise<IFhirPackageIndex> => {
       } else {
         const currentIndex = JSON.parse(fileContent);
         // Check for cache path metadata; if missing or different we must rebuild
-        const expectedCachePath = getFpiInstance().getCachePath();
-        const existingCachePath = currentIndex?._meta?.cachePath;
+        const expectedCachePath = path.resolve(getFpiInstance().getCachePath());
+        const existingCachePath = path.resolve(currentIndex?._meta?.cachePath);
         if (!existingCachePath) {
           getLogger().info('Global package index file missing cache path metadata; regenerating.');
-        } else if (path.resolve(existingCachePath) !== expectedCachePath) {
+        } else if (existingCachePath !== expectedCachePath) {
           getLogger().info(`Global package index cache path differs (index=${existingCachePath}, expected=${expectedCachePath}); regenerating.`);
         } else {
           const currentPackages = await expressions.extractCurrentPackagesFromIndex.evaluate(currentIndex);
