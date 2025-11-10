@@ -53,7 +53,7 @@
     "cors": "^2.8.5",
     "csvtojson": "^2.0.14",
     "dotenv": "^16.6.1",
-    "express": "^4.21.2",
+    "express": "^5.1.0",
     "fast-xml-parser": "^4.5.3",
     "fhir-package-installer": "^1.5.2",
     "fs-extra": "^11.3.2",
