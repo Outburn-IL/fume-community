@@ -13,6 +13,7 @@ import { convertInputToJson } from '../helpers/inputConverters';
 import { pretty, transform } from '../helpers/jsonataFunctions';
 import { getLogger } from '../helpers/logger';
 import { toJsonataString } from '../helpers/parser/toJsonataString';
+import { createFumeError } from '../types';
 
 const get = async (req: Request, res: Response) => {
   return res.status(200).json(
@@ -28,17 +29,9 @@ const evaluate = async (req: Request, res: Response) => {
     const response = await transform(inputJson, req.body.fume, extraBindings);
     return res.status(200).json(response);
   } catch (error: any) {
-    const data = {
-      __isFumeError: true,
-      message: error.message ?? '',
-      code: error.code ?? '',
-      name: error.name ?? '',
-      token: error.token ?? '',
-      cause: error.cause ?? '',
-      position: error.position ?? ''
-    };
     getLogger().error({ error });
-    return res.status(422).json(data);
+    const fumeError = createFumeError(error);
+    return res.status(422).json(fumeError);
   }
 };
 
