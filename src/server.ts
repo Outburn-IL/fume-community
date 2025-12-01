@@ -111,7 +111,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     if (SERVER_STATELESS) {
       this.logger.info('Running in stateless mode');
     } else {
-      this.logger.info(`Bundle search size: ${SEARCH_BUNDLE_PAGE_SIZE}`);
+      this.logger.info(`Search Bundle page size: ${SEARCH_BUNDLE_PAGE_SIZE}`);
       this.logger.info(`FHIR Server Timeout: ${FHIR_SERVER_TIMEOUT}`);
       this.logger.info(`Loading FUME resources from FHIR server ${FHIR_SERVER_BASE} into cache...`);
 
