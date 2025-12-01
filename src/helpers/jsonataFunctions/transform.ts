@@ -8,7 +8,9 @@
  *   Project name: FUME
  */
 
-import fumifier, { FumifierCompiled } from 'fumifier';
+import { FhirStructureNavigator } from '@outburn/structure-navigator';
+import { BaseFhirVersion, FhirSnapshotGenerator } from 'fhir-snapshot-generator';
+import fumifier, { FumifierCompiled, FumifierOptions, MappingCacheInterface } from 'fumifier';
 import HL7Dictionary from 'hl7-dictionary';
 
 import config from '../../config';
@@ -21,26 +23,73 @@ import { parseCsv } from '../inputConverters';
 import * as v2 from '../inputConverters/hl7v2';
 import { getLogger } from '../logger';
 import * as objectFuncs from '../objectFunctions';
-import compiler from '../parser';
-import { removeComments } from '../parser/removeComments';
-import runtime from '../runtime';
 import * as stringFuncs from '../stringFunctions';
-import { getStructureDefinition } from './getStructureDefinition';
 import { logInfo, logWarn } from './log';
-import { registerTable } from './registerTable';
 
 const dev = process.env.NODE_ENV === 'dev';
+const fumeMappingCache = getCache().mappings;
+const fhirPackageContext = Object.keys(config.getFhirPackages());
+const fhirVersion = config.getFhirVersion() as BaseFhirVersion;
+const fhirPackageCachePath = config.getFhirPackageCacheDir();
+const registryUrl = config.getFhirPackageRegistryUrl();
+const registryToken = config.getFhirPackageRegistryToken();
+let generator: FhirSnapshotGenerator | null = null;
+let navigator: FhirStructureNavigator | null = null;
 
-const compiledExpression = async (expression: string): Promise<FumifierCompiled> => {
+const getFsg = async () => {
+  if (!generator) {
+    generator = await FhirSnapshotGenerator.create({
+      context: fhirPackageContext,
+      cachePath: fhirPackageCachePath,
+      fhirVersion,
+      cacheMode: 'lazy',
+      logger: getLogger(),
+      registryUrl,
+      registryToken
+    });
+  }
+  return generator;
+};
+
+const getNavigator = async () => {
+  if (!navigator) {
+    const fsg = await getFsg();
+    navigator = new FhirStructureNavigator(fsg, getLogger());
+  };
+  return navigator;
+};
+
+const getFumifierOptions = async (): Promise<FumifierOptions> => {
+  return {
+    mappingCache: fumifierMappingCache,
+    navigator: await getNavigator()
+  };
+};
+
+/**
+ * An implementation of Fumifier's MappingCacheInterface over the FUME mapping cache
+ */
+const fumifierMappingCache: MappingCacheInterface = {
+  getKeys: async () => {
+    return Array.from(fumeMappingCache.keys());
+  },
+  get: async (key: string) => {
+    return fumeMappingCache.get(key);
+  }
+};
+
+/**
+ * Parses and compiles a FUME expression into a FumifierCompiled object
+ * @param expression 
+ * @returns 
+ */
+const compileExpression = async (expression: string): Promise<FumifierCompiled> => {
   const { compiledExpressions } = getCache();
-  // takes a fume expression string and compiles it into a jsonata expression
-  // or returns the already compiled expression from cache
   const key = stringFuncs.hashKey(expression); // turn expression string to a key
-  let compiled: any = compiledExpressions.get(key); // get from cache
-  if (compiled === undefined) { // not cached
-    getLogger().info('expression not cached, compiling it...');
-    const parsedAsJsonataStr = expression; // await compiler.toJsonataString(expression);
-    compiled = await fumifier(parsedAsJsonataStr);
+  let compiled: FumifierCompiled = compiledExpressions.get(key); // get from cache
+  if (!compiled) { // not cached, compile it
+    const options = await getFumifierOptions();
+    compiled = await fumifier(expression, options);
     compiledExpressions.set(key, compiled);
   };
   return compiled;
@@ -50,36 +99,18 @@ export const transform = async (input: any, expression: string, extraBindings: R
   try {
     getLogger().info('Running transformation...');
 
-    const expr = await compiledExpression(expression);
+    const expr = await compileExpression(expression);
 
     let bindings: Record<string, Function | Record<string, any> | string> = {};
 
-    // bind all mappings from cache
-    const { compiledMappings } = getCache();
-    const mappingIds: any[] = Array.from(compiledMappings.keys());
-    if (mappingIds) {
-      mappingIds.forEach((mappingId) => {
-        const mapping: any = compiledMappings.get(mappingId);
-        expr.registerFunction(mappingId, mapping?.function, '<x-o?:x>');
-      });
-    }
-
     // bind functions
-    bindings.__checkResourceId = runtime.checkResourceId;
-    bindings.__finalize = runtime.finalize;
-    bindings.__castToFhir = runtime.castToFhir;
-    bindings.__flashMerge = runtime.flashMerge;
-    bindings.wait = runtime.wait;
     bindings.resourceId = fhirFuncs.resourceId;
-    bindings.initCap = stringFuncs.initCap;
     bindings.isEmpty = objectFuncs.isEmpty;
     bindings.matches = stringFuncs.matches;
     bindings.stringify = JSON.stringify;
     bindings.selectKeys = objectFuncs.selectKeys;
     bindings.omitKeys = objectFuncs.omitKeys;
 
-    bindings.uuid = stringFuncs.uuid;
-    bindings.registerTable = registerTable;
     bindings.translateCode = fhirFuncs.translateCode;
     bindings.translate = fhirFuncs.translateCode;
     bindings.translateCoding = fhirFuncs.translateCoding;
@@ -101,11 +132,6 @@ export const transform = async (input: any, expression: string, extraBindings: R
     bindings.v2dictionary = HL7Dictionary.definitions;
     bindings.v2codeLookup = v2.v2codeLookup;
     bindings.v2tableUrl = v2.v2tableUrl;
-    if (dev) bindings.getMandatoriesOfElement = compiler.getMandatoriesOfElement;
-    if (dev) bindings.getMandatoriesOfStructure = compiler.getMandatoriesOfStructure;
-    if (dev) bindings.getElementDefinition = compiler.getElementDefinition;
-    if (dev) bindings.replaceColonsWithBrackets = compiler.replaceColonsWithBrackets;
-    if (dev) bindings.removeComments = removeComments;
     if (dev) bindings.valueSetExpandDictionary = valueSetExpandDictionary;
     if (dev) bindings.codeSystemDictionary = codeSystemDictionary;
     bindings.getCodeSystem = conformance.getCodeSystem;
@@ -119,22 +145,16 @@ export const transform = async (input: any, expression: string, extraBindings: R
       ...extraBindings
     };
 
-    expr.registerFunction('base64encode', stringFuncs.base64encode, '<s-:s>');
-    expr.registerFunction('base64decode', stringFuncs.base64decode, '<s-:s>');
-    expr.registerFunction('startsWith', stringFuncs.startsWith, '<s-s:b>');
-    expr.registerFunction('endsWith', stringFuncs.endsWith, '<s-s:b>');
-    expr.registerFunction('isNumeric', stringFuncs.isNumeric, '<j-:b>');
-    expr.registerFunction('reference', fhirFuncs.reference, '<o-:s>');
-    expr.registerFunction(
-      'getStructureDefinition',
-      (defId: string) => getStructureDefinition(defId, config.getFhirVersion(), conformance.getFhirPackageIndex(), getLogger()),
-      '<s-:o>'
-    );
-    expr.registerFunction(
-      'getSnapshot',
-      async (defId: string) => await compiler.getSnapshot(defId, config.getFhirVersion(), conformance.getFhirPackageIndex(), getLogger()),
-      '<s-:o>'
-    );
+    // expr.registerFunction(
+    //   'getStructureDefinition',
+    //   (defId: string) => getStructureDefinition(defId, config.getFhirVersion(), conformance.getFhirPackageIndex(), getLogger()),
+    //   '<s-:o>'
+    // );
+    // expr.registerFunction(
+    //   'getSnapshot',
+    //   async (defId: string) => await compiler.getSnapshot(defId, config.getFhirVersion(), conformance.getFhirPackageIndex(), getLogger()),
+    //   '<s-:o>'
+    // );
 
     const res = await expr.evaluate(input, bindings);
     return res;

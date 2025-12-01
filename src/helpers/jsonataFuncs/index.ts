@@ -4,19 +4,9 @@
  */
 
 import { calcBracketDiff } from './calcBracketDiff';
-import { eDefSelector } from './eDefSelector';
-import { findClosingBrackets } from './findClosingBrackets';
-import { getJsonElementName } from './getJsonElementName';
-import { getMandatoriesOfElement } from './getMandatoriesOfElement';
-import { getMandatoriesOfStructure } from './getMandatoriesOfStructure';
 import { isTypeNameValid } from './isTypeNameValid';
 
 export const funcs = {
-  findClosingBrackets,
   calcBracketDiff,
-  isTypeNameValid,
-  eDefSelector,
-  getMandatoriesOfStructure,
-  getMandatoriesOfElement,
-  getJsonElementName
+  isTypeNameValid
 };

@@ -10,7 +10,6 @@ import { parseCsv } from './helpers/inputConverters';
 import { v2json } from './helpers/inputConverters/hl7v2';
 import expressions from './helpers/jsonataExpression';
 import { selectKeys } from './helpers/objectFunctions';
-import parser from './helpers/parser';
 import {
   duplicate,
   endsWith,
@@ -44,7 +43,7 @@ export const fumeUtils = {
   getFhirVersion: config.getFhirVersion,
   getFhirCorePackage: config.getFhirCorePackage,
   getFhirVersionMinor: config.getFhirVersionMinor,
-  getSnapshot: parser.getSnapshot,
+  // getSnapshot: parser.getSnapshot,
   v2json,
   getFhirPackageIndex,
   // FHIR functions
