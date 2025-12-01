@@ -23,7 +23,7 @@ export const v2json = async (message: string) => {
     getSegmentDef: getV2SegmentDef,
     getDatatypeDef: getV2DatatypeDef
   };
-  const res = await expressions.v2json.evaluate(
+  const res = await (await expressions).v2json.evaluate(
     message,
     bindings
   );

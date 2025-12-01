@@ -6,18 +6,18 @@
 import expressions from './jsonataExpression';
 
 const selectKeys = async (obj: object, skeys: string[]): Promise<object> => {
-  const res = await expressions.selectKeys.evaluate({}, { in: obj, skeys });
+  const res = await (await expressions).selectKeys.evaluate({}, { in: obj, skeys });
   return res;
 };
 
 const omitKeys = async (obj: object, okeys: string[]): Promise<object> => {
-  const res = await expressions.omitKeys.evaluate({}, { in: obj, okeys });
+  const res = await (await expressions).omitKeys.evaluate({}, { in: obj, okeys });
   return res;
 };
 
 const isEmpty = async (value: any): Promise<boolean> => {
   if (value === undefined || value === null) return true;
-  const res = await expressions.isEmpty.evaluate({}, { value });
+  const res = await (await expressions).isEmpty.evaluate({}, { value });
   return res;
 };
 

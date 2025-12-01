@@ -8,8 +8,8 @@
  *   Project name: FUME
  */
 
+import fumifier, { FumifierCompiled } from 'fumifier';
 import HL7Dictionary from 'hl7-dictionary';
-import jsonata from 'jsonata';
 
 import config from '../../config';
 import { IAppBinding } from '../../types';
@@ -31,7 +31,7 @@ import { registerTable } from './registerTable';
 
 const dev = process.env.NODE_ENV === 'dev';
 
-const compiledExpression = async (expression: string): Promise<jsonata.Expression> => {
+const compiledExpression = async (expression: string): Promise<FumifierCompiled> => {
   const { compiledExpressions } = getCache();
   // takes a fume expression string and compiles it into a jsonata expression
   // or returns the already compiled expression from cache
@@ -40,7 +40,7 @@ const compiledExpression = async (expression: string): Promise<jsonata.Expressio
   if (compiled === undefined) { // not cached
     getLogger().info('expression not cached, compiling it...');
     const parsedAsJsonataStr = await compiler.toJsonataString(expression);
-    compiled = jsonata(parsedAsJsonataStr!);
+    compiled = await fumifier(parsedAsJsonataStr!);
     compiledExpressions.set(key, compiled);
   };
   return compiled;

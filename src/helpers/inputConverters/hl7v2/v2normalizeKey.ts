@@ -13,6 +13,6 @@ export const v2normalizeKey = async (key: string) => {
     keyMap: getCache().v2keyMap.getDict(),
     registerV2key
   };
-  const res = await expressions.v2normalizeKey.evaluate(key, bindings);
+  const res = await (await expressions).v2normalizeKey.evaluate(key, bindings);
   return res;
 };

@@ -48,9 +48,9 @@ const buildFhirCacheIndex = async () => {
     pathJoin: path.join,
     isNumeric
   };
-  const packageIndexObject = await expressions.createRawPackageIndexObject.evaluate(packageIndexArray, bindings);
+  const packageIndexObject = await (await expressions).createRawPackageIndexObject.evaluate(packageIndexArray, bindings);
 
-  const fixedIndex = await expressions.fixPackageIndexObject.evaluate(packageIndexObject, { isNumeric });
+  const fixedIndex = await (await expressions).fixPackageIndexObject.evaluate(packageIndexObject, { isNumeric });
 
   // attach metadata so we can detect cache path changes and regenerate automatically
   const cachePath = getFpiInstance().getCachePath();
@@ -84,8 +84,8 @@ const parseFhirPackageIndex = async (): Promise<IFhirPackageIndex> => {
         } else if (existingCachePath !== expectedCachePath) {
           getLogger().info(`Global package index cache path differs (index=${existingCachePath}, expected=${expectedCachePath}); regenerating.`);
         } else {
-          const currentPackages = await expressions.extractCurrentPackagesFromIndex.evaluate(currentIndex);
-          const diff: string[] = await expressions.checkPackagesMissingFromIndex.evaluate({ dirList, packages: currentPackages });
+          const currentPackages = await (await expressions).extractCurrentPackagesFromIndex.evaluate(currentIndex);
+          const diff: string[] = await (await expressions).checkPackagesMissingFromIndex.evaluate({ dirList, packages: currentPackages });
           if (diff.length === 0) {
             getLogger().info('Global package index file is up-to-date');
             return currentIndex;

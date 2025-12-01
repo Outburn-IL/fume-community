@@ -3,47 +3,48 @@
  *   Project name: FUME-COMMUNITY
  */
 
-import jsonata from 'jsonata';
+import type { FumifierCompiled } from 'fumifier';
+import fumifier from 'fumifier';
 
 export interface InternalJsonataExpression {
-  translateCodeExtract: jsonata.Expression
-  translateCodingExtract: jsonata.Expression
-  searchSingle: jsonata.Expression
-  literal: jsonata.Expression
-  initCap: jsonata.Expression
-  duplicate: jsonata.Expression
-  selectKeys: jsonata.Expression
-  omitKeys: jsonata.Expression
-  v2normalizeKey: jsonata.Expression
-  v2json: jsonata.Expression
-  parseFumeExpression: jsonata.Expression
-  constructLineIterator: jsonata.Expression
-  extractNextLink: jsonata.Expression
-  bundleToArrayOfResources: jsonata.Expression
-  structureMapsToMappingObject: jsonata.Expression
-  aliasResourceToObject: jsonata.Expression
-  conceptMapToTable: jsonata.Expression
-  createRawPackageIndexObject: jsonata.Expression
-  fixPackageIndexObject: jsonata.Expression
-  extractCurrentPackagesFromIndex: jsonata.Expression
-  checkPackagesMissingFromIndex: jsonata.Expression
-  isEmpty: jsonata.Expression
-  codeSystemToDictionary: jsonata.Expression
-  valueSetExpandDictionary: jsonata.Expression
-  testCodeAgainstVS: jsonata.Expression
-  testCodingAgainstVS: jsonata.Expression
-  testCodeableAgainstVS: jsonata.Expression
+  translateCodeExtract: FumifierCompiled
+  translateCodingExtract: FumifierCompiled
+  searchSingle: FumifierCompiled
+  literal: FumifierCompiled
+  initCap: FumifierCompiled
+  duplicate: FumifierCompiled
+  selectKeys: FumifierCompiled
+  omitKeys: FumifierCompiled
+  v2normalizeKey: FumifierCompiled
+  v2json: FumifierCompiled
+  parseFumeExpression: FumifierCompiled
+  constructLineIterator: FumifierCompiled
+  extractNextLink: FumifierCompiled
+  bundleToArrayOfResources: FumifierCompiled
+  structureMapsToMappingObject: FumifierCompiled
+  aliasResourceToObject: FumifierCompiled
+  conceptMapToTable: FumifierCompiled
+  createRawPackageIndexObject: FumifierCompiled
+  fixPackageIndexObject: FumifierCompiled
+  extractCurrentPackagesFromIndex: FumifierCompiled
+  checkPackagesMissingFromIndex: FumifierCompiled
+  isEmpty: FumifierCompiled
+  codeSystemToDictionary: FumifierCompiled
+  valueSetExpandDictionary: FumifierCompiled
+  testCodeAgainstVS: FumifierCompiled
+  testCodingAgainstVS: FumifierCompiled
+  testCodeableAgainstVS: FumifierCompiled
 };
 
-const expressions: InternalJsonataExpression = {
-  translateCodeExtract: jsonata('$mapFiltered.code'),
-  translateCodingExtract: jsonata(`
+const createExpressions = async (): Promise<InternalJsonataExpression> => ({
+  translateCodeExtract: await fumifier('$mapFiltered.code'),
+  translateCodingExtract: await fumifier(`
     $result.{
       'system': target,
       'code': code,
       'display': display
     }`),
-  searchSingle: jsonata(`(
+  searchSingle: await fumifier(`(
     $assert(
       $bundle.total <= 1, 
       'The search ' 
@@ -52,19 +53,19 @@ const expressions: InternalJsonataExpression = {
     );
     $bundle.entry[search.mode='match'][0].resource
   )`),
-  literal: jsonata(`(
+  literal: await fumifier(`(
     $r := $searchSingle($query, $params);
     $r.resourceType = 'OperationOutcome' ? $error($string($r));
     $exists($r.resourceType) ? $r.resourceType & '/' & $r.id : undefined
   )`),
-  initCap: jsonata(`(
+  initCap: await fumifier(`(
     $words := $trim($)~>$split(" ");
     ($words.$initCapOnce($))~>$join(' ')
   )`),
-  duplicate: jsonata('$join([1..$times].($str))'),
-  selectKeys: jsonata('$in.$sift($, function($v, $k) {$k in $skeys})'),
-  omitKeys: jsonata('$in.$sift($, function($v, $k) {($k in $okeys)=false})'),
-  v2normalizeKey: jsonata(`(
+  duplicate: await fumifier('$join([1..$times].($str))'),
+  selectKeys: await fumifier('$in.$sift($, function($v, $k) {$k in $skeys})'),
+  omitKeys: await fumifier('$in.$sift($, function($v, $k) {($k in $okeys)=false})'),
+  v2normalizeKey: await fumifier(`(
     $cached := $lookup($keyMap, $);
     $exists($cached) = false 
       ? (
@@ -80,7 +81,7 @@ const expressions: InternalJsonataExpression = {
       : ($cached);
     
   )`)),
-  v2json: jsonata(`(
+  v2json: await fumifier(`(
     $rawJson := $v2parse($);
     $v2version := $rawJson.segments[0].\`12\`;
   
@@ -202,7 +203,7 @@ const expressions: InternalJsonataExpression = {
       $s.\`0\`: $
     };
   )`),
-  parseFumeExpression: jsonata(`
+  parseFumeExpression: await fumifier(`
     (
       $lines:=[$splitLineFunc($expr)];
       $lines:=$lines[$not($startsWith($trim($),"*") and $endsWith($trim($), "undefined"))];
@@ -215,7 +216,7 @@ const expressions: InternalJsonataExpression = {
       )
     )`
   ),
-  constructLineIterator: jsonata(`
+  constructLineIterator: await fumifier(`
     (
       $first := $nodes[0].$construct($prefix, $, '', $context, true);
       $middle := $nodes#$i[$i>0 and $i<($count($nodes)-1)].$construct('', $, '', '', true);
@@ -227,9 +228,9 @@ const expressions: InternalJsonataExpression = {
       ])
     )`
   ),
-  extractNextLink: jsonata('link[relation=\'next\'].url'),
-  bundleToArrayOfResources: jsonata('[$bundleArray.entry.resource]'),
-  structureMapsToMappingObject: jsonata(`
+  extractNextLink: await fumifier('link[relation=\'next\'].url'),
+  bundleToArrayOfResources: await fumifier('[$bundleArray.entry.resource]'),
+  structureMapsToMappingObject: await fumifier(`
     ($[
       resourceType='StructureMap' 
       and status='active' 
@@ -243,8 +244,8 @@ const expressions: InternalJsonataExpression = {
       id: group[name = 'fumeMapping'].rule[name='evaluate'].extension[url = 'http://fhir.fume.health/StructureDefinition/mapping-expression'].valueExpression.expression
     }`
   ),
-  aliasResourceToObject: jsonata('group.element{code: target.code}'),
-  conceptMapToTable: jsonata(`(
+  aliasResourceToObject: await fumifier('group.element{code: target.code}'),
+  conceptMapToTable: await fumifier(`(
     $cm := (resourceType='Bundle' ? [entry[0].resource] : [$]);
   
     $merge(
@@ -271,7 +272,7 @@ const expressions: InternalJsonataExpression = {
       }
     )
   )`),
-  createRawPackageIndexObject: jsonata(`
+  createRawPackageIndexObject: await fumifier(`
   (
     $packageReplace := $replace(?,'#', '@');
   
@@ -412,7 +413,7 @@ const expressions: InternalJsonataExpression = {
       }
     )
   )`),
-  fixPackageIndexObject: jsonata(`(
+  fixPackageIndexObject: await fumifier(`(
     $splitVersionId := function($versionId) {(
       $parts := $split($versionId, '.');
       $major := $parts[0];
@@ -519,8 +520,8 @@ const expressions: InternalJsonataExpression = {
         $: $fixVersion($lookup($$, $))
     };
 )`),
-  extractCurrentPackagesFromIndex: jsonata('$keys(packages)'),
-  checkPackagesMissingFromIndex: jsonata(`(
+  extractCurrentPackagesFromIndex: await fumifier('$keys(packages)'),
+  checkPackagesMissingFromIndex: await fumifier(`(
     $dirList := dirList.$replace('#', '@');
     
     $missingFromIndex := packages[$not($ in $dirList)];
@@ -528,7 +529,7 @@ const expressions: InternalJsonataExpression = {
 
     [$append($missingFromIndex,$missingFromCache)];
   )`),
-  isEmpty: jsonata(`(
+  isEmpty: await fumifier(`(
     $_isEmpty := function($input) {(
       $exists($input) ? (
         $input in ['', null, {}, []] 
@@ -553,8 +554,8 @@ const expressions: InternalJsonataExpression = {
     )};
     $_isEmpty($value)
   )`),
-  codeSystemToDictionary: jsonata('concept.**[$type($)="object"]{code:display}'),
-  valueSetExpandDictionary: jsonata(`  (
+  codeSystemToDictionary: await fumifier('concept.**[$type($)="object"]{code:display}'),
+  valueSetExpandDictionary: await fumifier(`  (
     $expandInclude := function($include){(
 
       $exists($include.filter) ? undefined : (
@@ -622,11 +623,11 @@ const expressions: InternalJsonataExpression = {
     $count($compose) > 0 ? $compose;
 
   )`),
-  testCodeAgainstVS: jsonata(`(
+  testCodeAgainstVS: await fumifier(`(
     $allCodes := $merge($vs.*);
     $lookup($allCodes, $value);
   )`),
-  testCodingAgainstVS: jsonata(`(
+  testCodingAgainstVS: await fumifier(`(
     $system := $coding.system;
     $code := $coding.code;
     $exists($system) and $exists($code) ? (
@@ -634,10 +635,12 @@ const expressions: InternalJsonataExpression = {
       $lookup($codes, $code);
     )
   )`),
-  testCodeableAgainstVS: jsonata(`(
+  testCodeableAgainstVS: await fumifier(`(
     $codings := $codeable.$sift(function($v, $k){$substring($k,0,6) = 'coding'}).*;
     $codings.$testCodingAgainstVS($, $vs);
   )`)
-};
+});
+
+const expressions = createExpressions();
 
 export default expressions;

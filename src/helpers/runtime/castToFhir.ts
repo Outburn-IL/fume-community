@@ -55,7 +55,7 @@ const getPrimitiveParser = async (typeName: string): Promise<Function | undefine
 };
 
 const testCodingAgainstVS = async (coding: any, vs: any[]): Promise<string | string[] | undefined> => {
-  return await expressions.testCodingAgainstVS.evaluate({}, { coding, vs });
+  return await (await expressions).testCodingAgainstVS.evaluate({}, { coding, vs });
 };
 
 export const castToFhir = async (options: CastToFhirOptions, input: any) => {
@@ -159,7 +159,7 @@ export const castToFhir = async (options: CastToFhirOptions, input: any) => {
         // passed the test
         if (options.vsDictionary) {
           // it's a primitive that has binding
-          const vsTest: string = await expressions.testCodeAgainstVS.evaluate({}, { value: passToParser, vs: options.vsDictionary });
+          const vsTest: string = await (await expressions).testCodeAgainstVS.evaluate({}, { value: passToParser, vs: options.vsDictionary });
           if (!vsTest) {
             return thrower.throwRuntimeError(`value '${passToParser}' is invalid for element ${options?.path}. This code is not in the required value set`);
           }
@@ -227,7 +227,7 @@ export const castToFhir = async (options: CastToFhirOptions, input: any) => {
     if (options.vsDictionary && options.baseType === 'CodeableConcept') {
       // required bindings on CodeableConcept
       if (Object.keys(res[elementName]).filter((k: string) => k.startsWith('coding')).length > 0) {
-        const vsTest = await expressions.testCodeableAgainstVS.evaluate({}, { codeable: res[elementName], vs: options.vsDictionary, testCodingAgainstVS });
+        const vsTest = await (await expressions).testCodeableAgainstVS.evaluate({}, { codeable: res[elementName], vs: options.vsDictionary, testCodingAgainstVS });
         if (!vsTest) {
           return thrower.throwRuntimeError(`Element ${options?.path} is invalid since none of the codings provided are in the required value set`);
         }

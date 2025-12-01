@@ -292,7 +292,7 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
       startsWith,
       endsWith
     };
-    const parsed = await expressions.parseFumeExpression.evaluate({}, bindings);
+    const parsed = await (await expressions).parseFumeExpression.evaluate({}, bindings);
     // logger.info({ parsed });
     return parsed;
   };
@@ -432,7 +432,7 @@ export const toJsonataString = async (inExpr: string): Promise<string | undefine
         value: value ?? '',
         context: context ?? ''
       };
-      const line = await expressions.constructLineIterator.evaluate({}, bindings);
+      const line = await (await expressions).constructLineIterator.evaluate({}, bindings);
       return line;
     };
     // didn't find any edef

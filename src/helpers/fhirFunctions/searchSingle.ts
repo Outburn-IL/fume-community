@@ -18,6 +18,6 @@ export const searchSingle = async (query: string, params?: Record<string, any>):
   };
 
   const bundle = await getFhirClient().search(url, options);
-  const res = await expressions.searchSingle.evaluate({}, { bundle });
+  const res = await (await expressions).searchSingle.evaluate({}, { bundle });
   return res;
 };

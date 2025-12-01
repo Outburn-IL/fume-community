@@ -31,7 +31,7 @@ export const translateCoding = async (input: string, tableId: string) => {
       }
     }
 
-    const coding = await expressions.translateCodingExtract.evaluate({}, { result, input });
+    const coding = await (await expressions).translateCodingExtract.evaluate({}, { result, input });
     return coding;
   } catch (error) {
     getLogger().error({ error });

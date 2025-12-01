@@ -27,7 +27,7 @@ export const translateCode = async (input: string, tableId: string) => {
       if (mapFiltered.length === 1) {
         result = mapFiltered[0].code;
       } else {
-        result = await expressions.translateCodeExtract.evaluate({}, { mapFiltered });
+        result = await (await expressions).translateCodeExtract.evaluate({}, { mapFiltered });
       }
     }
     return result;

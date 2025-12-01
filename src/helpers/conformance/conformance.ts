@@ -41,7 +41,7 @@ export const getTable = async (tableId: string) => {
       throw new Error(err);
     }
   };
-  const table = await expressions.conceptMapToTable.evaluate(response);
+  const table = await (await expressions).conceptMapToTable.evaluate(response);
   return table;
 };
 
@@ -92,7 +92,7 @@ export const codeSystemDictionary = async (codeSystemId: string): Promise<any> =
   const resource = await getCodeSystem(codeSystemId);
   const csContent = resource?.content;
   if (csContent === 'complete') {
-    return await expressions.codeSystemToDictionary.evaluate(resource);
+    return await (await expressions).codeSystemToDictionary.evaluate(resource);
   } else {
     getLogger().warn(`CodeSystem resource '${codeSystemId}' does not contain the full list of codes. Codes in this system cannot be validated`);
     return undefined;
@@ -101,5 +101,5 @@ export const codeSystemDictionary = async (codeSystemId: string): Promise<any> =
 
 export const valueSetExpandDictionary = async (valueSetId: string): Promise<any> => {
   const resource = await getValueSet(valueSetId);
-  return await expressions.valueSetExpandDictionary.evaluate({}, { vs: resource, valueSetExpand: valueSetExpandDictionary, codeSystemDictionary });
+  return await (await expressions).valueSetExpandDictionary.evaluate({}, { vs: resource, valueSetExpand: valueSetExpandDictionary, codeSystemDictionary });
 };

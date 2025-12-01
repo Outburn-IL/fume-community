@@ -3,7 +3,6 @@
  *   Project name: FUME-COMMUNITY
  */
 
-// import jsonata from 'jsonata';
 import { randomUUID } from 'crypto';
 import { sha256 } from 'js-sha256';
 import uuidByString from 'uuid-by-string';
