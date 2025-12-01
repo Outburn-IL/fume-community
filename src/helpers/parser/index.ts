@@ -8,10 +8,8 @@ import { replaceColonsWithBrackets } from '../stringFunctions';
 import { getElementDefinition } from './getElementDefinition';
 import { getSnapshot } from './getSnapshot';
 import { removeComments } from './removeComments';
-import { toJsonataString } from './toJsonataString';
 
 export default {
-  toJsonataString,
   getSnapshot,
   getMandatoriesOfElement: funcs.getMandatoriesOfElement,
   getMandatoriesOfStructure: funcs.getMandatoriesOfStructure,

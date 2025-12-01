@@ -44,7 +44,6 @@ export const fumeUtils = {
   getFhirVersion: config.getFhirVersion,
   getFhirCorePackage: config.getFhirCorePackage,
   getFhirVersionMinor: config.getFhirVersionMinor,
-  toJsonataString: parser.toJsonataString,
   getSnapshot: parser.getSnapshot,
   v2json,
   getFhirPackageIndex,

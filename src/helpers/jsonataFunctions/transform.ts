@@ -39,8 +39,8 @@ const compiledExpression = async (expression: string): Promise<FumifierCompiled>
   let compiled: any = compiledExpressions.get(key); // get from cache
   if (compiled === undefined) { // not cached
     getLogger().info('expression not cached, compiling it...');
-    const parsedAsJsonataStr = await compiler.toJsonataString(expression);
-    compiled = await fumifier(parsedAsJsonataStr!);
+    const parsedAsJsonataStr = expression; // await compiler.toJsonataString(expression);
+    compiled = await fumifier(parsedAsJsonataStr);
     compiledExpressions.set(key, compiled);
   };
   return compiled;
@@ -101,7 +101,6 @@ export const transform = async (input: any, expression: string, extraBindings: R
     bindings.v2dictionary = HL7Dictionary.definitions;
     bindings.v2codeLookup = v2.v2codeLookup;
     bindings.v2tableUrl = v2.v2tableUrl;
-    bindings.toJsonataString = compiler.toJsonataString;
     if (dev) bindings.getMandatoriesOfElement = compiler.getMandatoriesOfElement;
     if (dev) bindings.getMandatoriesOfStructure = compiler.getMandatoriesOfStructure;
     if (dev) bindings.getElementDefinition = compiler.getElementDefinition;

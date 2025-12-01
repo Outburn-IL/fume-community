@@ -9,7 +9,6 @@ import { getCache } from '../helpers/cache';
 import { convertInputToJson } from '../helpers/inputConverters';
 import { pretty } from '../helpers/jsonataFunctions';
 import { getLogger } from '../helpers/logger';
-import { toJsonataString } from '../helpers/parser/toJsonataString';
 
 const get = async (req: Request, res: Response) => {
   const logger = getLogger();
@@ -57,26 +56,9 @@ const transform = async (req: Request, res: Response) => {
 };
 
 const operation = async (req: Request, res: Response) => {
-  const logger = getLogger();
   const operationName: string = req.params?.operation;
   if (operationName === '$transpile') {
-    try {
-      const mappingId: string = req.params.mappingId;
-      const { compiledMappings } = getCache();
-      const mappingFromCache = compiledMappings.get(mappingId);
-      const expressionString = mappingFromCache.expression;
-      const tranpiled = await toJsonataString(expressionString);
-      if (tranpiled) {
-        const prettyExpr = await pretty(tranpiled);
-        res.set('Content-Type', 'application/vnd.outburn.fume');
-        res.status(200).send(prettyExpr);
-      } else {
-        res.status(404).json({ message: `Mapping '${mappingId}' not found` });
-      }
-    } catch (e) {
-      logger.error(e);
-      res.status(500).json({ message: e });
-    }
+    res.status(500).json({ message: 'Operation \'$transpile\' is no longer supported' });
   } else {
     res.status(500).json({ message: `Unknown operation '${operationName}'` });
   }

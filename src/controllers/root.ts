@@ -12,7 +12,6 @@ import { recacheFromServer } from '../helpers/conformance';
 import { convertInputToJson } from '../helpers/inputConverters';
 import { pretty, transform } from '../helpers/jsonataFunctions';
 import { getLogger } from '../helpers/logger';
-import { toJsonataString } from '../helpers/parser/toJsonataString';
 
 const get = async (req: Request, res: Response) => {
   return res.status(200).json(
@@ -71,7 +70,7 @@ const operation = async (req: Request, res: Response) => {
       const contentType: string | undefined = req.get('Content-Type');
       if (typeof contentType === 'string' && (contentType.startsWith('text/plain') || contentType.startsWith('application/vnd.outburn.fume'))) {
         const inputMapping: string = req.body;
-        const tranpiled: string | undefined = await toJsonataString(inputMapping);
+        const tranpiled: string | undefined = inputMapping; // toJsonataString(inputMapping);
         if (tranpiled) {
           const prettyExpr = await pretty(tranpiled);
           res.set('Content-Type', 'application/vnd.outburn.fume');
