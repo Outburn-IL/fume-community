@@ -9,7 +9,6 @@ export {
   logInfo,
   logWarn
 } from './log';
-export { pretty } from './pretty';
 export {
   transform
 } from './transform';

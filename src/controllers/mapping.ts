@@ -7,7 +7,6 @@ import type { Request, Response } from 'express';
 
 import { getCache } from '../helpers/cache';
 import { convertInputToJson } from '../helpers/inputConverters';
-import { pretty } from '../helpers/jsonataFunctions';
 import { getLogger } from '../helpers/logger';
 
 const get = async (req: Request, res: Response) => {

@@ -10,7 +10,7 @@ import config from '../config';
 import { getCache } from '../helpers/cache';
 import { recacheFromServer } from '../helpers/conformance';
 import { convertInputToJson } from '../helpers/inputConverters';
-import { pretty, transform } from '../helpers/jsonataFunctions';
+import { transform } from '../helpers/jsonataFunctions';
 import { getLogger } from '../helpers/logger';
 
 const get = async (req: Request, res: Response) => {
@@ -67,20 +67,7 @@ const operation = async (req: Request, res: Response) => {
   try {
     const operationName: string = req.params?.operation;
     if (operationName === '$transpile') {
-      const contentType: string | undefined = req.get('Content-Type');
-      if (typeof contentType === 'string' && (contentType.startsWith('text/plain') || contentType.startsWith('application/vnd.outburn.fume'))) {
-        const inputMapping: string = req.body;
-        const tranpiled: string | undefined = inputMapping; // toJsonataString(inputMapping);
-        if (tranpiled) {
-          const prettyExpr = await pretty(tranpiled);
-          res.set('Content-Type', 'application/vnd.outburn.fume');
-          res.status(200).send(prettyExpr);
-        } else {
-          res.status(500).json({ message: 'Error parsing FUME expression' });
-        }
-      } else {
-        res.status(415).json({ message: `Content-Type '${contentType}' is invalid for the $transpile operation. Please send a valid FUME expression and set Content-Type: 'application/vnd.outburn.fume'` });
-      }
+      res.status(500).json({ message: 'Operation \'$transpile\' is no longer supported' });
     } else if (operationName === 'recache' || operationName === '$recache') {
       res.redirect('/recache');
     } else {
