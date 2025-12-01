@@ -27,7 +27,6 @@ import * as stringFuncs from '../stringFunctions';
 import { logInfo, logWarn } from './log';
 
 const dev = process.env.NODE_ENV === 'dev';
-const fumeMappingCache = getCache().mappings;
 const fhirPackageContext = Object.keys(config.getFhirPackages());
 const fhirVersion = config.getFhirVersion() as BaseFhirVersion;
 const fhirPackageCachePath = config.getFhirPackageCacheDir();
@@ -71,10 +70,12 @@ const getFumifierOptions = async (): Promise<FumifierOptions> => {
  */
 const fumifierMappingCache: MappingCacheInterface = {
   getKeys: async () => {
-    return Array.from(fumeMappingCache.keys());
+    const cache = getCache().mappings;
+    return Array.from(cache.keys());
   },
   get: async (key: string) => {
-    return fumeMappingCache.get(key);
+    const cache = getCache().mappings;
+    return cache.get(key);
   }
 };
 
