@@ -43,6 +43,7 @@ export const fumeUtils = {
   getFhirVersion: config.getFhirVersion,
   getFhirCorePackage: config.getFhirCorePackage,
   getFhirVersionMinor: config.getFhirVersionMinor,
+  getNavigator: () => config.getGlobalFhirContext().navigator,
   // getSnapshot: parser.getSnapshot,
   v2json,
   // FHIR functions
