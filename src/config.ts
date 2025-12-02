@@ -4,7 +4,7 @@
  */
 
 import type { FhirStructureNavigator } from '@outburn/structure-navigator';
-import type { PackageIdentifier, PackageIndex, PackageManifest } from 'fhir-package-installer';
+import type { PackageManifest } from 'fhir-package-installer';
 import type { BaseFhirVersion, FhirSnapshotGenerator } from 'fhir-snapshot-generator';
 
 import { fhirCorePackages } from './constants';
