@@ -5,7 +5,6 @@
 import { Application } from 'express';
 
 import { IAppCache, IAppCacheKeys } from '../helpers/cache/cacheTypes';
-import { IFhirPackageIndex } from '../helpers/conformance';
 import { ICache } from './Cache';
 import { IFhirClient } from './FhirClient';
 import { ILogger } from './Logger';
@@ -28,8 +27,5 @@ export interface IFumeServer<ConfigType> {
   getExpressApp: () => Application
   warmUp: (serverOptions: ConfigType | undefined) => Promise<void>
   shutDown: () => Promise<void>
-
-  getFhirPackageIndex: () => IFhirPackageIndex
-  getFhirPackages: () => any
   transform: (input: any, expression: string, extraBindings?: Record<string, IAppBinding>) => Promise<any>
 }

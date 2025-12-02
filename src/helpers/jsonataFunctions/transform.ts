@@ -8,8 +8,6 @@
  *   Project name: FUME
  */
 
-import { FhirStructureNavigator } from '@outburn/structure-navigator';
-import { BaseFhirVersion, FhirSnapshotGenerator } from 'fhir-snapshot-generator';
 import fumifier, { FumifierCompiled, FumifierOptions, MappingCacheInterface } from 'fumifier';
 import HL7Dictionary from 'hl7-dictionary';
 
@@ -17,7 +15,6 @@ import config from '../../config';
 import { IAppBinding } from '../../types';
 import { getCache } from '../cache';
 import * as conformance from '../conformance';
-import { codeSystemDictionary, valueSetExpandDictionary } from '../conformance/conformance';
 import fhirFuncs from '../fhirFunctions';
 import { parseCsv } from '../inputConverters';
 import * as v2 from '../inputConverters/hl7v2';
@@ -26,42 +23,16 @@ import * as objectFuncs from '../objectFunctions';
 import * as stringFuncs from '../stringFunctions';
 import { logInfo, logWarn } from './log';
 
-const dev = process.env.NODE_ENV === 'dev';
-const fhirPackageContext = Object.keys(config.getFhirPackages());
-const fhirVersion = config.getFhirVersion() as BaseFhirVersion;
-const fhirPackageCachePath = config.getFhirPackageCacheDir();
-const registryUrl = config.getFhirPackageRegistryUrl();
-const registryToken = config.getFhirPackageRegistryToken();
-let generator: FhirSnapshotGenerator | null = null;
-let navigator: FhirStructureNavigator | null = null;
-
-const getFsg = async () => {
-  if (!generator) {
-    generator = await FhirSnapshotGenerator.create({
-      context: fhirPackageContext,
-      cachePath: fhirPackageCachePath,
-      fhirVersion,
-      cacheMode: 'lazy',
-      logger: getLogger(),
-      registryUrl,
-      registryToken
-    });
-  }
-  return generator;
-};
-
-const getNavigator = async () => {
-  if (!navigator) {
-    const fsg = await getFsg();
-    navigator = new FhirStructureNavigator(fsg, getLogger());
-  };
-  return navigator;
-};
-
 const getFumifierOptions = async (): Promise<FumifierOptions> => {
+  const globalContext = config.getGlobalFhirContext();
+  
+  if (!globalContext.isInitialized || !globalContext.navigator) {
+    throw new Error('Global FHIR context is not initialized. This should be done during server warmup.');
+  }
+
   return {
     mappingCache: fumifierMappingCache,
-    navigator: await getNavigator()
+    navigator: globalContext.navigator
   };
 };
 
@@ -128,15 +99,12 @@ export const transform = async (input: any, expression: string, extraBindings: R
 
     const { aliases } = getCache();
     // these are debug functions, should be removed in production versions
-    bindings.fhirCacheIndex = conformance.getFhirPackageIndex();
     bindings.getTable = conformance.getTable;
     bindings.v2dictionary = HL7Dictionary.definitions;
     bindings.v2codeLookup = v2.v2codeLookup;
     bindings.v2tableUrl = v2.v2tableUrl;
-    if (dev) bindings.valueSetExpandDictionary = valueSetExpandDictionary;
-    if (dev) bindings.codeSystemDictionary = codeSystemDictionary;
-    bindings.getCodeSystem = conformance.getCodeSystem;
-    bindings.getValueSet = conformance.getValueSet;
+    // bindings.getCodeSystem = conformance.getCodeSystem;
+    // bindings.getValueSet = conformance.getValueSet;
     // end of debug functions
 
     // bind all aliases from cache

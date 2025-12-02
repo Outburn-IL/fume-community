@@ -9,8 +9,13 @@ import { mockInput } from '../utils/mockInput';
 
 test('Case 14 - Assignment into slices with max cardinality of 1 fails to bring fixed values', async () => {
   const mapping = `
-            InstanceOf: il-core-patient
-            * identifier[il-id].value = '123'
+InstanceOf: il-core-patient
+* identifier[il-id].value = '123'
+* name
+  * given = 'John'
+  * family = 'Doe'
+* gender = 'unknown'
+* birthDate = '1985'
         `;
   const requestBody = {
     input: mockInput,
@@ -30,6 +35,16 @@ test('Case 14 - Assignment into slices with max cardinality of 1 fails to bring 
         system: 'http://fhir.health.gov.il/identifier/il-national-id',
         value: '123'
       }
-    ]
+    ],
+    name: [
+      {
+        family: 'Doe',
+        given: [
+          'John'
+        ]
+      }
+    ],
+    gender: 'unknown',
+    birthDate: '1985'
   });
 });

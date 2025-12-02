@@ -164,6 +164,7 @@ describe('using a concept map', () => {
               coding: [
                 {
                   system: 'http://terminology.hl7.org/CodeSystem/v2-0203',
+                  display: 'Medical License number',
                   code: 'MD'
                 }
               ]

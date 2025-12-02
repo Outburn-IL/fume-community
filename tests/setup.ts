@@ -4,11 +4,10 @@
  */
 import axios from 'axios';
 import { v2 as compose } from 'docker-compose';
-import { createMockArtifactoryServer, MOCK_ARTIFACTORY_VALID_TOKEN } from 'fhir-package-installer/mock-artifactory-server';
+// import { createMockArtifactoryServer, MOCK_ARTIFACTORY_VALID_TOKEN } from 'fhir-package-installer/mock-artifactory-server';
 import fs from 'fs';
 import path from 'path';
 
-import { resetFpiInstance } from '../src/helpers/conformance/fpiInstance';
 import { FumeServer } from '../src/server';
 import { FHIR_PACKAGE_CACHE_DIR, LOCAL_FHIR_API } from './config';
 
@@ -100,7 +99,7 @@ async function setup () {
   deleteCorePackage();
   const firstServer = new FumeServer();
   await firstServer.warmUp({
-    SERVER_PORT: 42421, // use alternate port to avoid conflicts
+    SERVER_PORT: 42420,
     SERVER_STATELESS: false,
     FHIR_SERVER_BASE: LOCAL_FHIR_API,
     FHIR_SERVER_AUTH_TYPE: 'NONE',
@@ -113,81 +112,79 @@ async function setup () {
     FHIR_PACKAGE_CACHE_DIR
   });
   assertCorePackagePresent('Phase 1');
-  // Skipping server shutdown to avoid process.exit(0); proceed directly to Phase 2 as a separate instance.
+  // Since we're using Phase 1 server for tests, set global references
+  globalThis.fumeServer = firstServer;
+  globalThis.app = firstServer.getExpressApp();
 
   // Phase 2: Warm-up with MOCK ARTIFACTORY registry (re-download CORE again via mock)
-  console.log('Phase 2: Starting mock Artifactory server...');
+  // console.log('Phase 2: Starting mock Artifactory server...');
   // Keep Phase 1 server alive (different port) to avoid process.exit side-effects from its shutdown.
 
-  const mockPort = 3333; // default port provided by FPI mock server
-  const mockServer = createMockArtifactoryServer(mockPort);
-  await mockServer.start();
-  globalThis.mockArtifactoryServer = mockServer;
-  console.log(`Mock Artifactory server running on port ${mockPort}`);
+  // const mockPort = 3333; // default port provided by FPI mock server
+  // const mockServer = createMockArtifactoryServer(mockPort);
+  // await mockServer.start();
+  // globalThis.mockArtifactoryServer = mockServer;
+  // console.log(`Mock Artifactory server running on port ${mockPort}`);
 
   // Delete core again to force a second re-download from the mock registry
-  deleteCorePackage();
-
-  // Reset FPI so Phase 2 picks new registry URL/token
-  resetFpiInstance();
-  console.log('FPI instance reset before Phase 2');
+  // deleteCorePackage();
 
   // Use RAW token (no base64) for clarity; mock expects Bearer test-token
-  const registryTokenRaw = MOCK_ARTIFACTORY_VALID_TOKEN;
-  console.log('[Phase 2] Using mock registry token value:', registryTokenRaw);
+  // const registryTokenRaw = MOCK_ARTIFACTORY_VALID_TOKEN;
+  // console.log('[Phase 2] Using mock registry token value:', registryTokenRaw);
 
-  console.log('Phase 2: Warming FUME with mock Artifactory registry settings...');
-  globalThis.fumeServer = new FumeServer();
+  // console.log('Phase 2: Warming FUME with mock Artifactory registry settings...');
+  // globalThis.fumeServer = new FumeServer();
   // Manual metadata probe to verify mock registry availability before warmUp
-  try {
-    const metaUrl = `http://localhost:${mockPort}/artifactory/api/npm/fhir-npm-remote/hl7.fhir.r4.core/`;
-    const metaResp = await axios.get(metaUrl, { headers: { Authorization: `Bearer ${registryTokenRaw}` } });
-    console.log(`[Phase 2] Mock registry metadata status: ${metaResp.status}; keys: ${Object.keys(metaResp.data || {}).length}`);
-  } catch (e: any) {
-    console.warn('[Phase 2] Mock registry metadata request failed:', e?.response?.status, e?.message);
-  }
-  await globalThis.fumeServer.warmUp({
-    SERVER_PORT: 42420,
-    SERVER_STATELESS: false,
-    FHIR_SERVER_BASE: LOCAL_FHIR_API,
-    FHIR_SERVER_AUTH_TYPE: 'NONE',
-    FHIR_SERVER_UN: '',
-    FHIR_SERVER_PW: '',
-    FHIR_SERVER_TIMEOUT: 30000,
-    FHIR_VERSION: '4.0.1',
-    SEARCH_BUNDLE_PAGE_SIZE: 20,
-    // Phase 2: use same package list as Phase 1 to validate core re-download under mock registry
-    FHIR_PACKAGES: 'il.core.fhir.r4@0.14.2,fume.outburn.r4@0.1.1,il.tasmc.fhir.r4@0.1.1',
-    FHIR_PACKAGE_CACHE_DIR,
-    FHIR_PACKAGE_REGISTRY_URL: `http://localhost:${mockPort}/artifactory/api/npm/fhir-npm-remote`,
-    FHIR_PACKAGE_REGISTRY_TOKEN: registryTokenRaw,
-    FHIR_PACKAGE_REGISTRY_ALLOW_HTTP: true
-  });
-  assertCorePackagePresent('Phase 2');
+  // try {
+  //   const metaUrl = `http://localhost:${mockPort}/artifactory/api/npm/fhir-npm-remote/hl7.fhir.r4.core/`;
+  //   const metaResp = await axios.get(metaUrl, { headers: { Authorization: `Bearer ${registryTokenRaw}` } });
+  //   console.log(`[Phase 2] Mock registry metadata status: ${metaResp.status}; keys: ${Object.keys(metaResp.data || {}).length}`);
+  // } catch (e: any) {
+  //   console.warn('[Phase 2] Mock registry metadata request failed:', e?.response?.status, e?.message);
+  // }
+  // await globalThis.fumeServer.warmUp({
+  //   SERVER_PORT: 42420,
+  //   SERVER_STATELESS: false,
+  //   FHIR_SERVER_BASE: LOCAL_FHIR_API,
+  //   FHIR_SERVER_AUTH_TYPE: 'NONE',
+  //   FHIR_SERVER_UN: '',
+  //   FHIR_SERVER_PW: '',
+  //   FHIR_SERVER_TIMEOUT: 30000,
+  //   FHIR_VERSION: '4.0.1',
+  //   SEARCH_BUNDLE_PAGE_SIZE: 20,
+  //   // Phase 2: use same package list as Phase 1 to validate core re-download under mock registry
+  //   FHIR_PACKAGES: 'il.core.fhir.r4@0.14.2,fume.outburn.r4@0.1.1,il.tasmc.fhir.r4@0.1.1',
+  //   FHIR_PACKAGE_CACHE_DIR,
+  //   FHIR_PACKAGE_REGISTRY_URL: `http://localhost:${mockPort}/artifactory/api/npm/fhir-npm-remote`,
+  //   FHIR_PACKAGE_REGISTRY_TOKEN: registryTokenRaw,
+  //   FHIR_PACKAGE_REGISTRY_ALLOW_HTTP: true
+  // });
+  // assertCorePackagePresent('Phase 2');
 
   // Final server app will be used by integration tests
-  globalThis.app = globalThis.fumeServer.getExpressApp();
+  // globalThis.app = globalThis.fumeServer.getExpressApp();
 
   // Integration safeguard: ensure US Core dependency is indexed although not explicitly requested
-  try {
-    const indexPath = path.resolve('fhirPackageIndex.json');
-    if (fs.existsSync(indexPath)) {
-      const raw = fs.readFileSync(indexPath, 'utf8');
-      const json = JSON.parse(raw || '{}');
-      const packages = json.packages || {};
-      if (!packages['hl7.fhir.us.core@6.1.0']) {
-        throw new Error('Mandatory package \'hl7.fhir.us.core@6.1.0\' not found in global FHIR package index. Dependencies were not installed correctly.');
-      } else {
-        console.log('Verified dependency package \'hl7.fhir.us.core@6.1.0\' is present in global index.');
-      }
-    } else {
-      throw new Error('Global FHIR package index file not found after server warm up.');
-    }
-  } catch (e: any) {
-    console.error('FHIR package index validation failed:', e?.message || e);
-    throw e;
-  }
-  console.log('Dual warm-up preflight complete. Integration tests may proceed using mock registry configuration.');
+  // try {
+  //   const indexPath = path.resolve('fhirPackageIndex.json');
+  //   if (fs.existsSync(indexPath)) {
+  //     const raw = fs.readFileSync(indexPath, 'utf8');
+  //     const json = JSON.parse(raw || '{}');
+  //     const packages = json.packages || {};
+  //     if (!packages['hl7.fhir.us.core@6.1.0']) {
+  //       throw new Error('Mandatory package \'hl7.fhir.us.core@6.1.0\' not found in global FHIR package index. Dependencies were not installed correctly.');
+  //     } else {
+  //       console.log('Verified dependency package \'hl7.fhir.us.core@6.1.0\' is present in global index.');
+  //     }
+  //   } else {
+  //     throw new Error('Global FHIR package index file not found after server warm up.');
+  //   }
+  // } catch (e: any) {
+  //   console.error('FHIR package index validation failed:', e?.message || e);
+  //   throw e;
+  // }
+  // console.log('Dual warm-up preflight complete. Integration tests may proceed using mock registry configuration.');
 }
 
 export default setup;

@@ -4,7 +4,7 @@
  */
 
 import config from './config';
-import { getAliasResource, getFhirPackageIndex } from './helpers/conformance';
+import { getAliasResource } from './helpers/conformance';
 import fhirFuncs from './helpers/fhirFunctions';
 import { parseCsv } from './helpers/inputConverters';
 import { v2json } from './helpers/inputConverters/hl7v2';
@@ -45,7 +45,6 @@ export const fumeUtils = {
   getFhirVersionMinor: config.getFhirVersionMinor,
   // getSnapshot: parser.getSnapshot,
   v2json,
-  getFhirPackageIndex,
   // FHIR functions
   search: fhirFuncs.search,
   resolve: fhirFuncs.resolve,

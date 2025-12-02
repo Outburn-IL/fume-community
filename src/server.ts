@@ -73,12 +73,16 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     this.logger.info('FUME initializing...');
     config.setServerConfig(options);
     const serverConfig: IConfig = config.getServerConfig();
-    const { SERVER_PORT, FHIR_SERVER_BASE, FHIR_VERSION, FHIR_PACKAGES, SEARCH_BUNDLE_PAGE_SIZE, FHIR_SERVER_TIMEOUT, SERVER_STATELESS, FHIR_PACKAGE_CACHE_DIR, FHIR_PACKAGE_REGISTRY_URL, FHIR_PACKAGE_REGISTRY_TOKEN } = serverConfig;
+    const { SERVER_PORT, FHIR_SERVER_BASE, FHIR_VERSION, SEARCH_BUNDLE_PAGE_SIZE, FHIR_SERVER_TIMEOUT, SERVER_STATELESS, FHIR_PACKAGE_CACHE_DIR, FHIR_PACKAGE_REGISTRY_URL, FHIR_PACKAGE_REGISTRY_TOKEN } = serverConfig;
     this.logger.info(serverConfig);
 
     // initialize caches
     initCache(this.cacheConfig);
     this.logger.info('Caches initialized');
+
+    // initialize global FHIR context for fumifier
+    await this.initializeGlobalFhirContext();
+    this.logger.info('Global FHIR context initialized');
 
     this.logger.info(`Default FHIR version is set to ${FHIR_VERSION}`);
     if (FHIR_PACKAGE_CACHE_DIR) {
@@ -90,23 +94,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
         this.logger.info('FHIR package registry token is set');
       }
     }
-    // translate fhir version to package id
-    const fhirVersionCorePackageId = config.getFhirCorePackage();
-    // download package or throw error
-    if (fhirVersionCorePackageId) {
-      const loadRes = await conformance.downloadPackages([fhirVersionCorePackageId]);
-      if (!loadRes) {
-        throw new Error(`Errors loading package for FHIR version ${FHIR_VERSION}`);
-      }
-    } else {
-      throw new Error(`FHIR version ${FHIR_VERSION} is unsupported/invalid!`);
-    };
-    // load packages
-    const packageList: string[] = FHIR_PACKAGES ? FHIR_PACKAGES.split(',') : [];
-    await conformance.downloadPackages(packageList);
 
-    // load index of all packages found in global fhir cache (on disk)
-    await conformance.loadFhirPackageIndex();
     // if fhir server defined, load mappings and aliases from it
     if (SERVER_STATELESS) {
       this.logger.info('Running in stateless mode');
@@ -232,24 +220,6 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
   }
 
   /**
-   *
-   * @returns fhir package index
-   */
-  public getFhirPackageIndex () {
-    return conformance.getFhirPackageIndex();
-  }
-
-  /**
-   *
-   * @returns fhir packages for the version set in config
-   */
-  public getFhirPackages () {
-    const fhirVersionMinor = config.getFhirVersionMinor();
-    const packages = conformance.getFhirPackageIndex();
-    return packages[fhirVersionMinor];
-  }
-
-  /**
    * Calls transform with any additional bindings passed using `registerBinding`
    * @param input
    * @param expression
@@ -257,5 +227,47 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
    */
   public async transform (input: any, expression: string, bindings: Record<string, IAppBinding> = {}) {
     return await transform(input, expression, { ...config.getBindings(), ...bindings });
+  }
+
+  /**
+   * Initialize global FHIR context with navigator and normalized packages
+   * This should be called during warmup to set up fumifier context
+   * @private
+   */
+  private async initializeGlobalFhirContext () {
+    const { FhirStructureNavigator } = await import('@outburn/structure-navigator');
+    const { FhirSnapshotGenerator } = await import('fhir-snapshot-generator');
+
+    const serverConfig = config.getServerConfig();
+    const { FHIR_VERSION, FHIR_PACKAGES, FHIR_PACKAGE_CACHE_DIR, FHIR_PACKAGE_REGISTRY_URL, FHIR_PACKAGE_REGISTRY_TOKEN /*, FHIR_PACKAGE_REGISTRY_ALLOW_HTTP */ } = serverConfig;
+
+    // Parse FHIR_PACKAGES string into array
+    const packageList: string[] = FHIR_PACKAGES ? FHIR_PACKAGES.split(',').map(pkg => pkg.trim()) : [];
+
+    this.logger.info({
+      packageContext: packageList,
+      fhirVersion: FHIR_VERSION,
+      cachePath: FHIR_PACKAGE_CACHE_DIR,
+      registryUrl: FHIR_PACKAGE_REGISTRY_URL
+    });
+
+    const generator = await FhirSnapshotGenerator.create({
+      context: packageList,
+      cachePath: FHIR_PACKAGE_CACHE_DIR || '',
+      fhirVersion: FHIR_VERSION as any,
+      cacheMode: 'lazy',
+      logger: this.logger,
+      registryUrl: FHIR_PACKAGE_REGISTRY_URL,
+      registryToken: FHIR_PACKAGE_REGISTRY_TOKEN
+    });
+
+    const navigator = new FhirStructureNavigator(generator, this.logger);
+
+    // Get normalized packages from the generator
+    const normalizedPackageIds = generator.getFpe().getNormalizedRootPackages();
+    const normalizedPackages = normalizedPackageIds.map(pkg => `${pkg.id}@${pkg.version}`);
+
+    // Initialize the global config
+    await config.initializeGlobalFhirContext(navigator, generator, normalizedPackages);
   }
 }
