@@ -27,7 +27,10 @@ export const cacheMapping = (mappingId: string, mappingExpr: string) => {
     expression: mappingExpr,
     function: mappingFunc
   };
-  getCache().compiledMappings.set(mappingId, cacheEntry);
+  const cache = getCache();
+  cache.compiledMappings.set(mappingId, cacheEntry);
+  // Also store raw expression in mappings cache for fumifier access
+  cache.mappings.set(mappingId, mappingExpr);
 };
 
 // Returns the next page in a series of searchset Bundles

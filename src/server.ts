@@ -256,7 +256,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
       cachePath: FHIR_PACKAGE_CACHE_DIR || '',
       fhirVersion: FHIR_VERSION as any,
       cacheMode: 'lazy',
-      logger: this.logger,
+      // logger: this.logger,
       registryUrl: FHIR_PACKAGE_REGISTRY_URL,
       registryToken: FHIR_PACKAGE_REGISTRY_TOKEN
     });

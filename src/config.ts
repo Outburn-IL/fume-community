@@ -47,13 +47,6 @@ const getFhirPackages = () => {
   return fhirPackages;
 };
 
-const addFhirPackage = (identifier: PackageIdentifier, manifest: PackageManifest, path: string, packageIndex: PackageIndex) => {
-  const key = identifier.id + '@' + identifier.version;
-  if (!fhirPackages[key]) {
-    fhirPackages[key] = { ...manifest, installedPath: path, '.index.json': packageIndex };
-  }
-};
-
 const setServerConfig = <ConfigType extends IConfig>(config: Partial<ConfigType>) => {
   let fhirServerBase: string | undefined = config.FHIR_SERVER_BASE ? config.FHIR_SERVER_BASE.trim() : undefined;
   let isStatelessMode: boolean | undefined = config.SERVER_STATELESS;
@@ -108,11 +101,6 @@ const getFhirPackageCacheDir = (): string | undefined => {
   return serverConfig.FHIR_PACKAGE_CACHE_DIR;
 };
 
-// Allow HTTP registry usage (testing against local mock Artifactory)
-const getFhirPackageRegistryAllowHttp = (): boolean | undefined => {
-  return serverConfig.FHIR_PACKAGE_REGISTRY_ALLOW_HTTP;
-};
-
 // Global FHIR context functions
 const initializeGlobalFhirContext = async (
   navigator: FhirStructureNavigator,
@@ -158,11 +146,9 @@ export default {
   getBindings,
   setFhirPackages,
   getFhirPackages,
-  addFhirPackage,
   getFhirPackageRegistryUrl,
   getFhirPackageRegistryToken,
   getFhirPackageCacheDir,
-  getFhirPackageRegistryAllowHttp,
   initializeGlobalFhirContext,
   getGlobalFhirContext,
   resetGlobalFhirContext

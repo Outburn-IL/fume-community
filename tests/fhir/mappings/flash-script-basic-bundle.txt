@@ -10,6 +10,7 @@ InstanceOf: Patient
 );
 
 InstanceOf: Bundle
+* type = 'transaction'
 * entry.resource = $a
 * entry.resource = $a ~> |$|{'id': '2nd', 'identifier': [{'value': '2nd'}], 'generalPractitioner': [{'reference': $reference($a)}]}|
 * entry.resource = $a ~> |$|{'id': '3rd', 'identifier': [{'value': '3rd'}]}|

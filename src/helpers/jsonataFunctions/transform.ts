@@ -23,19 +23,6 @@ import * as objectFuncs from '../objectFunctions';
 import * as stringFuncs from '../stringFunctions';
 import { logInfo, logWarn } from './log';
 
-const getFumifierOptions = async (): Promise<FumifierOptions> => {
-  const globalContext = config.getGlobalFhirContext();
-  
-  if (!globalContext.isInitialized || !globalContext.navigator) {
-    throw new Error('Global FHIR context is not initialized. This should be done during server warmup.');
-  }
-
-  return {
-    mappingCache: fumifierMappingCache,
-    navigator: globalContext.navigator
-  };
-};
-
 /**
  * An implementation of Fumifier's MappingCacheInterface over the FUME mapping cache
  */
@@ -48,6 +35,19 @@ const fumifierMappingCache: MappingCacheInterface = {
     const cache = getCache().mappings;
     return cache.get(key);
   }
+};
+
+const getFumifierOptions = async (): Promise<FumifierOptions> => {
+  const globalContext = config.getGlobalFhirContext();
+  
+  if (!globalContext.isInitialized || !globalContext.navigator) {
+    throw new Error('Global FHIR context is not initialized. This should be done during server warmup.');
+  }
+
+  return {
+    mappingCache: fumifierMappingCache,
+    navigator: globalContext.navigator
+  };
 };
 
 /**

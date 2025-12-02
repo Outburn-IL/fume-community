@@ -25,11 +25,7 @@ describe('HL7 v2 tests', () => {
       type: 'transaction',
       entry: [
         {
-          request: {
-            method: 'PUT',
-            url: 'Patient/356a192b-7913-504c-9457-4d18c28d46e6'
-          },
-          fullUrl: 'urn:uuid:e8b15d81-264c-51a3-8c79-b01d2bc387bd',
+          fullUrl: 'urn:uuid:a90b9d31-dc81-5e0e-b881-8323bfa0c22c',
           resource: {
             resourceType: 'Patient',
             id: '356a192b-7913-504c-9457-4d18c28d46e6',
@@ -42,7 +38,8 @@ describe('HL7 v2 tests', () => {
                   coding: [
                     {
                       system: 'http://terminology.hl7.org/CodeSystem/v2-0203',
-                      code: 'MR'
+                      code: 'MR',
+                      display: 'Medical record number'
                     }
                   ]
                 },
@@ -82,14 +79,14 @@ describe('HL7 v2 tests', () => {
                 country: 'IL'
               }
             ]
+          },
+          request: {
+            method: 'PUT',
+            url: 'Patient/356a192b-7913-504c-9457-4d18c28d46e6'
           }
         },
         {
-          request: {
-            method: 'PUT',
-            url: 'Account/5e683a84-b61b-587a-87c4-ac12c52f4adc'
-          },
-          fullUrl: 'urn:uuid:bfea352e-2473-5514-8d94-cd5d7893e4b3',
+          fullUrl: 'urn:uuid:18dfdd9e-cf12-5806-8b8c-b383a6d18f59',
           resource: {
             resourceType: 'Account',
             id: '5e683a84-b61b-587a-87c4-ac12c52f4adc',
@@ -104,24 +101,24 @@ describe('HL7 v2 tests', () => {
             status: 'active',
             subject: [
               {
-                reference: 'urn:uuid:e8b15d81-264c-51a3-8c79-b01d2bc387bd'
+                reference: 'urn:uuid:a90b9d31-dc81-5e0e-b881-8323bfa0c22c'
               }
             ],
             coverage: [
               {
                 coverage: {
-                  reference: 'urn:uuid:b3ec93b8-0bde-5fbf-b54d-1c13d03b481c'
+                  reference: 'urn:uuid:4c25dba4-029c-509e-b43e-173ba4a46555'
                 }
               }
             ]
+          },
+          request: {
+            method: 'PUT',
+            url: 'Account/5e683a84-b61b-587a-87c4-ac12c52f4adc'
           }
         },
         {
-          request: {
-            method: 'PUT',
-            url: 'Encounter/a202b052-7dbf-51f6-a269-7ece3d07b903'
-          },
-          fullUrl: 'urn:uuid:f3d10c95-e080-5b91-baf7-b52189b30965',
+          fullUrl: 'urn:uuid:19257cf0-5a76-5f5f-88c6-49e14f8043e3',
           resource: {
             resourceType: 'Encounter',
             id: 'a202b052-7dbf-51f6-a269-7ece3d07b903',
@@ -160,14 +157,14 @@ describe('HL7 v2 tests', () => {
               text: 'Medical service'
             },
             subject: {
-              reference: 'urn:uuid:e8b15d81-264c-51a3-8c79-b01d2bc387bd'
+              reference: 'urn:uuid:a90b9d31-dc81-5e0e-b881-8323bfa0c22c'
             },
             period: {
               start: '2005-01-10'
             },
             account: [
               {
-                reference: 'urn:uuid:bfea352e-2473-5514-8d94-cd5d7893e4b3'
+                reference: 'urn:uuid:18dfdd9e-cf12-5806-8b8c-b383a6d18f59'
               }
             ],
             hospitalization: {
@@ -191,14 +188,14 @@ describe('HL7 v2 tests', () => {
                 status: 'active'
               }
             ]
+          },
+          request: {
+            method: 'PUT',
+            url: 'Encounter/a202b052-7dbf-51f6-a269-7ece3d07b903'
           }
         },
         {
-          request: {
-            method: 'PUT',
-            url: 'Condition/2029de8a-c596-568d-8966-fd095f5421a1'
-          },
-          fullUrl: 'urn:uuid:b0e70524-6171-5e61-8850-f0218e2aa687',
+          fullUrl: 'urn:uuid:7952764c-fb11-5953-80ca-8bee5a4ba240',
           resource: {
             resourceType: 'Condition',
             id: '2029de8a-c596-568d-8966-fd095f5421a1',
@@ -215,7 +212,8 @@ describe('HL7 v2 tests', () => {
               coding: [
                 {
                   system: 'http://terminology.hl7.org/CodeSystem/condition-ver-status',
-                  code: 'unconfirmed'
+                  code: 'unconfirmed',
+                  display: 'Unconfirmed'
                 }
               ]
             },
@@ -235,20 +233,20 @@ describe('HL7 v2 tests', () => {
               text: 'Abdominal Pain'
             },
             subject: {
-              reference: 'urn:uuid:e8b15d81-264c-51a3-8c79-b01d2bc387bd'
+              reference: 'urn:uuid:a90b9d31-dc81-5e0e-b881-8323bfa0c22c'
             },
             encounter: {
-              reference: 'urn:uuid:f3d10c95-e080-5b91-baf7-b52189b30965'
+              reference: 'urn:uuid:19257cf0-5a76-5f5f-88c6-49e14f8043e3'
             },
             onsetDateTime: '2023-04-06',
             recordedDate: '2023-04-06'
+          },
+          request: {
+            method: 'PUT',
+            url: 'Condition/2029de8a-c596-568d-8966-fd095f5421a1'
           }
         },
         {
-          request: {
-            method: 'PUT',
-            url: 'Organization/b1d57811-11d8-5f7b-bfe4-5a0852e59758'
-          },
           fullUrl: 'urn:uuid:bc088c1b-a76c-5726-b9b8-303a96d5255a',
           resource: {
             resourceType: 'Organization',
@@ -273,14 +271,14 @@ describe('HL7 v2 tests', () => {
                 postalCode: '999990000'
               }
             ]
+          },
+          request: {
+            method: 'PUT',
+            url: 'Organization/b1d57811-11d8-5f7b-bfe4-5a0852e59758'
           }
         },
         {
-          request: {
-            method: 'PUT',
-            url: 'Coverage/3cdf996f-3ea0-5a0c-ad34-c695b523efa8'
-          },
-          fullUrl: 'urn:uuid:b3ec93b8-0bde-5fbf-b54d-1c13d03b481c',
+          fullUrl: 'urn:uuid:4c25dba4-029c-509e-b43e-173ba4a46555',
           resource: {
             resourceType: 'Coverage',
             id: '3cdf996f-3ea0-5a0c-ad34-c695b523efa8',
@@ -303,13 +301,17 @@ describe('HL7 v2 tests', () => {
               ]
             },
             beneficiary: {
-              reference: 'urn:uuid:e8b15d81-264c-51a3-8c79-b01d2bc387bd'
+              reference: 'urn:uuid:a90b9d31-dc81-5e0e-b881-8323bfa0c22c'
             },
             payor: [
               {
                 reference: 'urn:uuid:bc088c1b-a76c-5726-b9b8-303a96d5255a'
               }
             ]
+          },
+          request: {
+            method: 'PUT',
+            url: 'Coverage/3cdf996f-3ea0-5a0c-ad34-c695b523efa8'
           }
         }
       ]
@@ -485,6 +487,7 @@ describe('HL7 v2 tests', () => {
           coding: [
             {
               system: 'http://terminology.hl7.org/CodeSystem/observation-category',
+              display: 'Vital Signs',
               code: 'vital-signs'
             }
           ]
@@ -511,6 +514,7 @@ describe('HL7 v2 tests', () => {
           valueQuantity: {
             system: 'http://unitsofmeasure.org',
             code: 'mm[Hg]',
+            unit: 'millimeter of mercury',
             value: 125
           }
         },
@@ -526,6 +530,7 @@ describe('HL7 v2 tests', () => {
           valueQuantity: {
             system: 'http://unitsofmeasure.org',
             code: 'mm[Hg]',
+            unit: 'millimeter of mercury',
             value: 95
           }
         }
