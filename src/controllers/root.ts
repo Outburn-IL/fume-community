@@ -27,13 +27,20 @@ const evaluate = async (req: Request, res: Response) => {
     const response = await transform(inputJson, req.body.fume, extraBindings);
     return res.status(200).json(response);
   } catch (error: any) {
+    const isFlashError = !!error.instanceOf || error.token === 'InstanceOf:';
+    // const line = error.line && isFlashError ? error.line - 1 : error.line ?? '';
+    const line = error.line ?? '';
     const data = {
       __isFumeError: true,
+      __isFlashError: isFlashError,
       message: error.message ?? '',
       code: error.code ?? '',
       name: error.name ?? '',
+      value: error.value ?? '',
       token: error.token ?? '',
       cause: error.cause ?? '',
+      line,
+      start: error.start ?? '',
       position: error.position ?? ''
     };
     getLogger().error({ error });
