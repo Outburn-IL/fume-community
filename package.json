@@ -49,15 +49,15 @@
     "url": "git+https://github.com/Outburn-IL/fume-community.git"
   },
   "dependencies": {
-    "@outburn/structure-navigator": "^1.5.4",
+    "@outburn/structure-navigator": "^1.5.5",
     "axios": "^1.13.2",
     "cors": "^2.8.5",
     "csvtojson": "^2.0.14",
     "dotenv": "^16.6.1",
     "express": "^5.2.1",
     "fast-xml-parser": "^4.5.3",
-    "fhir-package-installer": "^1.5.2",
-    "fhir-snapshot-generator": "^1.6.0",
+    "fhir-package-installer": "^1.6.1",
+    "fhir-snapshot-generator": "^1.7.0",
     "fs-extra": "^11.3.2",
     "fumifier": "^1.9.4",
     "hl7-dictionary": "^1.0.1",
