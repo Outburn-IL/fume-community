@@ -20,7 +20,7 @@ WORKDIR /usr/src/app
 COPY . .
 
 # Install app dependencies
-RUN npm install
+RUN npm ci
 
 # Build app
 RUN npm run build
