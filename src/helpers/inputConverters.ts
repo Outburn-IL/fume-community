@@ -5,7 +5,7 @@
 
 import { FormatConverter } from '@outburn/format-converter';
 
-import { getLogger } from '../logger';
+import { getLogger } from './logger';
 
 const formatConverter = new FormatConverter(getLogger());
 
