@@ -4,7 +4,7 @@
  */
 
 import { getFhirClient } from '../fhirServer';
-import expressions from '../jsonataExpression';
+import expressions from '../jsonataExpressions';
 import { getLogger } from '../logger';
 
 export const getTable = async (tableId: string) => {

@@ -11,8 +11,8 @@ import config from './config';
 import { getCache, IAppCacheKeys, initCache, InitCacheConfig } from './helpers/cache';
 import * as conformance from './helpers/conformance';
 import { FhirClient, setFhirClient } from './helpers/fhirServer';
-import { transform } from './helpers/jsonataFunctions';
 import { getLogger, setLogger } from './helpers/logger';
+import { transform } from './helpers/transform';
 import { notFound, routes } from './routes';
 import defaultConfig from './serverConfig';
 import type {

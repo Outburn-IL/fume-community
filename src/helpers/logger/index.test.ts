@@ -33,6 +33,7 @@ describe('getLogger', () => {
 
   test('allows overriding logger', async () => {
     const mockLogger = {
+      debug: jest.fn(),
       info: jest.fn(),
       warn: jest.fn(),
       error: jest.fn()

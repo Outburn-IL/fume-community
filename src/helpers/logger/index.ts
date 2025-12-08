@@ -6,6 +6,7 @@ import type { ILogger } from '../../types';
 
 /** Global logger instance */
 let logger: ILogger = {
+  debug: (msg: any) => console.debug(msg),
   info: (msg: any) => console.log(msg),
   warn: (msg: any) => console.warn(msg),
   error: (msg: any) => console.error(msg)

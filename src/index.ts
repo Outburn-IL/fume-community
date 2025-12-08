@@ -7,8 +7,7 @@ import config from './config';
 import { getAliasResource } from './helpers/conformance';
 import fhirFuncs from './helpers/fhirFunctions';
 import { parseCsv, v2json } from './helpers/inputConverters';
-import expressions from './helpers/jsonataExpression';
-import { selectKeys } from './helpers/objectFunctions';
+import expressions from './helpers/jsonataExpressions';
 
 /**
  * Export types
@@ -25,7 +24,6 @@ export { FumeConfigSchema } from './serverConfigSchema';
 export const fumeUtils = {
   expressions,
   getAliasResource,
-  selectKeys,
   parseCsv,
   getFhirVersion: config.getFhirVersion,
   getFhirVersionMinor: config.getFhirVersionMinor,

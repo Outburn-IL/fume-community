@@ -10,8 +10,8 @@ import config from '../config';
 import { getCache } from '../helpers/cache';
 import { recacheFromServer } from '../helpers/conformance';
 import { convertInputToJson } from '../helpers/inputConverters';
-import { transform } from '../helpers/jsonataFunctions';
 import { getLogger } from '../helpers/logger';
+import { transform } from '../helpers/transform';
 
 const get = async (req: Request, res: Response) => {
   return res.status(200).json(

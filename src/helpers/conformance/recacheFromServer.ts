@@ -5,9 +5,9 @@
 import config from '../../config';
 import { getCache } from '../cache';
 import { getFhirClient } from '../fhirServer';
-import expressions from '../jsonataExpression';
-import { transform } from '../jsonataFunctions';
+import expressions from '../jsonataExpressions';
 import { getLogger } from '../logger';
+import { transform } from '../transform';
 
 const serverConfig = config.getServerConfig();
 

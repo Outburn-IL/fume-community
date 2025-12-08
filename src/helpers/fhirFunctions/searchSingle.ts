@@ -3,7 +3,7 @@
  *   Project name: FUME-COMMUNITY
  */
 import { getFhirClient } from '../fhirServer';
-import expressions from '../jsonataExpression';
+import expressions from '../jsonataExpressions';
 
 export const searchSingle = async (query: string, params?: Record<string, any>): Promise<any | undefined> => {
   const url: string = encodeURI(query);

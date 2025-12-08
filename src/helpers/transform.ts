@@ -10,15 +10,13 @@
 
 import fumifier, { FumifierCompiled, FumifierOptions, MappingCacheInterface } from 'fumifier';
 
-import config from '../../config';
-import { IAppBinding } from '../../types';
-import { getCache } from '../cache';
-import * as conformance from '../conformance';
-import fhirFuncs from '../fhirFunctions';
-import { parseCsv, v2json } from '../inputConverters';
-import { getLogger } from '../logger';
-import * as objectFuncs from '../objectFunctions';
-import { logInfo, logWarn } from './log';
+import config from '../config';
+import { IAppBinding } from '../types';
+import { getCache } from './cache';
+import * as conformance from './conformance';
+import fhirFuncs from './fhirFunctions';
+import { parseCsv, v2json } from './inputConverters';
+import { getLogger } from './logger';
 
 /**
  * An implementation of Fumifier's MappingCacheInterface over the FUME mapping cache
@@ -58,6 +56,7 @@ const compileExpression = async (expression: string): Promise<FumifierCompiled> 
   if (!compiled) { // not cached, compile it
     const options = await getFumifierOptions();
     compiled = await fumifier(expression, options);
+    compiled.setLogger(getLogger());
     compiledExpressions.set(expression, compiled);
   }
   return compiled;
@@ -74,10 +73,6 @@ export const transform = async (input: any, expression: string, extraBindings: R
 
     // bind functions
     bindings.resourceId = fhirFuncs.resourceId;
-    bindings.stringify = JSON.stringify;
-    bindings.selectKeys = objectFuncs.selectKeys;
-    bindings.omitKeys = objectFuncs.omitKeys;
-
     bindings.translateCode = fhirFuncs.translateCode;
     bindings.translate = fhirFuncs.translateCode;
     bindings.translateCoding = fhirFuncs.translateCoding;
@@ -85,8 +80,6 @@ export const transform = async (input: any, expression: string, extraBindings: R
     bindings.searchSingle = fhirFuncs.searchSingle;
     bindings.literal = fhirFuncs.literal;
     bindings.resolve = fhirFuncs.resolve;
-    bindings.warning = logWarn;
-    bindings.info = logInfo;
     bindings.parseCsv = parseCsv;
     bindings.v2json = v2json;
     bindings.capabilities = fhirFuncs.capabilities;
