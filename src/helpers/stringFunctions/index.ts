@@ -13,8 +13,6 @@ import {
   removeEmptyLines,
   splitToLines,
   startsWith,
-  substringAfter,
-  substringBefore,
   uuid
 } from './stringFunctions';
 
@@ -29,7 +27,5 @@ export {
   removeEmptyLines,
   splitToLines,
   startsWith,
-  substringAfter,
-  substringBefore,
   uuid
 };

@@ -19,32 +19,6 @@ export const endsWith = (str: string | undefined, endStr: string): boolean | und
   return str.endsWith(endStr);
 };
 
-export const substringBefore = (str: string, chars: string): string => {
-  // undefined inputs always return undefined
-  if (typeof str === 'undefined') {
-    return '';
-  }
-  const pos = str.indexOf(chars);
-  if (pos > -1) {
-    return str.substring(0, pos);
-  } else {
-    return str;
-  }
-};
-
-export const substringAfter = (str: string, chars: string): string => {
-  // undefined inputs always return undefined
-  if (typeof str === 'undefined') {
-    return '';
-  }
-  const pos = str.indexOf(chars);
-  if (pos > -1) {
-    return str.substring(pos + chars.length);
-  } else {
-    return str;
-  }
-};
-
 export const removeEmptyLines = (arr: string[] | string): string[] => {
   // removes empty lines from a line array
   let lines: string[] = [];

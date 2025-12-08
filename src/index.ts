@@ -12,9 +12,7 @@ import { selectKeys } from './helpers/objectFunctions';
 import {
   duplicate,
   endsWith,
-  startsWith,
-  substringAfter,
-  substringBefore
+  startsWith
 } from './helpers/stringFunctions';
 
 /**
@@ -33,8 +31,6 @@ export const fumeUtils = {
   expressions,
   duplicate,
   getAliasResource,
-  substringBefore,
-  substringAfter,
   selectKeys,
   startsWith,
   endsWith,
