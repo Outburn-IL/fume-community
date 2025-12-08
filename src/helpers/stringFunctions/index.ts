@@ -6,11 +6,9 @@
 import { base64decode, base64encode } from './base64';
 import { duplicate } from './duplicate';
 import {
-  endsWith,
   hashKey,
   isNumeric,
   matches,
-  startsWith,
   uuid
 } from './stringFunctions';
 
@@ -18,10 +16,8 @@ export {
   base64decode,
   base64encode,
   duplicate,
-  endsWith,
   hashKey,
   isNumeric,
   matches,
-  startsWith,
   uuid
 };

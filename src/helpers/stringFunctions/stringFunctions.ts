@@ -7,18 +7,6 @@ import { randomUUID } from 'crypto';
 import { sha256 } from 'js-sha256';
 import uuidByString from 'uuid-by-string';
 
-export const startsWith = (str: string | undefined, startStr: string): boolean | undefined => {
-  // undefined inputs always return undefined
-  if (typeof str === 'undefined') return undefined;
-  return str.startsWith(startStr);
-};
-
-export const endsWith = (str: string | undefined, endStr: string): boolean | undefined => {
-  // undefined inputs always return undefined
-  if (typeof str === 'undefined') return undefined;
-  return str.endsWith(endStr);
-};
-
 export const hashKey = (str: string): string => sha256(str + uuid(str));
 
 export const uuid = (seed?: string): string => seed ? uuidByString(seed) : randomUUID();

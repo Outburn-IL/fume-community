@@ -10,9 +10,7 @@ import { parseCsv, v2json } from './helpers/inputConverters';
 import expressions from './helpers/jsonataExpression';
 import { selectKeys } from './helpers/objectFunctions';
 import {
-  duplicate,
-  endsWith,
-  startsWith
+  duplicate
 } from './helpers/stringFunctions';
 
 /**
@@ -32,8 +30,6 @@ export const fumeUtils = {
   duplicate,
   getAliasResource,
   selectKeys,
-  startsWith,
-  endsWith,
   parseCsv,
   getFhirVersion: config.getFhirVersion,
   getFhirCorePackage: config.getFhirCorePackage,
