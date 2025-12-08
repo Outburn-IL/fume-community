@@ -9,9 +9,6 @@ import fhirFuncs from './helpers/fhirFunctions';
 import { parseCsv, v2json } from './helpers/inputConverters';
 import expressions from './helpers/jsonataExpression';
 import { selectKeys } from './helpers/objectFunctions';
-import {
-  duplicate
-} from './helpers/stringFunctions';
 
 /**
  * Export types
@@ -27,7 +24,6 @@ export { FumeServer } from './server';
 export { FumeConfigSchema } from './serverConfigSchema';
 export const fumeUtils = {
   expressions,
-  duplicate,
   getAliasResource,
   selectKeys,
   parseCsv,

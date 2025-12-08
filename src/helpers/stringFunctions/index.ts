@@ -3,8 +3,6 @@
  *   Project name: FUME-COMMUNITY
  */
 
-import { base64decode, base64encode } from './base64';
-import { duplicate } from './duplicate';
 import {
   hashKey,
   isNumeric,
@@ -13,9 +11,6 @@ import {
 } from './stringFunctions';
 
 export {
-  base64decode,
-  base64encode,
-  duplicate,
   hashKey,
   isNumeric,
   matches,
