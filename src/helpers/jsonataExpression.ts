@@ -11,7 +11,6 @@ export interface InternalJsonataExpression {
   translateCodingExtract: FumifierCompiled
   searchSingle: FumifierCompiled
   literal: FumifierCompiled
-  initCap: FumifierCompiled
   duplicate: FumifierCompiled
   selectKeys: FumifierCompiled
   omitKeys: FumifierCompiled
@@ -44,10 +43,6 @@ const createExpressions = async (): Promise<InternalJsonataExpression> => ({
     $r := $searchSingle($query, $params);
     $r.resourceType = 'OperationOutcome' ? $error($string($r));
     $exists($r.resourceType) ? $r.resourceType & '/' & $r.id : undefined
-  )`),
-  initCap: await fumifier(`(
-    $words := $trim($)~>$split(" ");
-    ($words.$initCapOnce($))~>$join(' ')
   )`),
   duplicate: await fumifier('$join([1..$times].($str))'),
   selectKeys: await fumifier('$in.$sift($, function($v, $k) {$k in $skeys})'),

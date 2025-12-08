@@ -19,13 +19,6 @@ export const endsWith = (str: string | undefined, endStr: string): boolean | und
   return str.endsWith(endStr);
 };
 
-export const initCapOnce = (str: string): string => {
-  // used for polymorhic element names, where all type names need to
-  // be appended to base element names but the result must be camelCased
-  // e.g. if chosen type for value[x] is string, the element name will be valueString
-  return str[0].toUpperCase() + str.slice(1);
-};
-
 export const substringBefore = (str: string, chars: string): string => {
   // undefined inputs always return undefined
   if (typeof str === 'undefined') {
