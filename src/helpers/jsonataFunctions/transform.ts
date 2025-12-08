@@ -9,15 +9,13 @@
  */
 
 import fumifier, { FumifierCompiled, FumifierOptions, MappingCacheInterface } from 'fumifier';
-import HL7Dictionary from 'hl7-dictionary';
 
 import config from '../../config';
 import { IAppBinding } from '../../types';
 import { getCache } from '../cache';
 import * as conformance from '../conformance';
 import fhirFuncs from '../fhirFunctions';
-import { parseCsv } from '../inputConverters';
-import * as v2 from '../inputConverters/hl7v2';
+import { parseCsv, v2json } from '../inputConverters';
 import { getLogger } from '../logger';
 import * as objectFuncs from '../objectFunctions';
 import * as stringFuncs from '../stringFunctions';
@@ -93,16 +91,12 @@ export const transform = async (input: any, expression: string, extraBindings: R
     bindings.warning = logWarn;
     bindings.info = logInfo;
     bindings.parseCsv = parseCsv;
-    bindings.v2parse = v2.v2parse;
-    bindings.v2json = v2.v2json;
+    bindings.v2json = v2json;
     bindings.capabilities = fhirFuncs.capabilities;
 
     const { aliases } = getCache();
     // these are debug functions, should be removed in production versions
     bindings.getTable = conformance.getTable;
-    bindings.v2dictionary = HL7Dictionary.definitions;
-    bindings.v2codeLookup = v2.v2codeLookup;
-    bindings.v2tableUrl = v2.v2tableUrl;
     // bindings.getCodeSystem = conformance.getCodeSystem;
     // bindings.getValueSet = conformance.getValueSet;
     // end of debug functions

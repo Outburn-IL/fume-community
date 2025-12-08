@@ -6,8 +6,7 @@
 import config from './config';
 import { getAliasResource } from './helpers/conformance';
 import fhirFuncs from './helpers/fhirFunctions';
-import { parseCsv } from './helpers/inputConverters';
-import { v2json } from './helpers/inputConverters/hl7v2';
+import { parseCsv, v2json } from './helpers/inputConverters';
 import expressions from './helpers/jsonataExpression';
 import { selectKeys } from './helpers/objectFunctions';
 import {

@@ -1,6 +1,6 @@
 {
   "name": "fume-fhir-converter",
-  "version": "3.0.0",
+  "version": "3.0.0-build.1",
   "description": "FHIR-Utilized Mapping Engine - Community",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -49,19 +49,16 @@
     "url": "git+https://github.com/Outburn-IL/fume-community.git"
   },
   "dependencies": {
+    "@outburn/format-converter": "^1.0.4",
     "@outburn/structure-navigator": "^1.5.5",
     "axios": "^1.13.2",
     "cors": "^2.8.5",
-    "csvtojson": "^2.0.14",
     "dotenv": "^16.6.1",
     "express": "^5.2.1",
-    "fast-xml-parser": "^4.5.3",
     "fhir-package-installer": "^1.6.1",
     "fhir-snapshot-generator": "^1.7.0",
     "fs-extra": "^11.3.2",
     "fumifier": "^1.9.4",
-    "hl7-dictionary": "^1.0.1",
-    "hl7js": "^0.0.6",
     "js-sha256": "^0.9.0",
     "uuid-by-string": "^4.0.0",
     "zod": "^3.25.76"

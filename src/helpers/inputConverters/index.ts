@@ -3,12 +3,16 @@
  *   Project name: FUME-COMMUNITY
  */
 
-import { getLogger } from '../logger';
-import { parseCsv } from './csvToJson';
-import { v2json } from './hl7v2';
-import { parseXml } from './xml';
+import { FormatConverter } from '@outburn/format-converter';
 
-export { parseCsv };
+import { getLogger } from '../logger';
+
+const formatConverter = new FormatConverter(getLogger());
+
+// Re-export individual converters for backwards compatibility
+export const parseCsv = formatConverter.csvToJson.bind(formatConverter);
+export const parseXml = formatConverter.xmlToJson.bind(formatConverter);
+export const v2json = formatConverter.hl7v2ToJson.bind(formatConverter);
 
 export const convertInputToJson = async (input, contentType) => {
   if (!contentType || contentType === '') {
@@ -20,17 +24,17 @@ export const convertInputToJson = async (input, contentType) => {
   if (contentType.startsWith('x-application/hl7-v2+er7')) {
     getLogger().info('Content-Type suggests HL7 V2.x message');
     getLogger().info('Trying to parse V2 message as JSON...');
-    inputJson = await v2json(input);
+    inputJson = await formatConverter.toJson(input, 'x-application/hl7-v2+er7');
     getLogger().info('Parsed V2 message');
   } else if (contentType.startsWith('text/csv')) {
     getLogger().info('Content-Type suggests CSV input');
     getLogger().info('Trying to parse CSV to JSON...');
-    inputJson = await parseCsv(input);
+    inputJson = await formatConverter.toJson(input, 'text/csv');
     getLogger().info('Parsed CSV to JSON');
   } else if (contentType.startsWith('application/xml')) {
     getLogger().info('Content-Type suggests XML input');
     getLogger().info('Trying to parse XML to JSON...');
-    inputJson = parseXml(input);
+    inputJson = await formatConverter.toJson(input, 'application/xml');
     getLogger().info('Parsed XML to JSON');
   } else if (contentType.startsWith('application/json')) {
     getLogger().info('Content-Type suggests JSON input');
