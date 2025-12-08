@@ -22,22 +22,16 @@ export const convertInputToJson = async (input, contentType) => {
 
   let inputJson;
   if (contentType.startsWith('x-application/hl7-v2+er7')) {
-    getLogger().info('Content-Type suggests HL7 V2.x message');
-    getLogger().info('Trying to parse V2 message as JSON...');
-    inputJson = await formatConverter.toJson(input, 'x-application/hl7-v2+er7');
-    getLogger().info('Parsed V2 message');
+    getLogger().info('Parsing HL7 V2.x message...');
+    inputJson = await v2json(input);
   } else if (contentType.startsWith('text/csv')) {
-    getLogger().info('Content-Type suggests CSV input');
-    getLogger().info('Trying to parse CSV to JSON...');
-    inputJson = await formatConverter.toJson(input, 'text/csv');
-    getLogger().info('Parsed CSV to JSON');
+    getLogger().info('Parsing CSV to JSON...');
+    inputJson = await parseCsv(input);
   } else if (contentType.startsWith('application/xml')) {
-    getLogger().info('Content-Type suggests XML input');
-    getLogger().info('Trying to parse XML to JSON...');
-    inputJson = await formatConverter.toJson(input, 'application/xml');
-    getLogger().info('Parsed XML to JSON');
+    getLogger().info('Parsing XML to JSON...');
+    inputJson = await parseXml(input);
   } else if (contentType.startsWith('application/json')) {
-    getLogger().info('Content-Type suggests JSON input');
+    getLogger().info('Using JSON input as-is');
     inputJson = input;
   } else {
     throw new Error(`Unsupported Content-Type: '${contentType}'`);
