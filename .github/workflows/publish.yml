@@ -1,0 +1,48 @@
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on version tags like v0.10.0, v1.0.0, etc.
+
+permissions:
+  contents: read
+  id-token: write  # Required for OIDC token generation
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        registry-url: 'https://registry.npmjs.org'
+        
+    - name: Install latest npm
+      run: npm install -g npm@latest
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run linting
+      run: npm run lint
+
+    - name: Build package
+      run: npm run build
+
+    - name: Run unit tests
+      run: npm run test:unit
+      
+    - name: Run integration tests
+      run: npm run test:integration
+      
+    - name: Verify package contents
+      run: npm pack --dry-run
+      
+    - name: Publish to npm with provenance
+      run: npm publish --provenance --access public

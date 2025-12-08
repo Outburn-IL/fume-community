@@ -1,9 +1,9 @@
 name: Build Docker and Push
 
 on:
-  # Trigger automatically only after semantic-release has finished and published the GitHub Release
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'  # Triggers on version tags like v0.10.0, v1.0.0, etc.
   # Allow manual runs
   workflow_dispatch:
 
@@ -12,46 +12,24 @@ env:
 
 jobs:
   deploy:
-    # Run for manual dispatch or a published release
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'release' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          # Always fetch full history, we'll checkout tag explicitly if release event.
-          fetch-depth: 0
 
-      - name: Determine release tag (release event)
-        if: ${{ github.event_name == 'release' }}
+      - name: Determine release version (from tag)
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         run: |
-          TAG="${{ github.event.release.tag_name }}"
+          TAG="${{ github.ref_name }}"
           echo "RELEASE_VERSION=${TAG#v}" >> "$GITHUB_ENV"
-          echo "Resolved release version from tag: ${TAG#v}"
+          echo "Using version from tag: ${TAG#v}"
 
       - name: Determine release version (manual dispatch)
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           VERSION=$(jq -r '.version' package.json)
           echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
-          echo "Resolved release version from package.json: $VERSION"
-
-      - name: Checkout tag commit (release only)
-        if: ${{ github.event_name == 'release' }}
-        run: |
-          TAG="${{ github.event.release.tag_name }}"
-          git fetch --tags --force
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            git checkout "$TAG"
-            echo "Checked out tag $TAG"
-          else
-            echo "Tag $TAG not found after fetch"; exit 1;
-          fi
-
-      - name: Validate derived version
-        run: |
-          if [ -z "$RELEASE_VERSION" ]; then echo "RELEASE_VERSION is empty"; exit 1; fi
-          echo "Final version: $RELEASE_VERSION"
+          echo "Using version from package.json: $VERSION"
 
       - name: Validate required secrets
         run: |
