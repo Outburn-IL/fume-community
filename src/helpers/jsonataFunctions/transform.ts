@@ -61,7 +61,7 @@ const compileExpression = async (expression: string): Promise<FumifierCompiled> 
     const options = await getFumifierOptions();
     compiled = await fumifier(expression, options);
     compiledExpressions.set(key, compiled);
-  };
+  }
   return compiled;
 };
 
@@ -71,6 +71,7 @@ export const transform = async (input: any, expression: string, extraBindings: R
 
     const expr = await compileExpression(expression);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     let bindings: Record<string, Function | Record<string, any> | string> = {};
 
     // bind functions

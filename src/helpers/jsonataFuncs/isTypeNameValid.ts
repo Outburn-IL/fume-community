@@ -4,7 +4,6 @@
  */
 
 // makes sure the "InstanceOf" decleration contains a (fixed) potential FHIR type and not an expression
-// eslint-disable-next-line @typescript-eslint/quotes, no-useless-escape
 export const isTypeNameValid = (typeName: string): boolean => {
   const regexWhitespace = /\s/;
   const regexUrlOrUrn = /^(http(|s):\/\/|urn:(uuid|oid):).+[^\\s]/;

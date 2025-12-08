@@ -15,7 +15,7 @@ export const searchSingle = async (query: string, params?: Record<string, any>):
       ...options,
       ...params
     };
-  };
+  }
 
   const bundle = await getFhirClient().search(url, options);
   const res = await (await expressions).searchSingle.evaluate({}, { bundle });

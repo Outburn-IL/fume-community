@@ -18,7 +18,7 @@ export const translateCode = async (input: string, tableId: string) => {
         map = table[tableId];
         tables.set(tableId, map);
       }
-    };
+    }
 
     const mapFiltered = map[input];
     let result;

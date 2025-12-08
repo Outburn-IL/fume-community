@@ -7,6 +7,7 @@ import { ICache } from '../../types';
 export class SimpleCache<T> implements ICache<T> {
   private cache: Record<string, any>;
 
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-expect-error
   constructor (private readonly options: Record<string, any> = {}) {
     this.cache = {};

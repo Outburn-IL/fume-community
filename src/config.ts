@@ -56,7 +56,7 @@ const setServerConfig = <ConfigType extends IConfig>(config: Partial<ConfigType>
     isStatelessMode = true;
   } else {
     isStatelessMode = false;
-  };
+  }
   serverConfig = {
     ...defaultConfig,
     ...config,

@@ -21,7 +21,7 @@ export interface InternalJsonataExpression {
   aliasResourceToObject: FumifierCompiled
   conceptMapToTable: FumifierCompiled
   isEmpty: FumifierCompiled
-};
+}
 
 const createExpressions = async (): Promise<InternalJsonataExpression> => ({
   translateCodeExtract: await fumifier('$mapFiltered.code'),

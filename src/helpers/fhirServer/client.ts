@@ -29,7 +29,7 @@ export class FhirClient implements IFhirClient {
     } else {
       return undefined;
     }
-  };
+  }
 
   private init () {
     if (!this.isStateless) {
@@ -63,7 +63,7 @@ export class FhirClient implements IFhirClient {
 
     const response = await this.fhirServer!.get(`${url}`);
     return response.data;
-  };
+  }
 
   public async search (query: string, params?: object) {
     if (this.checkStateless()) {
@@ -75,12 +75,12 @@ export class FhirClient implements IFhirClient {
     let queryConfigParams = { _count: SEARCH_BUNDLE_PAGE_SIZE };
     if (params) {
       queryConfigParams = { ...queryConfigParams, ...params };
-    };
+    }
     getLogger().info(`Performing search, page size: ${queryConfigParams._count}`);
 
     const response = await this.fhirServer!.get(`/${query}`, { params: queryConfigParams });
     return response.data;
-  };
+  }
 
   public async create (resource: object, resourceType: string) {
     throw new Error('Method not implemented.');

@@ -11,7 +11,7 @@ export const getTable = async (tableId: string) => {
   if (tableId === undefined || tableId.trim() === '') {
     // exit if no id provided
     throw new Error('First argument to function getTable must be a table id, url or name');
-  };
+  }
   const err = `Failed to fetch ConceptMap whose id, url or name is: '${tableId}'`;
   let response;
   try {
@@ -35,7 +35,7 @@ export const getTable = async (tableId: string) => {
       getLogger().error(err);
       throw new Error(err);
     }
-  };
+  }
   const table = await (await expressions).conceptMapToTable.evaluate(response);
   return table;
 };

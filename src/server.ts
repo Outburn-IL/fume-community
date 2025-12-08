@@ -111,7 +111,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
       if (recacheResult) {
         this.logger.info('Successfully loaded cache');
       }
-    };
+    }
 
     // mount middleware on application level
     // all requests will pass through this function
@@ -144,7 +144,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
   public registerAppMiddleware (middleware: RequestHandler) {
     this.appMiddleware = middleware;
     this.logger.info('Registered application middleware...');
-  };
+  }
 
   /**
    * Register a logger to replace the default logger
@@ -153,7 +153,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
   public registerLogger (logger: ILogger) {
     this.logger = logger;
     setLogger(logger);
-  };
+  }
 
   /**
    * Register a class to replace the default cache class
@@ -173,7 +173,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     } else {
       this.logger.warn('No cache keys provided to apply cache class to');
     }
-  };
+  }
 
   /**
    * Pass a FHIR client instance to be used by the server

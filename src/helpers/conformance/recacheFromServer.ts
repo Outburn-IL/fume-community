@@ -37,7 +37,7 @@ export const cacheMapping = (mappingId: string, mappingExpr: string) => {
 const getNextBundle = async (bundle: Record<string, any>) => {
   if (serverConfig.SERVER_STATELESS) {
     throw new Error('FUME running in stateless mode. Cannot get next page of search results bundle.');
-  };
+  }
   let nextBundle;
   const nextLink = await (await expressions).extractNextLink.evaluate(bundle);
   if (typeof nextLink === 'string' && nextLink > '') {
@@ -50,13 +50,13 @@ const getNextBundle = async (bundle: Record<string, any>) => {
 const fullSearch = async (query: string, params?: Record<string, any>) => {
   if (serverConfig.SERVER_STATELESS) {
     throw new Error('FUME running in stateless mode. Cannot perform search.');
-  };
+  }
   const bundleArray: any[] = [];
   let page: Record<string, any> = await getFhirClient().search(query, params);
   while (typeof page === 'object' && page?.resourceType === 'Bundle') {
     bundleArray.push(page);
     page = await getNextBundle(page);
-  };
+  }
   const resourceArray = await (await expressions).bundleToArrayOfResources.evaluate({}, { bundleArray });
   return resourceArray;
 };
@@ -67,7 +67,7 @@ export const getAliasResource = async () => {
   if (serverConfig.SERVER_STATELESS) {
     logger.error('FUME running in stateless mode. Cannot fetch aliases from server.');
     return undefined;
-  };
+  }
   let resource;
   try {
     const aliasResourceSearch = await getFhirClient().search('ConceptMap', { context: 'http://codes.fume.health|fume', name: 'FumeAliases' });
@@ -85,7 +85,7 @@ export const getAliasResource = async () => {
       }
     } else {
       logger.error('Error fetching alias resource!');
-    };
+    }
   } catch (e) {
     resource = {};
   }
@@ -93,12 +93,13 @@ export const getAliasResource = async () => {
 };
 
 // Fetches the alias resource and returns it in an alias object structure
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 const getAliases = async (createFunc?: Function) => {
   const logger = getLogger();
   if (serverConfig.SERVER_STATELESS) {
     logger.error('FUME running in stateless mode. Cannot fetch mappings from server.');
     return undefined;
-  };
+  }
   let aliasObject;
   let aliasResource = await getAliasResource();
   if (typeof aliasResource === 'object') {
@@ -111,7 +112,7 @@ const getAliases = async (createFunc?: Function) => {
         aliasObject = await (await expressions).aliasResourceToObject.evaluate(aliasResource);
       }
     }
-  };
+  }
   return aliasObject;
 };
 
@@ -121,12 +122,12 @@ const getAllMappings = async (): Promise<Record<string, string>> => {
   if (serverConfig.SERVER_STATELESS) {
     logger.error('FUME running in stateless mode. Cannot fetch mappings from server.');
     return {};
-  };
+  }
   const allStructureMaps = await fullSearch('StructureMap/', { context: 'http://codes.fume.health|fume' });
   const mappingDict: Record<string, string> = await (await expressions).structureMapsToMappingObject.evaluate(allStructureMaps);
   if (Object.keys(mappingDict).length > 0) {
     logger.info('Loaded the following mappings from server: ' + Object.keys(mappingDict).join(', '));
-  };
+  }
   return mappingDict;
 };
 
@@ -136,14 +137,14 @@ export const recacheFromServer = async (): Promise<boolean> => {
   if (serverConfig.SERVER_STATELESS) {
     logger.error('FUME running in stateless mode. Cannot recache from server.');
     return false;
-  };
+  }
   try {
     const { aliases, compiledMappings } = getCache();
     aliases.reset();
     aliases.populate(await getAliases());
     if (aliases.keys().length > 0) {
       logger.info(`Updated cache with aliases: ${aliases.keys().join(', ')}.`);
-    };
+    }
     const mappingDict: Record<string, string> = await getAllMappings();
     compiledMappings.reset();
     Object.keys(mappingDict).forEach((key: string) => {
@@ -151,11 +152,11 @@ export const recacheFromServer = async (): Promise<boolean> => {
     });
     if (Object.keys(mappingDict).length > 0) {
       logger.info(`Updated cache with mappings: ${Object.keys(mappingDict).join(', ')}.`);
-    };
+    }
   } catch (e) {
     logger.error(e);
     return false;
-  };
+  }
 
   return true;
 };

@@ -17,6 +17,6 @@ export const resolve = async (reference: string): Promise<Record<string, any> | 
   }
   if ((resource.resourceType === 'Bundle' && !reference.startsWith('Bundle'))) {
     return thrower.throwRuntimeError(`The $resolve function can only resolve a reference to a single resource. Response from FHIR server is a Bundle. Reference: '${reference}'`);
-  };
+  }
   return resource;
 };

@@ -17,11 +17,11 @@ export const capabilities = async (): Promise<Record<string, any> | undefined> =
     } catch (error) {
       return thrower.throwRuntimeError(`Failed to fetch CapabilityStatement from FHIR server. ${JSON.stringify(error)}`);
     }
-  };
+  }
   // check that the object is actually a capability statement
   if (!capabilityStatement?.resourceType || typeof capabilityStatement.resourceType !== 'string' || capabilityStatement.resourceType !== 'CapabilityStatement') {
     return thrower.throwRuntimeError('Invalid response from FHIR server: The \'/metadata\' endpoint did not return a CapabilityStatement resource');
-  };
+  }
   // return the cached capability statement
   return capabilityStatement;
 };
