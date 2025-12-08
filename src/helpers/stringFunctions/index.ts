@@ -10,8 +10,6 @@ import {
   hashKey,
   isNumeric,
   matches,
-  removeEmptyLines,
-  splitToLines,
   startsWith,
   uuid
 } from './stringFunctions';
@@ -24,8 +22,6 @@ export {
   hashKey,
   isNumeric,
   matches,
-  removeEmptyLines,
-  splitToLines,
   startsWith,
   uuid
 };

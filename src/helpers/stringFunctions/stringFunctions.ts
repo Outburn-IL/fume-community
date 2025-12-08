@@ -19,20 +19,6 @@ export const endsWith = (str: string | undefined, endStr: string): boolean | und
   return str.endsWith(endStr);
 };
 
-export const removeEmptyLines = (arr: string[] | string): string[] => {
-  // removes empty lines from a line array
-  let lines: string[] = [];
-  if (typeof arr === 'string') {
-    lines.push(arr);
-  } else {
-    lines = arr;
-  }
-  return lines.filter((line) => line.trim() !== '');
-};
-
-// clean and split an expression. returns a line array
-export const splitToLines = (expr: string): string[] => removeEmptyLines(expr.split(/\r?\n/));
-
 export const hashKey = (str: string): string => sha256(str + uuid(str));
 
 export const uuid = (seed?: string): string => seed ? uuidByString(seed) : randomUUID();
