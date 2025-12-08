@@ -7,7 +7,6 @@ import type { FhirStructureNavigator } from '@outburn/structure-navigator';
 import type { PackageManifest } from 'fhir-package-installer';
 import type { BaseFhirVersion, FhirSnapshotGenerator } from 'fhir-snapshot-generator';
 
-import { fhirCorePackages } from './constants';
 import { fhirVersionToMinor } from './helpers/fhirFunctions/fhirVersionToMinor';
 import defaultConfig from './serverConfig';
 import type { IAppBinding, IConfig } from './types';
@@ -81,10 +80,6 @@ const getFhirVersion = () => {
   return serverConfig.FHIR_VERSION;
 };
 
-const getFhirCorePackage = () => {
-  return fhirCorePackages[serverConfig.FHIR_VERSION];
-};
-
 const getFhirVersionMinor = () => {
   return fhirVersionToMinor(serverConfig.FHIR_VERSION);
 };
@@ -138,7 +133,6 @@ const resetGlobalFhirContext = () => {
 
 export default {
   getFhirVersion,
-  getFhirCorePackage,
   getFhirVersionMinor,
   getServerConfig,
   setServerConfig,

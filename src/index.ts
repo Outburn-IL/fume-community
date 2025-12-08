@@ -28,7 +28,6 @@ export const fumeUtils = {
   selectKeys,
   parseCsv,
   getFhirVersion: config.getFhirVersion,
-  getFhirCorePackage: config.getFhirCorePackage,
   getFhirVersionMinor: config.getFhirVersionMinor,
   getNavigator: () => config.getGlobalFhirContext().navigator,
   // getSnapshot: parser.getSnapshot,

@@ -5,7 +5,6 @@
 import { capabilities } from './capabilities';
 import { fhirVersionToMinor } from './fhirVersionToMinor';
 import { literal } from './literal';
-import { reference } from './reference';
 import { resolve } from './resolve';
 import { resourceId } from './resourceId';
 import { search } from './search';
@@ -22,6 +21,5 @@ export default {
   translateCoding,
   translateCode,
   fhirVersionToMinor,
-  reference,
   capabilities
 };

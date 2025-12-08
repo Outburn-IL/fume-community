@@ -18,7 +18,6 @@ export interface InternalJsonataExpression {
   structureMapsToMappingObject: FumifierCompiled
   aliasResourceToObject: FumifierCompiled
   conceptMapToTable: FumifierCompiled
-  isEmpty: FumifierCompiled
 }
 
 const createExpressions = async (): Promise<InternalJsonataExpression> => ({
@@ -89,31 +88,6 @@ const createExpressions = async (): Promise<InternalJsonataExpression> => ({
         )
       }
     )
-  )`),
-  isEmpty: await fumifier(`(
-    $_isEmpty := function($input) {(
-      $exists($input) ? (
-        $input in ['', null, {}, []] 
-        or (
-          $type($input) = 'string' 
-          and $length($input) > 0 
-          and $trim($input) = ''
-        )
-        ? true 
-        : (
-          $type($input) = 'object' 
-            ? (
-              $count(($keys($input).($lookup($input,$)).$not($_isEmpty($)))[$])=0
-            )
-            : $type($input) = 'array'
-              ? (
-                $count($input[$_isEmpty($)=false]) = 0
-              ) 
-              : false
-        )
-      ) : true
-    )};
-    $_isEmpty($value)
   )`)
 });
 

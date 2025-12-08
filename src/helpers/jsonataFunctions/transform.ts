@@ -18,7 +18,6 @@ import fhirFuncs from '../fhirFunctions';
 import { parseCsv, v2json } from '../inputConverters';
 import { getLogger } from '../logger';
 import * as objectFuncs from '../objectFunctions';
-import * as stringFuncs from '../stringFunctions';
 import { logInfo, logWarn } from './log';
 
 /**
@@ -55,12 +54,11 @@ const getFumifierOptions = async (): Promise<FumifierOptions> => {
  */
 const compileExpression = async (expression: string): Promise<FumifierCompiled> => {
   const { compiledExpressions } = getCache();
-  const key = stringFuncs.hashKey(expression); // turn expression string to a key
-  let compiled: FumifierCompiled = compiledExpressions.get(key); // get from cache
+  let compiled: FumifierCompiled = compiledExpressions.get(expression); // get from cache
   if (!compiled) { // not cached, compile it
     const options = await getFumifierOptions();
     compiled = await fumifier(expression, options);
-    compiledExpressions.set(key, compiled);
+    compiledExpressions.set(expression, compiled);
   }
   return compiled;
 };
@@ -76,8 +74,6 @@ export const transform = async (input: any, expression: string, extraBindings: R
 
     // bind functions
     bindings.resourceId = fhirFuncs.resourceId;
-    bindings.isEmpty = objectFuncs.isEmpty;
-    bindings.matches = stringFuncs.matches;
     bindings.stringify = JSON.stringify;
     bindings.selectKeys = objectFuncs.selectKeys;
     bindings.omitKeys = objectFuncs.omitKeys;

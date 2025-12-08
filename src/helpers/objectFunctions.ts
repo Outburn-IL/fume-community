@@ -15,10 +15,4 @@ const omitKeys = async (obj: object, okeys: string[]): Promise<object> => {
   return res;
 };
 
-const isEmpty = async (value: any): Promise<boolean> => {
-  if (value === undefined || value === null) return true;
-  const res = await (await expressions).isEmpty.evaluate({}, { value });
-  return res;
-};
-
-export { isEmpty, omitKeys, selectKeys };
+export { omitKeys, selectKeys };
