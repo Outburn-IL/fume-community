@@ -30,14 +30,9 @@
     "test:debug": "node --inspect-brk --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.integration.js --runInBand",
-    "prepare": "npm run build && husky",
+    "prepare": "npm run build",
     "semantic-release": "semantic-release",
     "prepublishOnly": "npm ci && npm run build"
-  },
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "eslint --cache --fix"
-    ]
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
@@ -58,7 +53,7 @@
     "fhir-package-installer": "^1.6.1",
     "fhir-snapshot-generator": "^1.7.0",
     "fs-extra": "^11.3.2",
-    "fumifier": "^1.9.4",
+    "fumifier": "^1.9.5",
     "js-sha256": "^0.9.0",
     "uuid-by-string": "^4.0.0",
     "zod": "^3.25.76"
@@ -77,23 +72,21 @@
     "@types/fs-extra": "^11.0.4",
     "@types/jest": "^30.0.0",
     "@types/lodash": "^4.17.21",
-    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/eslint-plugin": "^8.48.1",
+    "@typescript-eslint/parser": "^8.48.1",
     "args": "^5.0.3",
     "cross-env": "^7.0.3",
     "detect-indent": "^7.0.2",
     "detect-newline": "^4.0.1",
     "docker-compose": "^0.24.8",
     "eslint": "^8.57.1",
-    "eslint-config-standard-with-typescript": "^23.0.0",
     "eslint-plugin-header": "^3.1.1",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-n": "^15.7.0",
     "eslint-plugin-promise": "^6.6.0",
     "eslint-plugin-simple-import-sort": "^12.1.1",
-    "husky": "^9.1.7",
     "jest": "^29.7.0",
     "jest-mock-axios": "^4.9.0",
-    "lint-staged": "^15.5.2",
     "nodemon": "^3.1.11",
     "pre-commit": "^1.2.2",
     "rimraf": "^6.1.2",
@@ -102,6 +95,7 @@
     "semver": "^7.7.3",
     "simple-git": "^3.30.0",
     "supertest": "^6.3.4",
+    "tslib": "^2.8.1",
     "typescript": "^5.9.3"
   },
   "exports": {

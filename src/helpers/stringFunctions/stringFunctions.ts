@@ -30,7 +30,7 @@ export const substringBefore = (str: string, chars: string): string => {
   // undefined inputs always return undefined
   if (typeof str === 'undefined') {
     return '';
-  };
+  }
   const pos = str.indexOf(chars);
   if (pos > -1) {
     return str.substring(0, pos);
@@ -87,7 +87,7 @@ export const isNumeric = (n: any): boolean | undefined => {
 
   if (Array.isArray(n) && n.length === 1) {
     return isNumeric(n[0]);
-  };
+  }
 
   return false;
 };
