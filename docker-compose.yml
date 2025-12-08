@@ -6,8 +6,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "42420:42420"
-    volumes:
-      - "./snapshots:/usr/src/app/snapshots"
     logging:
       driver: "json-file"
       options:
