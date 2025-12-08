@@ -29,7 +29,7 @@ module.exports = {
         'simple-import-sort/imports': 'error',
         'simple-import-sort/exports': 'error',
         '@stylistic/js/no-multiple-empty-lines': [2, { max: 2, maxBOF: 0 }],
-        'header/header': [2, 'config/header.ts'],
+        'header/header': [2, '.header'],
         'no-extra-semi': 'error'
       }
     }
