@@ -17,7 +17,6 @@ const mockConfig = {
   FHIR_SERVER_PW: '',
   SERVER_STATELESS: false,
   FHIR_VERSION: '4.0.1',
-  SEARCH_BUNDLE_PAGE_SIZE: 200,
   FHIR_PACKAGES: ''
 };
 
@@ -126,7 +125,6 @@ describe('FhirClient', () => {
   test('search returns response data', async () => {
     config.setServerConfig({
       ...mockConfig,
-      SEARCH_BUNDLE_PAGE_SIZE: 45
     });
     const client = new FhirClient();
     const url = 'test-url';

@@ -107,7 +107,6 @@ async function setup () {
     FHIR_SERVER_PW: '',
     FHIR_SERVER_TIMEOUT: 30000,
     FHIR_VERSION: '4.0.1',
-    SEARCH_BUNDLE_PAGE_SIZE: 20,
     FHIR_PACKAGES: 'il.core.fhir.r4@0.14.2,fume.outburn.r4@0.1.1,il.tasmc.fhir.r4@0.1.1',
     FHIR_PACKAGE_CACHE_DIR
   });
@@ -152,7 +151,6 @@ async function setup () {
   //   FHIR_SERVER_PW: '',
   //   FHIR_SERVER_TIMEOUT: 30000,
   //   FHIR_VERSION: '4.0.1',
-  //   SEARCH_BUNDLE_PAGE_SIZE: 20,
   //   // Phase 2: use same package list as Phase 1 to validate core re-download under mock registry
   //   FHIR_PACKAGES: 'il.core.fhir.r4@0.14.2,fume.outburn.r4@0.1.1,il.tasmc.fhir.r4@0.1.1',
   //   FHIR_PACKAGE_CACHE_DIR,

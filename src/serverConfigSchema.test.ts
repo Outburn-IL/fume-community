@@ -18,7 +18,6 @@ describe('FumeConfigSchema', () => {
       FHIR_SERVER_TIMEOUT: 30000,
       FHIR_SERVER_UN: '',
       FHIR_VERSION: '4.0.1',
-      SEARCH_BUNDLE_PAGE_SIZE: 20,
       SERVER_PORT: 42420,
       SERVER_STATELESS: false
     });

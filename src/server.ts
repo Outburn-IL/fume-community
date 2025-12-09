@@ -73,7 +73,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     this.logger.info('FUME initializing...');
     config.setServerConfig(options);
     const serverConfig: IConfig = config.getServerConfig();
-    const { SERVER_PORT, FHIR_SERVER_BASE, FHIR_VERSION, SEARCH_BUNDLE_PAGE_SIZE, FHIR_SERVER_TIMEOUT, SERVER_STATELESS, FHIR_PACKAGE_CACHE_DIR, FHIR_PACKAGE_REGISTRY_URL, FHIR_PACKAGE_REGISTRY_TOKEN } = serverConfig;
+    const { SERVER_PORT, FHIR_SERVER_BASE, FHIR_VERSION, FHIR_SERVER_TIMEOUT, SERVER_STATELESS, FHIR_PACKAGE_CACHE_DIR, FHIR_PACKAGE_REGISTRY_URL, FHIR_PACKAGE_REGISTRY_TOKEN } = serverConfig;
     this.logger.info(serverConfig);
 
     // initialize caches
@@ -99,7 +99,6 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     if (SERVER_STATELESS) {
       this.logger.info('Running in stateless mode');
     } else {
-      this.logger.info(`Search Bundle page size: ${SEARCH_BUNDLE_PAGE_SIZE}`);
       this.logger.info(`FHIR Server Timeout: ${FHIR_SERVER_TIMEOUT}`);
       this.logger.info(`Loading FUME resources from FHIR server ${FHIR_SERVER_BASE} into cache...`);
 

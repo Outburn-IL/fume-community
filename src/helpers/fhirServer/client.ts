@@ -70,15 +70,7 @@ export class FhirClient implements IFhirClient {
       return;
     }
 
-    const { SEARCH_BUNDLE_PAGE_SIZE } = this.serverConfig;
-
-    let queryConfigParams = { _count: SEARCH_BUNDLE_PAGE_SIZE };
-    if (params) {
-      queryConfigParams = { ...queryConfigParams, ...params };
-    }
-    getLogger().info(`Performing search, page size: ${queryConfigParams._count}`);
-
-    const response = await this.fhirServer!.get(`/${query}`, { params: queryConfigParams });
+    const response = await this.fhirServer!.get(`/${query}`, { params });
     return response.data;
   }
 
