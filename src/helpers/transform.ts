@@ -15,6 +15,7 @@ import { IAppBinding } from '../types';
 import { getCache } from './cache';
 import * as conformance from './conformance';
 import fhirFuncs from './fhirFunctions';
+import { getFhirClient } from './fhirServer';
 import { parseCsv, v2json } from './inputConverters';
 import { getLogger } from './logger';
 
@@ -39,9 +40,20 @@ const getFumifierOptions = async (): Promise<FumifierOptions> => {
     throw new Error('Global FHIR context is not initialized. This should be done during server warmup.');
   }
 
+  let fhirClient;
+  try {
+    const wrapper = getFhirClient();
+    // Get the underlying @outburn/fhir-client instance for fumifier
+    fhirClient = wrapper.getClient?.();
+  } catch {
+    // FHIR client not initialized - this is OK in stateless mode
+    fhirClient = undefined;
+  }
+
   return {
     mappingCache: fumifierMappingCache,
-    navigator: globalContext.navigator
+    navigator: globalContext.navigator,
+    fhirClient
   };
 };
 
@@ -72,17 +84,17 @@ export const transform = async (input: any, expression: string, extraBindings: R
     let bindings: Record<string, Function | Record<string, any> | string> = {};
 
     // bind functions
-    bindings.resourceId = fhirFuncs.resourceId;
+    // bindings.resourceId = fhirFuncs.resourceId;
     bindings.translateCode = fhirFuncs.translateCode;
     bindings.translate = fhirFuncs.translateCode;
     bindings.translateCoding = fhirFuncs.translateCoding;
-    bindings.search = fhirFuncs.search;
-    bindings.searchSingle = fhirFuncs.searchSingle;
-    bindings.literal = fhirFuncs.literal;
-    bindings.resolve = fhirFuncs.resolve;
+    // bindings.search = fhirFuncs.search;
+    // bindings.searchSingle = fhirFuncs.searchSingle;
+    // bindings.literal = fhirFuncs.literal;
+    // bindings.resolve = fhirFuncs.resolve;
     bindings.parseCsv = parseCsv;
     bindings.v2json = v2json;
-    bindings.capabilities = fhirFuncs.capabilities;
+    // bindings.capabilities = fhirFuncs.capabilities;
 
     const { aliases } = getCache();
     // these are debug functions, should be removed in production versions

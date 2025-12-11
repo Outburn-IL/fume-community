@@ -9,12 +9,6 @@ import fumifier from 'fumifier';
 export interface InternalJsonataExpression {
   translateCodeExtract: FumifierCompiled
   translateCodingExtract: FumifierCompiled
-  searchSingle: FumifierCompiled
-  literal: FumifierCompiled
-  selectKeys: FumifierCompiled
-  omitKeys: FumifierCompiled
-  extractNextLink: FumifierCompiled
-  bundleToArrayOfResources: FumifierCompiled
   structureMapsToMappingObject: FumifierCompiled
   aliasResourceToObject: FumifierCompiled
   conceptMapToTable: FumifierCompiled
@@ -28,25 +22,6 @@ const createExpressions = async (): Promise<InternalJsonataExpression> => ({
       'code': code,
       'display': display
     }`),
-  searchSingle: await fumifier(`(
-    $assert(
-      $bundle.total <= 1, 
-      'The search ' 
-      & $bundle.link[relation='self'].url 
-      & ' returned multiple matches - criteria is not selective enough'
-    );
-    $bundle.entry[search.mode='match'][0].resource
-  )`),
-  literal: await fumifier(`(
-    $r := $searchSingle($query, $params);
-    $r.resourceType = 'OperationOutcome' ? $error($string($r));
-    $exists($r.resourceType) ? $r.resourceType & '/' & $r.id : undefined
-  )`),
-  selectKeys: await fumifier('$in.$sift($, function($v, $k) {$k in $skeys})'),
-  omitKeys: await fumifier('$in.$sift($, function($v, $k) {($k in $okeys)=false})'),
-
-  extractNextLink: await fumifier('link[relation=\'next\'].url'),
-  bundleToArrayOfResources: await fumifier('[$bundleArray.entry.resource]'),
   structureMapsToMappingObject: await fumifier(`
     ($[
       resourceType='StructureMap' 

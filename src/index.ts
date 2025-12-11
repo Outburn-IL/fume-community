@@ -5,7 +5,6 @@
 
 import config from './config';
 import { getAliasResource } from './helpers/conformance';
-import fhirFuncs from './helpers/fhirFunctions';
 import { parseCsv, v2json } from './helpers/inputConverters';
 import expressions from './helpers/jsonataExpressions';
 
@@ -29,10 +28,5 @@ export const fumeUtils = {
   getFhirVersionMinor: config.getFhirVersionMinor,
   getNavigator: () => config.getGlobalFhirContext().navigator,
   // getSnapshot: parser.getSnapshot,
-  v2json,
-  // FHIR functions
-  search: fhirFuncs.search,
-  resolve: fhirFuncs.resolve,
-  literal: fhirFuncs.literal,
-  searchSingle: fhirFuncs.searchSingle
+  v2json
 };

@@ -43,6 +43,7 @@
     "url": "git+https://github.com/Outburn-IL/fume-community.git"
   },
   "dependencies": {
+    "@outburn/fhir-client": "^1.2.0",
     "@outburn/format-converter": "^1.0.4",
     "@outburn/structure-navigator": "^1.5.5",
     "axios": "^1.13.2",
@@ -52,7 +53,7 @@
     "fhir-package-installer": "^1.6.1",
     "fhir-snapshot-generator": "^1.7.0",
     "fs-extra": "^11.3.2",
-    "fumifier": "^1.10.0",
+    "fumifier": "^1.11.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

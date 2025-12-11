@@ -3,48 +3,42 @@
  *   Project name: FUME-COMMUNITY
  */
 
-import axios, { AxiosInstance } from 'axios';
+import { FhirClient as OutburnFhirClient } from '@outburn/fhir-client';
 
 import config from '../../config';
 import { IConfig, IFhirClient } from '../../types';
 import { getLogger } from '../logger';
 
 export class FhirClient implements IFhirClient {
-  protected readonly contentType: string;
-  protected fhirServer?: AxiosInstance;
   protected readonly serverConfig: IConfig;
   protected readonly isStateless: boolean;
+  private client?: OutburnFhirClient;
 
   constructor () {
     this.serverConfig = config.getServerConfig();
-    this.contentType = `application/fhir+json;fhirVersion=${config.getFhirVersionMinor()}`;
     this.isStateless = this.serverConfig.SERVER_STATELESS;
     this.init();
-  }
-
-  private authHeader (authType: string, username?: string, password?: string) {
-    if (authType === 'BASIC' && username && password && username > '' && password > '') {
-      const buff = Buffer.from(`${username}:${password}`, 'utf-8');
-      return `Basic ${buff.toString('base64')}`;
-    } else {
-      return undefined;
-    }
   }
 
   private init () {
     if (!this.isStateless) {
       const { FHIR_SERVER_BASE, FHIR_SERVER_TIMEOUT, FHIR_SERVER_AUTH_TYPE, FHIR_SERVER_UN, FHIR_SERVER_PW } = this.serverConfig;
-      const server = axios.create({
-        baseURL: FHIR_SERVER_BASE,
+      
+      const fhirVersionMinor = config.getFhirVersionMinor();
+      const fhirVersion = fhirVersionMinor === '3.0' ? 'R3' : fhirVersionMinor === '5.0' ? 'R5' : 'R4';
+      
+      const auth = FHIR_SERVER_AUTH_TYPE === 'BASIC' && FHIR_SERVER_UN && FHIR_SERVER_PW
+        ? { username: FHIR_SERVER_UN, password: FHIR_SERVER_PW }
+        : undefined;
+
+      this.client = new OutburnFhirClient({
+        baseUrl: FHIR_SERVER_BASE,
+        fhirVersion,
         timeout: FHIR_SERVER_TIMEOUT,
-        headers: {
-          'Content-Type': this.contentType,
-          Accept: this.contentType,
-          Authorization: this.authHeader(FHIR_SERVER_AUTH_TYPE, FHIR_SERVER_UN, FHIR_SERVER_PW)
-        }
+        auth
       });
+      
       getLogger().info(`Using FHIR server: ${FHIR_SERVER_BASE}`);
-      this.fhirServer = server;
     }
   }
 
@@ -61,8 +55,10 @@ export class FhirClient implements IFhirClient {
       return;
     }
 
-    const response = await this.fhirServer!.get(`${url}`);
-    return response.data;
+    // The @outburn/fhir-client's resolve method handles both:
+    // - Literal references like "Patient/123"
+    // - Full URLs
+    return await this.client!.resolve(url);
   }
 
   public async search (query: string, params?: object) {
@@ -70,20 +66,15 @@ export class FhirClient implements IFhirClient {
       return;
     }
 
-    const response = await this.fhirServer!.get(`/${query}`, { params });
-    return response.data;
+    return await this.client!.search(query, params as any);
   }
 
-  public async create (resource: object, resourceType: string) {
-    throw new Error('Method not implemented.');
-  }
-
-  public async update (resourceType: string, resourceId: string, resource: object) {
-    throw new Error('Method not implemented.');
-  }
-
-  public async simpleDelete (resourceType: string, resourceId: string) {
-    throw new Error('Method not implemented.');
+  /**
+   * Get the underlying @outburn/fhir-client instance for direct access
+   * This is used for passing to fumifier for FHIR function support
+   */
+  public getClient () {
+    return this.client;
   }
 }
 

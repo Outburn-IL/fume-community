@@ -33,31 +33,25 @@ export const cacheMapping = (mappingId: string, mappingExpr: string) => {
   cache.mappings.set(mappingId, mappingExpr);
 };
 
-// Returns the next page in a series of searchset Bundles
-const getNextBundle = async (bundle: Record<string, any>) => {
-  if (serverConfig.SERVER_STATELESS) {
-    throw new Error('FUME running in stateless mode. Cannot get next page of search results bundle.');
-  }
-  let nextBundle;
-  const nextLink = await (await expressions).extractNextLink.evaluate(bundle);
-  if (typeof nextLink === 'string' && nextLink > '') {
-    nextBundle = await getFhirClient().read(nextLink);
-  }
-  return nextBundle;
-};
-
-// Scan for all resources in all pages of a FHIR search
+// Scan for all resources in all pages of a FHIR search using fetchAll
 const fullSearch = async (query: string, params?: Record<string, any>) => {
   if (serverConfig.SERVER_STATELESS) {
     throw new Error('FUME running in stateless mode. Cannot perform search.');
   }
-  const bundleArray: any[] = [];
-  let page: Record<string, any> = await getFhirClient().search(query, params);
-  while (typeof page === 'object' && page?.resourceType === 'Bundle') {
-    bundleArray.push(page);
-    page = await getNextBundle(page);
+  
+  // Get the underlying @outburn/fhir-client instance which supports fetchAll
+  const client = getFhirClient().getClient?.();
+  
+  if (!client) {
+    throw new Error('FHIR client not properly initialized');
   }
-  const resourceArray = await (await expressions).bundleToArrayOfResources.evaluate({}, { bundleArray });
+  
+  // Remove trailing slash if present
+  const cleanQuery = query.endsWith('/') ? query.slice(0, -1) : query;
+  
+  // Use fetchAll option to automatically traverse all pages
+  // This returns an array of resources instead of a Bundle
+  const resourceArray = await client.search(cleanQuery, params, { fetchAll: true });
   return resourceArray;
 };
 
@@ -123,7 +117,7 @@ const getAllMappings = async (): Promise<Record<string, string>> => {
     logger.error('FUME running in stateless mode. Cannot fetch mappings from server.');
     return {};
   }
-  const allStructureMaps = await fullSearch('StructureMap/', { context: 'http://codes.fume.health|fume' });
+  const allStructureMaps = await fullSearch('StructureMap', { context: 'http://codes.fume.health|fume' });
   const mappingDict: Record<string, string> = await (await expressions).structureMapsToMappingObject.evaluate(allStructureMaps);
   if (Object.keys(mappingDict).length > 0) {
     logger.info('Loaded the following mappings from server: ' + Object.keys(mappingDict).join(', '));
