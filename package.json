@@ -43,7 +43,7 @@
     "url": "git+https://github.com/Outburn-IL/fume-community.git"
   },
   "dependencies": {
-    "@outburn/fhir-client": "^1.2.0",
+    "@outburn/fhir-client": "^1.2.1",
     "@outburn/format-converter": "^1.0.4",
     "@outburn/structure-navigator": "^1.5.5",
     "axios": "^1.13.2",
