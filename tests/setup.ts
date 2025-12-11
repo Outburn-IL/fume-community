@@ -115,6 +115,52 @@ async function setup () {
   globalThis.fumeServer = firstServer;
   globalThis.app = firstServer.getExpressApp();
 
+  // Create test Practitioner resource for $literal() test
+  console.log('Creating test Practitioner resource...');
+  try {
+    const practitionerId = 'cc829d28-3b32-43df-af57-e72035d98e18';
+    
+    // First, search for any Practitioners with identifier 1-820958 but different IDs and delete them
+    const searchResponse = await axios.get(`${LOCAL_FHIR_API}/Practitioner`, {
+      params: { identifier: '1-820958' }
+    });
+    
+    if (searchResponse.data.entry) {
+      for (const entry of searchResponse.data.entry) {
+        if (entry.resource.id !== practitionerId) {
+          console.log(`Deleting duplicate Practitioner with ID: ${entry.resource.id}`);
+          await axios.delete(`${LOCAL_FHIR_API}/Practitioner/${entry.resource.id}`);
+        }
+      }
+    }
+    
+    // Now PUT the Practitioner with the exact ID we need
+    const practitioner = {
+      resourceType: 'Practitioner',
+      id: practitionerId,
+      identifier: [
+        {
+          value: '1-820958'
+        }
+      ],
+      name: [
+        {
+          text: 'Dr. Dolittle',
+          family: 'Dolittle',
+          prefix: ['Dr.']
+        }
+      ],
+      active: true
+    };
+    const response = await axios.put(`${LOCAL_FHIR_API}/Practitioner/${practitionerId}`, practitioner, {
+      headers: { 'Content-Type': 'application/fhir+json' }
+    });
+    console.log(`Created/Updated Practitioner with ID: ${response.data.id}`);
+  } catch (e: any) {
+    console.error('Failed to create test Practitioner:', e?.message || e);
+    throw e;
+  }
+
   // Phase 2: Warm-up with MOCK ARTIFACTORY registry (re-download CORE again via mock)
   // console.log('Phase 2: Starting mock Artifactory server...');
   // Keep Phase 1 server alive (different port) to avoid process.exit side-effects from its shutdown.
