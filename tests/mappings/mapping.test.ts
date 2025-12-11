@@ -48,7 +48,6 @@ describe('api tests', () => {
       .expect('Content-Type', 'application/vnd.outburn.fume; charset=utf-8');
 
     expect(res.text).toBe(patientExpression);
-    ;
   });
 
   test('execute existing test mapping', async () => {

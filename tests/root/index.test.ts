@@ -269,7 +269,6 @@ describe('integration tests', () => {
     expect(wrong.body.message).toBe('Transformation error: value \'father\' is invalid for element extension[parentName].extension[role].value. This code is not in the required value set');
 
     // Extension-city-code: ['valueCodeableConcept']
-    // eslint-disable-next-line @typescript-eslint/quotes
     fume = `
     InstanceOf: il-core-patient
     * identifier[il-id].value = '123'
@@ -348,7 +347,6 @@ describe('integration tests', () => {
     expect(wrong.body.message).toBe('Transformation error: Element address.city.extension[cityCode].value is invalid since none of the codings provided are in the required value set');
 
     // Extension-hebrew-date: ['extension[day].valueCodeableConcept', 'extension[month].valueCodeableConcept']
-    // eslint-disable-next-line @typescript-eslint/quotes
     fume = "InstanceOf: Condition\r\n* onsetDateTime = '2024-06-04T11:52:33.016Z'\r\n  * ($split(value,'-')#$i{$string($i): $}).extension[ext-hebrew-date]\r\n    * extension[day].value\r\n      * coding\r\n        * system = 'http://fhir.health.gov.il/cs/hebrew-date-day'\r\n        * code = `0`\r\n    * extension[month].value\r\n      * coding \r\n        * system = 'http://fhir.health.gov.il/cs/hebrew-date-month'\r\n        * code = `1`\r\n    * extension[year].value = 'התש\"ח'";
     correct = await request(globalThis.app).post('/').send({ input: { value: '25-11' }, fume });
     wrong = await request(globalThis.app).post('/').send({ input: { value: '35-19' }, fume });
@@ -394,7 +392,6 @@ describe('integration tests', () => {
     expect(wrong.body.message).toBe('Transformation error: Element onsetDateTime.extension[ext-hebrew-date].extension[day].value is invalid since none of the codings provided are in the required value set');
 
     // IL-Core-Vital-Signs: ['valueQuantity']
-    // eslint-disable-next-line @typescript-eslint/quotes
     fume = "InstanceOf: il-core-vital-signs\r\n* status = 'final'\r\n* code.coding\r\n  * system = 'http://loinc.org'\r\n  * code = '8310-5'\r\n* subject.display = 'aaa'\r\n* effectiveDateTime = '2024-06-04T13:36:49.823Z'\r\n* valueQuantity\r\n  * system = 'http://unitsofmeasure.org'\r\n  * code = value\r\n  * value = '100'";
     correct = await request(globalThis.app).post('/').send({ input: { value: 'kg' }, fume });
     wrong = await request(globalThis.app).post('/').send({ input: { value: 'parsecs' }, fume });
@@ -437,7 +434,6 @@ describe('integration tests', () => {
     expect(wrong.body.message).toBe('Transformation error: The code \'http://unitsofmeasure.org#parsecs\' is invalid for element Observation.valueQuantity. This code is not in the required value set');
 
     // IL-Core-Address: country
-    // eslint-disable-next-line @typescript-eslint/quotes
     fume = "InstanceOf: il-core-patient\r\n* address\r\n  * country = value";
     correct = await request(globalThis.app).post('/').send({ input: { value: 'ISR' }, fume });
     wrong = await request(globalThis.app).post('/').send({ input: { value: 'lalaland' }, fume });
