@@ -13,12 +13,7 @@ import expressions from './helpers/jsonataExpressions';
  */
 export type { IAppCache, IAppCacheKeys } from './helpers/cache';
 export type {
-  ElementConstraint,
-  ElementDefinition,
-  ElementDefinitionBinding,
-  ElementDefinitionSlicing,
-  ElementDefinitionType,
-  FhirExtensionInstance,
+  FhirPackageIdentifier,
   FhirRelease,
   // Re-exported from @outburn/types
   FhirVersion,
@@ -28,9 +23,7 @@ export type {
   IConfig,
   IFhirClient,
   IFumeServer,
-  ILogger,
-  PackageIdentifier,
-  SlicingDiscriminator} from './types';
+  Logger} from './types';
 
 /**
  * Export classes and utils

@@ -81,7 +81,7 @@ export const transform = async (input: any, expression: string, extraBindings: R
     const expr = await compileExpression(expression);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    let bindings: Record<string, Function | Record<string, any> | string> = {};
+    let bindings: Record<string, unknown> = {};
 
     // bind functions
     // bindings.resourceId = fhirFuncs.resourceId;

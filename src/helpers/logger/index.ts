@@ -2,20 +2,20 @@
  * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
  *   Project name: FUME-COMMUNITY
  */
-import type { ILogger } from '../../types';
+import type { Logger } from '../../types';
 
 /** Global logger instance */
-let logger: ILogger = {
-  debug: (msg: any) => console.debug(msg),
-  info: (msg: any) => console.log(msg),
-  warn: (msg: any) => console.warn(msg),
-  error: (msg: any) => console.error(msg)
+let logger: Logger = {
+  debug: console.debug,
+  info: console.info,
+  warn: console.warn,
+  error: console.error
 };
 
-export const setLogger = (loggerObj: ILogger): void => {
+export const setLogger = (loggerObj: Logger): void => {
   logger = loggerObj;
 };
 
-export const getLogger = (): ILogger => {
+export const getLogger = (): Logger => {
   return logger;
 };

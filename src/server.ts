@@ -16,14 +16,14 @@ import { transform } from './helpers/transform';
 import { notFound, routes } from './routes';
 import defaultConfig from './serverConfig';
 import type {
+  FhirPackageIdentifier,
   FhirVersion,
   IAppBinding,
   ICacheClass,
   IConfig,
   IFhirClient,
   IFumeServer,
-  ILogger,
-  PackageIdentifier} from './types';
+  Logger} from './types';
 
 export class FumeServer<ConfigType extends IConfig> implements IFumeServer<ConfigType> {
   private readonly app: express.Application;
@@ -150,7 +150,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
    * Register a logger to replace the default logger
    * @param logger
    */
-  public registerLogger (logger: ILogger) {
+  public registerLogger (logger: Logger) {
     this.logger = logger;
     setLogger(logger);
   }
@@ -225,7 +225,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
    * @param expression
    * @returns
    */
-  public async transform (input: any, expression: string, bindings: Record<string, IAppBinding> = {}) {
+  public async transform (input: unknown, expression: string, bindings: Record<string, IAppBinding> = {}) {
     return await transform(input, expression, { ...config.getBindings(), ...bindings });
   }
 
@@ -242,7 +242,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     const { FHIR_VERSION, FHIR_PACKAGES, FHIR_PACKAGE_CACHE_DIR, FHIR_PACKAGE_REGISTRY_URL, FHIR_PACKAGE_REGISTRY_TOKEN /*, FHIR_PACKAGE_REGISTRY_ALLOW_HTTP */ } = serverConfig;
 
     // Parse FHIR_PACKAGES string into array of PackageIdentifier objects
-    const packageList: PackageIdentifier[] = FHIR_PACKAGES ? FHIR_PACKAGES.split(',').map(pkg => {
+    const packageList: FhirPackageIdentifier[] = FHIR_PACKAGES ? FHIR_PACKAGES.split(',').map(pkg => {
       const trimmed = pkg.trim();
       const [id, version] = trimmed.includes('@') ? trimmed.split('@') : [trimmed, undefined];
       return { id, version };

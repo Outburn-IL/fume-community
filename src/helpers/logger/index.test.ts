@@ -15,20 +15,10 @@ describe('getLogger', () => {
     const logger = getLogger();
     expect(logger).toBeDefined();
 
-    jest.spyOn(console, 'log');
-    const warnSpy = jest.spyOn(console, 'warn');
-    warnSpy.mockImplementation(() => {});
-    const errorSpy = jest.spyOn(console, 'error');
-    errorSpy.mockImplementation(() => {});
-
-    logger.info('log');
-    expect(console.log).toHaveBeenCalledWith('log');
-
-    logger.warn('warn');
-    expect(console.warn).toHaveBeenCalledWith('warn');
-
-    logger.error('error');
-    expect(console.error).toHaveBeenCalledWith('error');
+    // The default logger uses console methods directly
+    expect(logger.info).toBe(console.info);
+    expect(logger.warn).toBe(console.warn);
+    expect(logger.error).toBe(console.error);
   });
 
   test('allows overriding logger', async () => {
@@ -41,10 +31,6 @@ describe('getLogger', () => {
     setLogger(mockLogger);
     const logger = getLogger();
     expect(logger).toBeDefined();
-
-    jest.spyOn(console, 'log');
-    jest.spyOn(console, 'warn');
-    jest.spyOn(console, 'error');
 
     logger.info('log');
     expect(mockLogger.info).toHaveBeenCalledWith('log');

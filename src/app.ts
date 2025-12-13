@@ -6,7 +6,7 @@ import { getLogger } from './helpers/logger';
 import { FumeServer } from './server';
 
 const server = new FumeServer();
-server.warmUp().then((res) => {
+server.warmUp().then(() => {
   getLogger().info('FUME is ready!');
 }).catch((err) => {
   getLogger().error({ ERROR: 'FUME failed to initialize', details: err });

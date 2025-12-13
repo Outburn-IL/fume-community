@@ -5,20 +5,20 @@
 import { Application } from 'express';
 
 import { IAppCache, IAppCacheKeys } from '../helpers/cache/cacheTypes';
+import { Logger } from '.';
 import { ICache } from './Cache';
 import { IFhirClient } from './FhirClient';
-import { ILogger } from './Logger';
 
-export type ICacheClass = new <T>(options: Record<string, any>) => ICache<T>;
-export type IAppBinding = any;
+export type ICacheClass = new <T>(options: Record<string, unknown>) => ICache<T>;
+export type IAppBinding = unknown;
 
 export interface IFumeServer<ConfigType> {
-  registerLogger: (logger: ILogger) => void
+  registerLogger: (logger: Logger) => void
   registerFhirClient: (fhirClient: IFhirClient) => void
   getFhirClient: () => IFhirClient
   registerCacheClass: (
     CacheClass: ICacheClass,
-    cacheClassOptions: Record<string, any>,
+    cacheClassOptions: Record<string, unknown>,
     applyToCaches: IAppCacheKeys[]
   ) => void
   registerBinding: (key: string, binding: IAppBinding) => void
@@ -27,5 +27,5 @@ export interface IFumeServer<ConfigType> {
   getExpressApp: () => Application
   warmUp: (serverOptions: ConfigType | undefined) => Promise<void>
   shutDown: () => Promise<void>
-  transform: (input: any, expression: string, extraBindings?: Record<string, IAppBinding>) => Promise<any>
+  transform: (input: unknown, expression: string, extraBindings?: Record<string, IAppBinding>) => Promise<unknown>
 }
