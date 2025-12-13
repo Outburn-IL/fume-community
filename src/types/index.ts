@@ -7,3 +7,17 @@ export type { IConfig } from './Config';
 export type { IFhirClient } from './FhirClient';
 export type { IAppBinding, ICacheClass, IFumeServer } from './FumeServer';
 export type { ILogger } from './Logger';
+
+// Re-export types from @outburn/types
+export type {
+  ElementConstraint,
+  ElementDefinition,
+  ElementDefinitionBinding,
+  ElementDefinitionSlicing,
+  ElementDefinitionType,
+  FhirExtensionInstance,
+  FhirRelease,
+  FhirVersion,
+  FhirVersionMinor,
+  FhirPackageIdentifier as PackageIdentifier,
+  SlicingDiscriminator} from '@outburn/types';

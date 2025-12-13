@@ -12,7 +12,25 @@ import expressions from './helpers/jsonataExpressions';
  * Export types
  */
 export type { IAppCache, IAppCacheKeys } from './helpers/cache';
-export type { IAppBinding, ICache, IConfig, IFhirClient, IFumeServer, ILogger } from './types';
+export type {
+  ElementConstraint,
+  ElementDefinition,
+  ElementDefinitionBinding,
+  ElementDefinitionSlicing,
+  ElementDefinitionType,
+  FhirExtensionInstance,
+  FhirRelease,
+  // Re-exported from @outburn/types
+  FhirVersion,
+  FhirVersionMinor,
+  IAppBinding,
+  ICache,
+  IConfig,
+  IFhirClient,
+  IFumeServer,
+  ILogger,
+  PackageIdentifier,
+  SlicingDiscriminator} from './types';
 
 /**
  * Export classes and utils

@@ -16,13 +16,14 @@ import { transform } from './helpers/transform';
 import { notFound, routes } from './routes';
 import defaultConfig from './serverConfig';
 import type {
+  FhirVersion,
   IAppBinding,
   ICacheClass,
   IConfig,
   IFhirClient,
   IFumeServer,
-  ILogger
-} from './types';
+  ILogger,
+  PackageIdentifier} from './types';
 
 export class FumeServer<ConfigType extends IConfig> implements IFumeServer<ConfigType> {
   private readonly app: express.Application;
@@ -240,8 +241,12 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     const serverConfig = config.getServerConfig();
     const { FHIR_VERSION, FHIR_PACKAGES, FHIR_PACKAGE_CACHE_DIR, FHIR_PACKAGE_REGISTRY_URL, FHIR_PACKAGE_REGISTRY_TOKEN /*, FHIR_PACKAGE_REGISTRY_ALLOW_HTTP */ } = serverConfig;
 
-    // Parse FHIR_PACKAGES string into array
-    const packageList: string[] = FHIR_PACKAGES ? FHIR_PACKAGES.split(',').map(pkg => pkg.trim()) : [];
+    // Parse FHIR_PACKAGES string into array of PackageIdentifier objects
+    const packageList: PackageIdentifier[] = FHIR_PACKAGES ? FHIR_PACKAGES.split(',').map(pkg => {
+      const trimmed = pkg.trim();
+      const [id, version] = trimmed.includes('@') ? trimmed.split('@') : [trimmed, undefined];
+      return { id, version };
+    }) : [];
 
     this.logger.info({
       packageContext: packageList,
@@ -253,7 +258,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     const generator = await FhirSnapshotGenerator.create({
       context: packageList,
       cachePath: FHIR_PACKAGE_CACHE_DIR || '',
-      fhirVersion: FHIR_VERSION as any,
+      fhirVersion: FHIR_VERSION as FhirVersion,
       cacheMode: 'lazy',
       // logger: this.logger,
       registryUrl: FHIR_PACKAGE_REGISTRY_URL,

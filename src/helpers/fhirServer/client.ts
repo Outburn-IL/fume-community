@@ -23,9 +23,8 @@ export class FhirClient implements IFhirClient {
   private init () {
     if (!this.isStateless) {
       const { FHIR_SERVER_BASE, FHIR_SERVER_TIMEOUT, FHIR_SERVER_AUTH_TYPE, FHIR_SERVER_UN, FHIR_SERVER_PW } = this.serverConfig;
-      
-      const fhirVersionMinor = config.getFhirVersionMinor();
-      const fhirVersion = fhirVersionMinor === '3.0' ? 'R3' : fhirVersionMinor === '5.0' ? 'R5' : 'R4';
+
+      const fhirVersion = config.getFhirVersion();
       
       const auth = FHIR_SERVER_AUTH_TYPE === 'BASIC' && FHIR_SERVER_UN && FHIR_SERVER_PW
         ? { username: FHIR_SERVER_UN, password: FHIR_SERVER_PW }

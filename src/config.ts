@@ -4,8 +4,9 @@
  */
 
 import type { FhirStructureNavigator } from '@outburn/structure-navigator';
+import type { FhirVersion } from '@outburn/types';
 import type { PackageManifest } from 'fhir-package-installer';
-import type { BaseFhirVersion, FhirSnapshotGenerator } from 'fhir-snapshot-generator';
+import type { FhirSnapshotGenerator } from 'fhir-snapshot-generator';
 
 import { fhirVersionToMinor } from './helpers/fhirFunctions/fhirVersionToMinor';
 import defaultConfig from './serverConfig';
@@ -20,7 +21,7 @@ interface GlobalFhirContext {
   navigator: FhirStructureNavigator | null
   generator: FhirSnapshotGenerator | null
   normalizedPackages: string[]
-  fhirVersion: BaseFhirVersion
+  fhirVersion: FhirVersion
   cachePath: string
   registryUrl?: string
   registryToken?: string
@@ -76,8 +77,8 @@ const getBindings = () => {
   return additionalBindings;
 };
 
-const getFhirVersion = () => {
-  return serverConfig.FHIR_VERSION;
+const getFhirVersion = (): FhirVersion => {
+  return serverConfig.FHIR_VERSION as FhirVersion;
 };
 
 const getFhirVersionMinor = () => {
@@ -106,7 +107,7 @@ const initializeGlobalFhirContext = async (
     navigator,
     generator,
     normalizedPackages,
-    fhirVersion: getFhirVersion() as BaseFhirVersion,
+    fhirVersion: getFhirVersion(),
     cachePath: getFhirPackageCacheDir() || '',
     registryUrl: getFhirPackageRegistryUrl(),
     registryToken: getFhirPackageRegistryToken(),
