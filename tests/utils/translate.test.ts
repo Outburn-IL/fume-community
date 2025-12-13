@@ -4,15 +4,15 @@
  */
 import { test } from '@jest/globals';
 
-import { initCache } from '../cache';
-import { getTable } from '../conformance';
-import { translateCode } from './translateCode';
+import { initCache } from '../../src/helpers/cache';
+import { getTable } from '../../src/helpers/conformance';
+import { translateCode } from '../../src/helpers/translate';
 
-jest.mock('../conformance', () => ({
+jest.mock('../../src/helpers/conformance', () => ({
   getTable: jest.fn()
 }));
 
-jest.mock('../logger', () => ({
+jest.mock('../../src/helpers/logger', () => ({
   getLogger: jest.fn().mockReturnValue({
     info: jest.fn(),
     error: jest.fn()

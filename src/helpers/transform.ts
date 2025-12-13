@@ -15,9 +15,9 @@ import { IAppBinding } from '../types';
 import { getCache } from './cache';
 import * as conformance from './conformance';
 import { getFhirClient } from './fhirClient';
-import fhirFuncs from './fhirFunctions';
 import { parseCsv, v2json } from './inputConverters';
 import { getLogger } from './logger';
+import * as translate from './translate';
 
 /**
  * An implementation of Fumifier's MappingCacheInterface over the FUME mapping cache
@@ -83,17 +83,11 @@ export const transform = async (input: unknown, expression: string, extraBinding
     let bindings: Record<string, unknown> = {};
 
     // bind functions
-    // bindings.resourceId = fhirFuncs.resourceId;
-    bindings.translateCode = fhirFuncs.translateCode;
-    bindings.translate = fhirFuncs.translateCode;
-    bindings.translateCoding = fhirFuncs.translateCoding;
-    // bindings.search = fhirFuncs.search;
-    // bindings.searchSingle = fhirFuncs.searchSingle;
-    // bindings.literal = fhirFuncs.literal;
-    // bindings.resolve = fhirFuncs.resolve;
+    bindings.translateCode = translate.translateCode;
+    bindings.translate = translate.translateCode;
+    bindings.translateCoding = translate.translateCoding;
     bindings.parseCsv = parseCsv;
     bindings.v2json = v2json;
-    // bindings.capabilities = fhirFuncs.capabilities;
 
     const { aliases } = getCache();
     // these are debug functions, should be removed in production versions
