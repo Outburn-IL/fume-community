@@ -3,7 +3,7 @@
  *   Project name: FUME-COMMUNITY
  */
 
-import { FhirClient as OutburnFhirClient } from '@outburn/fhir-client';
+import { FhirClient as OutburnFhirClient, SearchParams } from '@outburn/fhir-client';
 
 import config from '../../config';
 import { IConfig, IFhirClient } from '../../types';
@@ -65,7 +65,7 @@ export class FhirClient implements IFhirClient {
       return;
     }
 
-    return await this.client!.search(query, params as any);
+    return await this.client!.search(query, params as SearchParams);
   }
 
   /**

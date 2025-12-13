@@ -36,7 +36,6 @@ export const fumeUtils = {
   getAliasResource,
   parseCsv,
   getFhirVersion: config.getFhirVersion,
-  getFhirVersionMinor: config.getFhirVersionMinor,
   getNavigator: () => config.getGlobalFhirContext().navigator,
   // getSnapshot: parser.getSnapshot,
   v2json

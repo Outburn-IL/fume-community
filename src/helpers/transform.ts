@@ -74,7 +74,7 @@ const compileExpression = async (expression: string): Promise<FumifierCompiled> 
   return compiled;
 };
 
-export const transform = async (input: any, expression: string, extraBindings: Record<string, IAppBinding> = {}) => {
+export const transform = async (input: unknown, expression: string, extraBindings: Record<string, IAppBinding> = {}) => {
   try {
     getLogger().info('Running transformation...');
 
