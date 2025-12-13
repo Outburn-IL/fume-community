@@ -21,7 +21,7 @@ interface GlobalFhirContext {
   generator: FhirSnapshotGenerator | null
   normalizedPackages: string[]
   fhirVersion: FhirVersion
-  cachePath: string
+  cachePath?: string
   registryUrl?: string
   registryToken?: string
   isInitialized: boolean
@@ -32,9 +32,6 @@ let globalFhirContext: GlobalFhirContext = {
   generator: null,
   normalizedPackages: [],
   fhirVersion: '4.0.1',
-  cachePath: '',
-  registryUrl: undefined,
-  registryToken: undefined,
   isInitialized: false
 };
 
