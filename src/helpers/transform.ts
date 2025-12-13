@@ -42,9 +42,8 @@ const getFumifierOptions = async (): Promise<FumifierOptions> => {
 
   let fhirClient;
   try {
-    const wrapper = getFhirClient();
-    // Get the underlying @outburn/fhir-client instance for fumifier
-    fhirClient = wrapper.getClient?.();
+    // Get the FhirClient instance directly for fumifier
+    fhirClient = getFhirClient();
   } catch {
     // FHIR client not initialized - this is OK in stateless mode
     fhirClient = undefined;

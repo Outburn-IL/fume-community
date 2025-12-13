@@ -2,6 +2,7 @@
  * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
  *   Project name: FUME-COMMUNITY
  */
+import { FhirClient } from '@outburn/fhir-client';
 import cors from 'cors';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import express from 'express';
@@ -10,7 +11,7 @@ import type { Server } from 'http';
 import config from './config';
 import { getCache, IAppCacheKeys, initCache, InitCacheConfig } from './helpers/cache';
 import * as conformance from './helpers/conformance';
-import { FhirClient, setFhirClient } from './helpers/fhirServer';
+import { createFhirClient, setFhirClient } from './helpers/fhirServer';
 import { getLogger, setLogger } from './helpers/logger';
 import { transform } from './helpers/transform';
 import { notFound, routes } from './routes';
@@ -21,7 +22,6 @@ import type {
   IAppBinding,
   ICacheClass,
   IConfig,
-  IFhirClient,
   IFumeServer,
   Logger} from './types';
 
@@ -33,7 +33,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
    * Used to communicate with FHIR server
    * Can be overriden by calling
    */
-  private fhirClient?: IFhirClient;
+  private fhirClient?: FhirClient;
   /**
    * Cache configuration
    * Allows to register custom cache classes and options
@@ -104,7 +104,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
       this.logger.info(`Loading FUME resources from FHIR server ${FHIR_SERVER_BASE} into cache...`);
 
       if (!this.fhirClient) {
-        this.registerFhirClient(new FhirClient());
+        this.registerFhirClient(createFhirClient());
       }
 
       const recacheResult = await conformance.recacheFromServer();
@@ -179,7 +179,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
    * Pass a FHIR client instance to be used by the server
    * @param fhirClient
    */
-  public registerFhirClient (fhirClient: IFhirClient) {
+  public registerFhirClient (fhirClient: FhirClient) {
     this.fhirClient = fhirClient;
     setFhirClient(fhirClient);
   }

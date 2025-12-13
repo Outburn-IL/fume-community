@@ -13,7 +13,7 @@ const serverConfig = config.getServerConfig();
 
 // Returns the mapping as a function, ready to be called directly from JSONata expressions
 const toFunction = (mapping: string) => {
-  return async (input: any, bindings?: Record<string, any>) => {
+  return async (input: unknown, bindings?: Record<string, unknown>) => {
     const extraBindings = config.getBindings();
     const res = await transform(input, mapping, { ...extraBindings, ...bindings });
     return res;
@@ -34,17 +34,12 @@ export const cacheMapping = (mappingId: string, mappingExpr: string) => {
 };
 
 // Scan for all resources in all pages of a FHIR search using fetchAll
-const fullSearch = async (query: string, params?: Record<string, any>) => {
+const fullSearch = async (query: string, params?: Record<string, string | number | boolean | (string | number | boolean)[]>) => {
   if (serverConfig.SERVER_STATELESS) {
     throw new Error('FUME running in stateless mode. Cannot perform search.');
   }
   
-  // Get the underlying @outburn/fhir-client instance which supports fetchAll
-  const client = getFhirClient().getClient?.();
-  
-  if (!client) {
-    throw new Error('FHIR client not properly initialized');
-  }
+  const client = getFhirClient();
   
   // Remove trailing slash if present
   const cleanQuery = query.endsWith('/') ? query.slice(0, -1) : query;
@@ -65,8 +60,9 @@ export const getAliasResource = async () => {
   let resource;
   try {
     const aliasResourceSearch = await getFhirClient().search('ConceptMap', { context: 'http://codes.fume.health|fume', name: 'FumeAliases' });
-    if (typeof aliasResourceSearch === 'object' && aliasResourceSearch.resourceType === 'Bundle' && typeof aliasResourceSearch.total === 'number') {
-      if (aliasResourceSearch.total === 1) {
+    // Check if it's a Bundle (not an array from fetchAll)
+    if (!Array.isArray(aliasResourceSearch) && typeof aliasResourceSearch === 'object' && 'resourceType' in aliasResourceSearch && aliasResourceSearch.resourceType === 'Bundle') {
+      if (aliasResourceSearch.total === 1 && aliasResourceSearch.entry?.[0]) {
         logger.info(`Alias resource found: ${aliasResourceSearch.entry[0].fullUrl as string}`);
         resource = aliasResourceSearch.entry[0].resource;
       } else {
@@ -80,7 +76,7 @@ export const getAliasResource = async () => {
     } else {
       logger.error('Error fetching alias resource!');
     }
-  } catch (e) {
+  } catch {
     resource = {};
   }
   return resource;

@@ -16,7 +16,7 @@ export const getTable = async (tableId: string) => {
   let response;
   try {
     // try to fetch by id
-    response = await getFhirClient().read('ConceptMap/' + tableId);
+    response = await getFhirClient().read('ConceptMap', tableId);
   } catch {
     // not found by id
     try {

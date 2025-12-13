@@ -21,14 +21,12 @@ export type {
   IAppBinding,
   ICache,
   IConfig,
-  IFhirClient,
   IFumeServer,
   Logger} from './types';
 
 /**
  * Export classes and utils
  */
-export { FhirClient } from './helpers/fhirServer';
 export { FumeServer } from './server';
 export { FumeConfigSchema } from './serverConfigSchema';
 export const fumeUtils = {
