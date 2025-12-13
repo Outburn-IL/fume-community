@@ -3,7 +3,7 @@
  *   Project name: FUME-COMMUNITY
  */
 
-import { getFhirClient } from '../fhirServer';
+import { getFhirClient } from '../fhirClient';
 import expressions from '../jsonataExpressions';
 import { getLogger } from '../logger';
 

@@ -14,8 +14,8 @@ import config from '../config';
 import { IAppBinding } from '../types';
 import { getCache } from './cache';
 import * as conformance from './conformance';
+import { getFhirClient } from './fhirClient';
 import fhirFuncs from './fhirFunctions';
-import { getFhirClient } from './fhirServer';
 import { parseCsv, v2json } from './inputConverters';
 import { getLogger } from './logger';
 

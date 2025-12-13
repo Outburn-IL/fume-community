@@ -5,8 +5,8 @@
 
 import { FhirClient } from '@outburn/fhir-client';
 
-import config from '../../config';
-import { getLogger } from '../logger';
+import config from '../config';
+import { getLogger } from './logger';
 
 /**
  * Initialize and return a new FhirClient instance

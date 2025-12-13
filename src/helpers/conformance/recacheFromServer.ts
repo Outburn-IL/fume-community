@@ -4,7 +4,7 @@
  */
 import config from '../../config';
 import { getCache } from '../cache';
-import { getFhirClient } from '../fhirServer';
+import { getFhirClient } from '../fhirClient';
 import expressions from '../jsonataExpressions';
 import { getLogger } from '../logger';
 import { transform } from '../transform';

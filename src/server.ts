@@ -11,7 +11,7 @@ import type { Server } from 'http';
 import config from './config';
 import { getCache, IAppCacheKeys, initCache, InitCacheConfig } from './helpers/cache';
 import * as conformance from './helpers/conformance';
-import { createFhirClient, setFhirClient } from './helpers/fhirServer';
+import { createFhirClient, setFhirClient } from './helpers/fhirClient';
 import { getLogger, setLogger } from './helpers/logger';
 import { transform } from './helpers/transform';
 import { notFound, routes } from './routes';
