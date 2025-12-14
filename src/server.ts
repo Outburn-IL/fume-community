@@ -230,13 +230,14 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
   }
 
   /**
-   * Initialize global FHIR context with navigator and normalized packages
+   * Initialize global FHIR context with navigator, terminology runtime and normalized packages
    * This should be called during warmup to set up fumifier context
    * @private
    */
   private async initializeGlobalFhirContext () {
     const { FhirStructureNavigator } = await import('@outburn/structure-navigator');
     const { FhirSnapshotGenerator } = await import('fhir-snapshot-generator');
+    const { FhirTerminologyRuntime } = await import('fhir-terminology-runtime');
 
     const serverConfig = config.getServerConfig();
     const { FHIR_VERSION, FHIR_PACKAGES, FHIR_PACKAGE_CACHE_DIR, FHIR_PACKAGE_REGISTRY_URL, FHIR_PACKAGE_REGISTRY_TOKEN /*, FHIR_PACKAGE_REGISTRY_ALLOW_HTTP */ } = serverConfig;
@@ -267,11 +268,22 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
 
     const navigator = new FhirStructureNavigator(generator, this.logger);
 
+    // Initialize terminology runtime with same configuration as FSG
+    const terminologyRuntime = await FhirTerminologyRuntime.create({
+      context: packageList,
+      cachePath: FHIR_PACKAGE_CACHE_DIR || '',
+      fhirVersion: FHIR_VERSION as FhirVersion,
+      cacheMode: 'lazy',
+      logger: this.logger,
+      registryUrl: FHIR_PACKAGE_REGISTRY_URL,
+      registryToken: FHIR_PACKAGE_REGISTRY_TOKEN
+    });
+
     // Get normalized packages from the generator
     const normalizedPackageIds = generator.getFpe().getNormalizedRootPackages();
     const normalizedPackages = normalizedPackageIds.map(pkg => `${pkg.id}@${pkg.version}`);
 
     // Initialize the global config
-    await config.initializeGlobalFhirContext(navigator, generator, normalizedPackages);
+    await config.initializeGlobalFhirContext(navigator, generator, terminologyRuntime, normalizedPackages);
   }
 }

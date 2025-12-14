@@ -7,6 +7,7 @@ import type { FhirStructureNavigator } from '@outburn/structure-navigator';
 import type { FhirVersion } from '@outburn/types';
 import type { PackageManifest } from 'fhir-package-installer';
 import type { FhirSnapshotGenerator } from 'fhir-snapshot-generator';
+import type { FhirTerminologyRuntime } from 'fhir-terminology-runtime';
 
 import defaultConfig from './serverConfig';
 import type { IAppBinding, IConfig } from './types';
@@ -19,6 +20,7 @@ let fhirPackages: Record<string, PackageManifest> = {};
 interface GlobalFhirContext {
   navigator: FhirStructureNavigator | null
   generator: FhirSnapshotGenerator | null
+  terminologyRuntime: FhirTerminologyRuntime | null
   normalizedPackages: string[]
   fhirVersion: FhirVersion
   cachePath?: string
@@ -30,6 +32,7 @@ interface GlobalFhirContext {
 let globalFhirContext: GlobalFhirContext = {
   navigator: null,
   generator: null,
+  terminologyRuntime: null,
   normalizedPackages: [],
   fhirVersion: '4.0.1',
   isInitialized: false
@@ -93,11 +96,13 @@ const getFhirPackageCacheDir = (): string | undefined => {
 const initializeGlobalFhirContext = async (
   navigator: FhirStructureNavigator,
   generator: FhirSnapshotGenerator,
+  terminologyRuntime: FhirTerminologyRuntime,
   normalizedPackages: string[]
 ) => {
   globalFhirContext = {
     navigator,
     generator,
+    terminologyRuntime,
     normalizedPackages,
     fhirVersion: getFhirVersion(),
     cachePath: getFhirPackageCacheDir() || '',
@@ -115,6 +120,7 @@ const resetGlobalFhirContext = () => {
   globalFhirContext = {
     navigator: null,
     generator: null,
+    terminologyRuntime: null,
     normalizedPackages: [],
     fhirVersion: '4.0.1',
     cachePath: '',

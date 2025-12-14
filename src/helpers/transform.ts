@@ -8,7 +8,8 @@
  *   Project name: FUME
  */
 
-import fumifier, { FumifierCompiled, FumifierOptions, LoggerInterface, MappingCacheInterface } from 'fumifier';
+import type { Logger } from '@outburn/types';
+import fumifier, { FumifierCompiled, FumifierOptions, MappingCacheInterface } from 'fumifier';
 
 import config from '../config';
 import { IAppBinding } from '../types';
@@ -40,6 +41,10 @@ const getFumifierOptions = async (): Promise<FumifierOptions> => {
     throw new Error('Global FHIR context is not initialized. This should be done during server warmup.');
   }
 
+  if (!globalContext.terminologyRuntime) {
+    throw new Error('Global terminology runtime is not initialized. This should be done during server warmup.');
+  }
+
   let fhirClient;
   try {
     // Get the FhirClient instance directly for fumifier
@@ -52,6 +57,7 @@ const getFumifierOptions = async (): Promise<FumifierOptions> => {
   return {
     mappingCache: fumifierMappingCache,
     navigator: globalContext.navigator,
+    terminologyRuntime: globalContext.terminologyRuntime,
     fhirClient
   };
 };
@@ -67,7 +73,7 @@ const compileExpression = async (expression: string): Promise<FumifierCompiled> 
   if (!compiled) { // not cached, compile it
     const options = await getFumifierOptions();
     compiled = await fumifier(expression, options);
-    compiled.setLogger(getLogger() as LoggerInterface);
+    compiled.setLogger(getLogger() as Logger);
     compiledExpressions.set(expression, compiled);
   }
   return compiled;
