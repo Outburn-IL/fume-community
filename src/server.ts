@@ -238,6 +238,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     const { FhirStructureNavigator } = await import('@outburn/structure-navigator');
     const { FhirSnapshotGenerator } = await import('fhir-snapshot-generator');
     const { FhirTerminologyRuntime } = await import('fhir-terminology-runtime');
+    const { FhirPackageExplorer } = await import('fhir-package-explorer');
 
     const serverConfig = config.getServerConfig();
     const { FHIR_VERSION, FHIR_PACKAGES, FHIR_PACKAGE_CACHE_DIR, FHIR_PACKAGE_REGISTRY_URL, FHIR_PACKAGE_REGISTRY_TOKEN /*, FHIR_PACKAGE_REGISTRY_ALLOW_HTTP */ } = serverConfig;
@@ -256,31 +257,37 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
       registryUrl: FHIR_PACKAGE_REGISTRY_URL
     });
 
-    const generator = await FhirSnapshotGenerator.create({
+    // Create a single FhirPackageExplorer instance to be shared by FSG and FTR
+    const fpe = await FhirPackageExplorer.create({
       context: packageList,
       cachePath: FHIR_PACKAGE_CACHE_DIR || '',
       fhirVersion: FHIR_VERSION as FhirVersion,
-      cacheMode: 'lazy',
-      // logger: this.logger,
-      registryUrl: FHIR_PACKAGE_REGISTRY_URL,
-      registryToken: FHIR_PACKAGE_REGISTRY_TOKEN
-    });
-
-    const navigator = new FhirStructureNavigator(generator, this.logger);
-
-    // Initialize terminology runtime with same configuration as FSG
-    const terminologyRuntime = await FhirTerminologyRuntime.create({
-      context: packageList,
-      cachePath: FHIR_PACKAGE_CACHE_DIR || '',
-      fhirVersion: FHIR_VERSION as FhirVersion,
-      cacheMode: 'lazy',
+      skipExamples: true,
       logger: this.logger,
       registryUrl: FHIR_PACKAGE_REGISTRY_URL,
       registryToken: FHIR_PACKAGE_REGISTRY_TOKEN
     });
 
-    // Get normalized packages from the generator
-    const normalizedPackageIds = generator.getFpe().getNormalizedRootPackages();
+    // Initialize FSG with the shared FPE instance
+    const generator = await FhirSnapshotGenerator.create({
+      fpe,
+      fhirVersion: FHIR_VERSION as FhirVersion,
+      cacheMode: 'lazy',
+      logger: this.logger
+    });
+
+    const navigator = new FhirStructureNavigator(generator, this.logger);
+
+    // Initialize FTR with the same shared FPE instance
+    const terminologyRuntime = await FhirTerminologyRuntime.create({
+      fpe,
+      fhirVersion: FHIR_VERSION as FhirVersion,
+      cacheMode: 'lazy',
+      logger: this.logger
+    });
+
+    // Get normalized packages from the FPE instance
+    const normalizedPackageIds = fpe.getNormalizedRootPackages();
     const normalizedPackages = normalizedPackageIds.map(pkg => `${pkg.id}@${pkg.version}`);
 
     // Initialize the global config
