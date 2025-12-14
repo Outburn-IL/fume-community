@@ -8,13 +8,13 @@ import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import express from 'express';
 import type { Server } from 'http';
 
+import { notFound, routes } from './api/routes';
 import config from './config';
 import { getCache, IAppCacheKeys, initCache, InitCacheConfig } from './helpers/cache';
 import * as conformance from './helpers/conformance';
 import { createFhirClient, setFhirClient } from './helpers/fhirClient';
 import { getLogger, setLogger } from './helpers/logger';
 import { transform } from './helpers/transform';
-import { notFound, routes } from './routes';
 import defaultConfig from './serverConfig';
 import type {
   FhirPackageIdentifier,
