@@ -27,6 +27,28 @@ axios.create = function createPatchedAxios (config) {
 };
 
 /**
+ * Check if containers are already running
+ * @returns true if both containers are running
+ */
+async function areContainersRunning (): Promise<boolean> {
+  try {
+    const result = await compose.ps({ cwd: path.join(__dirname) });
+    const services = result.data.services;
+    
+    const hapiRunning = services.some(
+      (s) => s.name.includes('hapi_test') && s.state === 'running'
+    );
+    const dbRunning = services.some(
+      (s) => s.name.includes('hapi_db_test') && s.state === 'running'
+    );
+    
+    return hapiRunning && dbRunning;
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
  * Awaits for the FHIR server to start and for its API to be available
  * @param maxAttempts
  * @param currentAttempt
@@ -52,12 +74,20 @@ async function waitForFhirApi (maxAttempts, currentAttempt = 1) {
 
 async function setup () {
   console.log('--- Global setup starting: dual registry warm-up preflight ---');
-  console.log('Starting FHIR server (using docker compose V2)...');
-  await compose.upAll({
-    cwd: path.join(__dirname),
-    config: 'docker-compose.yml',
-    log: true
-  });
+  
+  const containersAlreadyRunning = await areContainersRunning();
+  
+  if (containersAlreadyRunning) {
+    console.log('FHIR server containers already running, skipping startup...');
+  } else {
+    console.log('Starting FHIR server (using docker compose V2)...');
+    await compose.upAll({
+      cwd: path.join(__dirname),
+      config: 'docker-compose.yml',
+      log: true
+    });
+  }
+  
   const result = await compose.ps({ cwd: path.join(__dirname) });
 
   globalThis.services = result.data.services;
@@ -66,8 +96,13 @@ async function setup () {
     console.log(service.name, service.command, service.state, service.ports);
   });
 
-  console.log('Waiting for startup of FHIR server!');
-  await waitForFhirApi(30);
+  if (containersAlreadyRunning) {
+    console.log('Verifying FHIR server is responsive...');
+    await waitForFhirApi(5); // Quick check with fewer attempts
+  } else {
+    console.log('Waiting for startup of FHIR server!');
+    await waitForFhirApi(30);
+  }
 
   // Helper to delete core package from cache
   const deleteCorePackage = () => {

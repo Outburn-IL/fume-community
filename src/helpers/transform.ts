@@ -8,7 +8,7 @@
  *   Project name: FUME
  */
 
-import fumifier, { FumifierCompiled, FumifierOptions, MappingCacheInterface } from 'fumifier';
+import fumifier, { FumifierCompiled, FumifierOptions, LoggerInterface, MappingCacheInterface } from 'fumifier';
 
 import config from '../config';
 import { IAppBinding } from '../types';
@@ -67,7 +67,7 @@ const compileExpression = async (expression: string): Promise<FumifierCompiled> 
   if (!compiled) { // not cached, compile it
     const options = await getFumifierOptions();
     compiled = await fumifier(expression, options);
-    compiled.setLogger(getLogger());
+    compiled.setLogger(getLogger() as LoggerInterface);
     compiledExpressions.set(expression, compiled);
   }
   return compiled;
