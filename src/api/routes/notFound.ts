@@ -6,7 +6,7 @@ import express from 'express';
 
 const notFound = express.Router();
 
-notFound.use((_req, res, next) => {
+notFound.use((_req, res) => {
   res.status(404).json({ message: 'not found' });
 });
 

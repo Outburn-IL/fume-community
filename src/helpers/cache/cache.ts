@@ -25,7 +25,7 @@ const cacheKeys: IAppCacheKeys[] = [
 
 export interface InitCacheConfig {
   cacheClass: ICacheClass
-  cacheClassOptions: Record<string, any>
+  cacheClassOptions: Record<string, unknown>
 }
 
 export function initCache (
@@ -39,7 +39,7 @@ export function initCache (
     const cacheClassOptions = options[key]?.cacheClassOptions || {};
     return new CacheClass(cacheClassOptions);
   }).reduce((acc, cache, index) => {
-    acc[cacheKeys[index]] = cache as ICache<any>;
+    acc[cacheKeys[index]] = cache as ICache<unknown>;
     return acc;
   }, {}) as IAppCache;
 }

@@ -26,22 +26,23 @@ const evaluate = async (req: Request, res: Response) => {
     const extraBindings = config.getBindings();
     const response = await transform(inputJson, req.body.fume, extraBindings);
     return res.status(200).json(response);
-  } catch (error: any) {
-    const isFlashError = !!error.instanceOf || error.token === 'InstanceOf:';
+  } catch (error: unknown) {
+    const err = error as Record<string, unknown>;
+    const isFlashError = !!err.instanceOf || err.token === 'InstanceOf:';
     // const line = error.line && isFlashError ? error.line - 1 : error.line ?? '';
-    const line = error.line ?? '';
+    const line = err.line ?? '';
     const data = {
       __isFumeError: true,
       __isFlashError: isFlashError,
-      message: error.message ?? '',
-      code: error.code ?? '',
-      name: error.name ?? '',
-      value: error.value ?? '',
-      token: error.token ?? '',
-      cause: error.cause ?? '',
+      message: err.message ?? '',
+      code: err.code ?? '',
+      name: err.name ?? '',
+      value: err.value ?? '',
+      token: err.token ?? '',
+      cause: err.cause ?? '',
       line,
-      start: error.start ?? '',
-      position: error.position ?? ''
+      start: err.start ?? '',
+      position: err.position ?? ''
     };
     getLogger().error({ error });
     return res.status(422).json(data);

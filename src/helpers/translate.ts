@@ -20,7 +20,7 @@ export const translateCode = async (input: string, tableId: string) => {
       }
     }
 
-    const mapFiltered = map[input];
+    const mapFiltered = map?.[input];
     let result;
 
     if (mapFiltered) {
@@ -50,7 +50,7 @@ export const translateCoding = async (input: string, tableId: string) => {
       }
     }
 
-    const mapFiltered = map[input];
+    const mapFiltered = map?.[input];
     let result;
 
     if (mapFiltered) {

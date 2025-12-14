@@ -63,7 +63,7 @@ const getFumifierOptions = async (): Promise<FumifierOptions> => {
  */
 const compileExpression = async (expression: string): Promise<FumifierCompiled> => {
   const { compiledExpressions } = getCache();
-  let compiled: FumifierCompiled = compiledExpressions.get(expression); // get from cache
+  let compiled = compiledExpressions.get(expression); // get from cache
   if (!compiled) { // not cached, compile it
     const options = await getFumifierOptions();
     compiled = await fumifier(expression, options);

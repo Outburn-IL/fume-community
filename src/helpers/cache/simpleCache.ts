@@ -5,11 +5,11 @@
 import { ICache } from '../../types';
 
 export class SimpleCache<T> implements ICache<T> {
-  private cache: Record<string, any>;
+  private cache: Record<string, T>;
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-expect-error
-  constructor (private readonly options: Record<string, any> = {}) {
+  constructor (private readonly options: Record<string, unknown> = {}) {
     this.cache = {};
   }
 
@@ -17,7 +17,7 @@ export class SimpleCache<T> implements ICache<T> {
     return this.cache[key];
   }
 
-  set (key: string, value: any) {
+  set (key: string, value: T) {
     this.cache[key] = value;
   }
 
