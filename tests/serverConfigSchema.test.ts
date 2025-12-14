@@ -5,7 +5,7 @@
 
 import { test } from '@jest/globals';
 
-import { FumeConfigSchema } from './serverConfigSchema';
+import { FumeConfigSchema } from '../src/serverConfigSchema';
 
 describe('FumeConfigSchema', () => {
   test('Check schema defaults', async () => {

@@ -5,7 +5,7 @@
 
 import { test } from '@jest/globals';
 
-import config from './config';
+import config from '../src/config';
 
 const serverDefaults = {
   FHIR_PACKAGES: 'il.core.fhir.r4@0.11.0,hl7.fhir.us.core@6.0.0,fhir.outburn.co.il@0.0.1,laniado.test.fhir.r4',
@@ -19,7 +19,7 @@ const serverDefaults = {
   SERVER_STATELESS: false
 };
 
-jest.mock('./serverConfig', () => (serverDefaults));
+jest.mock('../src/serverConfig', () => (serverDefaults));
 
 describe('setServerConfig', () => {
   test('Uses defaults', async () => {
