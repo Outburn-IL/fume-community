@@ -30,6 +30,7 @@
     "test:debug": "node --inspect-brk --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.integration.js --runInBand",
+    "test:stop-hapi": "cd tests && docker compose stop",
     "test": "npm run test:unit && npm run test:integration",
     "prepare": "npm run build",
     "prepublishOnly": "npm ci && npm run build"
