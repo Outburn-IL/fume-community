@@ -57,7 +57,7 @@ const transform = async (req: Request, res: Response) => {
     
     if (!compiledMapping) {
       // Not cached - compile and cache it
-      const { cacheMapping } = await import('../../helpers/conformance/recacheFromServer');
+      const { cacheMapping } = await import('../../helpers/recacheFromServer');
       cacheMapping(mapping.expression);
       compiledMapping = cache.compiledMappings.get(mapping.expression);
     }

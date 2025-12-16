@@ -12,10 +12,10 @@ import type { Server } from 'http';
 import { notFound, routes } from './api/routes';
 import config from './config';
 import { getCache, IAppCacheKeys, initCache, InitCacheConfig } from './helpers/cache';
-import * as conformance from './helpers/conformance';
 import { createFhirClient, setFhirClient } from './helpers/fhirClient';
 import { getLogger, setLogger } from './helpers/logger';
 import { setMappingProvider } from './helpers/mappingProvider';
+import { recacheFromServer } from './helpers/recacheFromServer';
 import { transform } from './helpers/transform';
 import defaultConfig from './serverConfig';
 import type {
@@ -120,7 +120,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
       await mappingProvider.initialize();
       this.logger.info('FumeMappingProvider initialized');
 
-      const recacheResult = await conformance.recacheFromServer();
+      const recacheResult = await recacheFromServer();
       if (recacheResult) {
         this.logger.info('Successfully loaded cache');
       }

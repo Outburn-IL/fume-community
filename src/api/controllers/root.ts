@@ -8,10 +8,10 @@ import type { Request, Response } from 'express';
 import { version as engineVersion } from '../../../package.json';
 import config from '../../config';
 import { getCache } from '../../helpers/cache';
-import { recacheFromServer } from '../../helpers/conformance';
 import { convertInputToJson } from '../../helpers/inputConverters';
 import { getLogger } from '../../helpers/logger';
 import { getMappingProvider } from '../../helpers/mappingProvider';
+import { recacheFromServer } from '../../helpers/recacheFromServer';
 import { transform } from '../../helpers/transform';
 
 const get = async (req: Request, res: Response) => {
