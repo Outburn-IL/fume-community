@@ -3,8 +3,9 @@
  *   Project name: FUME-COMMUNITY
  */
 
+import fumifier from 'fumifier';
+
 import { getFhirClient } from './fhirClient';
-import expressions from './jsonataExpressions';
 import { getLogger } from './logger';
 
 export const getTranslationTable = async (tableId: string) => {
@@ -36,6 +37,32 @@ export const getTranslationTable = async (tableId: string) => {
       throw new Error(err);
     }
   }
-  const table = await (await expressions).conceptMapToTable.evaluate(response);
+  const table = await (await fumifier(`(
+    $cm := (resourceType='Bundle' ? [entry[0].resource] : [$]);
+  
+    $merge(
+      $cm#$i.id.{
+        $: $merge(
+          $distinct($cm[$i].group.element.code).(
+            $code := $;
+            {
+              $code: $cm[$i].group.element[code=$code].target[
+                equivalence='equivalent' 
+                or equivalence='equal' 
+                or equivalence='wider' 
+                or equivalence='subsumes'
+                or equivalence='relatedto'
+              ].code.{
+                "code": $, 
+                "source": %.%.%.source, 
+                "target": %.%.%.target,
+                "display": %.display
+              }[]
+            }
+          )
+        )
+      }
+    )
+  )`)).evaluate(response);
   return table;
 };
