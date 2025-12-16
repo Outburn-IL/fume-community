@@ -5,7 +5,6 @@
 
 import config from './config';
 import { parseCsv, v2json } from './helpers/inputConverters';
-import expressions from './helpers/jsonataExpressions';
 import { getMappingProvider } from './helpers/mappingProvider';
 
 /**
@@ -30,7 +29,6 @@ export type {
 export { FumeServer } from './server';
 export { FumeConfigSchema } from './serverConfigSchema';
 export const fumeUtils = {
-  expressions,
   getMappingProvider,
   parseCsv,
   getFhirVersion: config.getFhirVersion,

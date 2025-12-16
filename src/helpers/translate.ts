@@ -2,9 +2,10 @@
  * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
  *   Project name: FUME-COMMUNITY
  */
+import fumifier from 'fumifier';
+
 import { getCache } from './cache';
 import { getTranslationTable } from './getTranslationTable';
-import expressions from './jsonataExpressions';
 import { getLogger } from './logger';
 
 export const translateCode = async (input: string, tableId: string) => {
@@ -27,7 +28,7 @@ export const translateCode = async (input: string, tableId: string) => {
       if (mapFiltered.length === 1) {
         result = mapFiltered[0].code;
       } else {
-        result = await (await expressions).translateCodeExtract.evaluate({}, { mapFiltered });
+        result = await (await fumifier('$mapFiltered.code')).evaluate({}, { mapFiltered });
       }
     }
     return result;
@@ -61,7 +62,12 @@ export const translateCoding = async (input: string, tableId: string) => {
       }
     }
 
-    const coding = await (await expressions).translateCodingExtract.evaluate({}, { result, input });
+    const coding = await (await fumifier(`
+    $result.{
+      'system': target,
+      'code': code,
+      'display': display
+    }`)).evaluate({}, { result, input });
     return coding;
   } catch (error) {
     getLogger().error({ error });
