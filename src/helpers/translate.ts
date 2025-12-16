@@ -3,7 +3,7 @@
  *   Project name: FUME-COMMUNITY
  */
 import { getCache } from './cache';
-import { getTable } from './conformance';
+import { getTranslationTable } from './conformance';
 import expressions from './jsonataExpressions';
 import { getLogger } from './logger';
 
@@ -13,7 +13,7 @@ export const translateCode = async (input: string, tableId: string) => {
     let map = tables.get(tableId);
     if (map === undefined) {
       getLogger().info(`Table ${tableId} not cached, trying to fetch from server...`);
-      const table = await getTable(tableId);
+      const table = await getTranslationTable(tableId);
       if (table) {
         map = table[tableId];
         tables.set(tableId, map);
@@ -43,7 +43,7 @@ export const translateCoding = async (input: string, tableId: string) => {
     let map = tables.get(tableId);
     if (map === undefined) {
       getLogger().info(`Table ${tableId} not cached, trying to fetch from server...`);
-      const table = await getTable(tableId);
+      const table = await getTranslationTable(tableId);
       if (table) {
         map = table[tableId];
         tables.set(tableId, map);

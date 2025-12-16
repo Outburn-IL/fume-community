@@ -101,7 +101,7 @@ export const transform = async (input: unknown, expression: string, extraBinding
     bindings.v2json = v2json;
 
     // these are debug functions, should be removed in production versions
-    bindings.getTable = conformance.getTable;
+    bindings.getTable = conformance.getTranslationTable;
     // bindings.getCodeSystem = conformance.getCodeSystem;
     // bindings.getValueSet = conformance.getValueSet;
     // end of debug functions
