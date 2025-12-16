@@ -22,16 +22,4 @@ describe('SimpleCache', () => {
       getCache();
     }).not.toThrow();
   });
-
-  test('initCache with override class', async () => {
-    initCache({
-      aliases: {
-        cacheClass: TestCache,
-        cacheClassOptions: {}
-      }
-    });
-    const { aliases, mappings } = getCache();
-    expect(aliases).toBeInstanceOf(TestCache);
-    expect(mappings).toBeInstanceOf(SimpleCache);
-  });
 });

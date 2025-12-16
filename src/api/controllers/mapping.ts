@@ -8,19 +8,20 @@ import type { Request, Response } from 'express';
 import { getCache } from '../../helpers/cache';
 import { convertInputToJson } from '../../helpers/inputConverters';
 import { getLogger } from '../../helpers/logger';
+import { getMappingProvider } from '../../helpers/mappingProvider';
 
 const get = async (req: Request, res: Response) => {
   const logger = getLogger();
   try {
     // get mapping id from route
     const mappingId: string = req.params.mappingId;
-    // get mapping object from cache
-    const mappingObj = getCache().compiledMappings.get(mappingId);
-    if (mappingObj) {
-      // get expression from mapping object
-      const mapping: string = mappingObj.expression;
+    // get mapping from provider
+    const provider = getMappingProvider();
+    const mapping = provider.getUserMapping(mappingId);
+    
+    if (mapping) {
       res.set('Content-Type', 'application/vnd.outburn.fume');
-      res.status(200).send(mapping);
+      res.status(200).send(mapping.expression);
     } else {
       const message: string = `Mapping '${mappingId}' could not be found`;
       logger.error(message);
@@ -36,17 +37,38 @@ const transform = async (req: Request, res: Response) => {
   const logger = getLogger();
   try {
     const mappingId = req.params.mappingId;
-    const mappingFromCache = getCache().compiledMappings.get(mappingId);
+    
+    // Get mapping expression from provider
+    const provider = getMappingProvider();
+    const mapping = provider.getUserMapping(mappingId);
+    
+    if (!mapping) {
+      logger.error(`Mapping '${mappingId}' not found!`);
+      res.status(404).json({ message: 'not found' });
+      return;
+    }
+    
     const contentType = req.get('Content-Type');
     const inputJson = await convertInputToJson(req.body, contentType);
-
-    if (mappingFromCache) {
-      const result = await mappingFromCache.function(inputJson);
+    
+    // Check if compiled version is cached
+    const cache = getCache();
+    let compiledMapping = cache.compiledMappings.get(mapping.expression);
+    
+    if (!compiledMapping) {
+      // Not cached - compile and cache it
+      const { cacheMapping } = await import('../../helpers/conformance/recacheFromServer');
+      cacheMapping(mapping.expression);
+      compiledMapping = cache.compiledMappings.get(mapping.expression);
+    }
+    
+    if (compiledMapping) {
+      const result = await compiledMapping.function(inputJson);
       res.set('Content-Type', 'application/json');
       res.status(200).json(result);
     } else {
-      logger.error(`Mapping '${mappingId}' not found!`);
-      res.status(404).json({ message: 'not found' });
+      logger.error(`Failed to compile mapping '${mappingId}'`);
+      res.status(500).json({ message: 'Failed to compile mapping' });
     }
   } catch (error) {
     logger.error({ error });

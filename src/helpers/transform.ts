@@ -18,19 +18,24 @@ import * as conformance from './conformance';
 import { getFhirClient } from './fhirClient';
 import { parseCsv, v2json } from './inputConverters';
 import { getLogger } from './logger';
+import { getMappingProvider } from './mappingProvider';
 import * as translate from './translate';
 
 /**
- * An implementation of Fumifier's MappingCacheInterface over the FUME mapping cache
+ * An implementation of Fumifier's MappingCacheInterface over the FUME mapping provider
  */
 const fumifierMappingCache: MappingCacheInterface = {
   getKeys: async () => {
-    const cache = getCache().mappings;
-    return Array.from(cache.keys());
+    const provider = getMappingProvider();
+    return provider.getUserMappingKeys();
   },
   get: async (key: string) => {
-    const cache = getCache().mappings;
-    return cache.get(key);
+    const provider = getMappingProvider();
+    const mapping = provider.getUserMapping(key);
+    if (!mapping) {
+      throw new Error(`Mapping '${key}' not found`);
+    }
+    return mapping.expression;
   }
 };
 
@@ -95,19 +100,28 @@ export const transform = async (input: unknown, expression: string, extraBinding
     bindings.parseCsv = parseCsv;
     bindings.v2json = v2json;
 
-    const { aliases } = getCache();
     // these are debug functions, should be removed in production versions
     bindings.getTable = conformance.getTable;
     // bindings.getCodeSystem = conformance.getCodeSystem;
     // bindings.getValueSet = conformance.getValueSet;
     // end of debug functions
 
-    // bind all aliases from cache
-    bindings = { 
-      ...aliases.getDict(), 
-      ...bindings,
-      ...extraBindings
-    };
+    // bind all aliases from FumeMappingProvider
+    try {
+      const provider = getMappingProvider();
+      const aliases = provider.getAliases();
+      bindings = { 
+        ...aliases, 
+        ...bindings,
+        ...extraBindings
+      };
+    } catch {
+      // Provider not initialized (stateless mode) - no aliases
+      bindings = { 
+        ...bindings,
+        ...extraBindings
+      };
+    }
 
     // expr.registerFunction(
     //   'getStructureDefinition',

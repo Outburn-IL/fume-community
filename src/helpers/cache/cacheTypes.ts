@@ -7,7 +7,6 @@ import { FumifierCompiled } from 'fumifier';
 import { ICache } from '../../types';
 
 export interface ICacheEntry {
-  expression: string
   function: (input: unknown) => Promise<unknown>
 }
 
@@ -19,13 +18,11 @@ export interface IAppCache {
   tables: ICache<TranslationTable>
   // cache for generated StructureDefinition snapshots
   snapshots: ICache<unknown>
-  aliases: ICache<string>
   v2keyMap: ICache<string>
   // previously parsed expressions
   expressions: ICache<unknown>
   compiledExpressions: ICache<FumifierCompiled>
-  // user defined functions
-  mappings: ICache<string>
+  // compiled user mappings as callable functions
   compiledMappings: ICache<ICacheEntry>
   elementDefinition: ICache<unknown>
   definitions: ICache<unknown>

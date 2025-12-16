@@ -11,6 +11,7 @@ import { getCache } from '../../helpers/cache';
 import { recacheFromServer } from '../../helpers/conformance';
 import { convertInputToJson } from '../../helpers/inputConverters';
 import { getLogger } from '../../helpers/logger';
+import { getMappingProvider } from '../../helpers/mappingProvider';
 import { transform } from '../../helpers/transform';
 
 const get = async (req: Request, res: Response) => {
@@ -54,11 +55,14 @@ const recache = async (req: Request, res: Response) => {
     const recacheSuccess = await recacheFromServer();
 
     if (recacheSuccess) {
-      const { tables, compiledMappings } = getCache();
+      const { tables } = getCache();
+      const provider = getMappingProvider();
+      const mappingKeys = provider.getUserMappingKeys();
+      
       const response = {
         message: 'The following Tables & Mappings were loaded to cache',
         tables: tables.getDict(),
-        mappings: compiledMappings.keys()
+        mappings: mappingKeys
       };
       return res.status(200).json(response);
     } else {

@@ -13,11 +13,9 @@ let appCache: IAppCache | undefined;
 
 const cacheKeys: IAppCacheKeys[] = [
   'tables',
-  'aliases',
   'v2keyMap',
   'expressions',
   'compiledExpressions',
-  'mappings',
   'compiledMappings',
   'elementDefinition',
   'definitions'

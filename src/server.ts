@@ -3,6 +3,7 @@
  *   Project name: FUME-COMMUNITY
  */
 import { FhirClient } from '@outburn/fhir-client';
+import { FumeMappingProvider } from '@outburn/fume-mapping-provider';
 import cors from 'cors';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import express from 'express';
@@ -14,6 +15,7 @@ import { getCache, IAppCacheKeys, initCache, InitCacheConfig } from './helpers/c
 import * as conformance from './helpers/conformance';
 import { createFhirClient, setFhirClient } from './helpers/fhirClient';
 import { getLogger, setLogger } from './helpers/logger';
+import { setMappingProvider } from './helpers/mappingProvider';
 import { transform } from './helpers/transform';
 import defaultConfig from './serverConfig';
 import type {
@@ -106,6 +108,17 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
       if (!this.fhirClient) {
         this.registerFhirClient(createFhirClient());
       }
+
+      // Initialize FumeMappingProvider with the FHIR client
+      const mappingProvider = new FumeMappingProvider({
+        fhirClient: this.fhirClient,
+        logger: this.logger
+      });
+      setMappingProvider(mappingProvider);
+      
+      // Initialize the provider (loads user mappings and aliases)
+      await mappingProvider.initialize();
+      this.logger.info('FumeMappingProvider initialized');
 
       const recacheResult = await conformance.recacheFromServer();
       if (recacheResult) {

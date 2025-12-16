@@ -4,9 +4,9 @@
  */
 
 import config from './config';
-import { getAliasResource } from './helpers/conformance';
 import { parseCsv, v2json } from './helpers/inputConverters';
 import expressions from './helpers/jsonataExpressions';
+import { getMappingProvider } from './helpers/mappingProvider';
 
 /**
  * Export types
@@ -31,7 +31,7 @@ export { FumeServer } from './server';
 export { FumeConfigSchema } from './serverConfigSchema';
 export const fumeUtils = {
   expressions,
-  getAliasResource,
+  getMappingProvider,
   parseCsv,
   getFhirVersion: config.getFhirVersion,
   getNavigator: () => config.getGlobalFhirContext().navigator,
