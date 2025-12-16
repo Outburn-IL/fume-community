@@ -51,7 +51,7 @@ const transform = async (req: Request, res: Response) => {
     const contentType = req.get('Content-Type');
     const inputJson = await convertInputToJson(req.body, contentType);
     
-    // Check if compiled version is cached
+    // Check if compiled version is cached (keyed by expression)
     const cache = getCache();
     let compiledMapping = cache.compiledMappings.get(mapping.expression);
     

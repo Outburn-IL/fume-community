@@ -22,7 +22,7 @@ export interface IAppCache {
   // previously parsed expressions
   expressions: ICache<unknown>
   compiledExpressions: ICache<FumifierCompiled>
-  // compiled user mappings as callable functions
+  // compiled user mappings as callable functions (keyed by expression)
   compiledMappings: ICache<ICacheEntry>
   elementDefinition: ICache<unknown>
   definitions: ICache<unknown>

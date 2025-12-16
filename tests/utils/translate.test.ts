@@ -20,7 +20,7 @@ jest.mock('../../src/helpers/logger', () => ({
 }));
 
 describe('translateCode', () => {
-  let mockgetTranslationTable;
+  let mockgetTranslationTable: jest.Mock<any, any, any>;
 
   beforeEach(() => {
     initCache();

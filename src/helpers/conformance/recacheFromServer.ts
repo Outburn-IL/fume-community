@@ -32,7 +32,7 @@ export const cacheMapping = (mappingExpr: string) => {
   }
 };
 
-// Resets the cache and reloads it from the FHIR server using FumeMappingProvider
+// Reloads aliases and mappings from the FHIR server using FumeMappingProvider
 export const recacheFromServer = async (): Promise<boolean> => {
   const logger = getLogger();
   if (serverConfig.SERVER_STATELESS) {
@@ -55,10 +55,12 @@ export const recacheFromServer = async (): Promise<boolean> => {
     await provider.reloadUserMappings();
     const userMappings = provider.getUserMappings();
     
+    // Reset and precompile all mappings
     compiledMappings.reset();
     userMappings.forEach((mapping) => {
       cacheMapping(mapping.expression);
     });
+    
     if (userMappings.length > 0) {
       logger.info(`Updated cache with mappings: ${userMappings.map(m => m.key).join(', ')}.`);
     }

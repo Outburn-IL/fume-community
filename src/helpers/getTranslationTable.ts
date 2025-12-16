@@ -3,9 +3,9 @@
  *   Project name: FUME-COMMUNITY
  */
 
-import { getFhirClient } from '../fhirClient';
-import expressions from '../jsonataExpressions';
-import { getLogger } from '../logger';
+import { getFhirClient } from './fhirClient';
+import expressions from './jsonataExpressions';
+import { getLogger } from './logger';
 
 export const getTranslationTable = async (tableId: string) => {
   if (tableId === undefined || tableId.trim() === '') {
