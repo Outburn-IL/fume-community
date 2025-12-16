@@ -3,7 +3,7 @@
  *   Project name: FUME-COMMUNITY
  */
 import { getCache } from './cache';
-import { getTranslationTable } from './conformance';
+import { getTranslationTable } from './getTranslationTable';
 import expressions from './jsonataExpressions';
 import { getLogger } from './logger';
 

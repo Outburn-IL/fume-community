@@ -14,8 +14,8 @@ import fumifier, { FumifierCompiled, FumifierOptions, MappingCacheInterface } fr
 import config from '../config';
 import { IAppBinding } from '../types';
 import { getCache } from './cache';
-import * as conformance from './conformance';
 import { getFhirClient } from './fhirClient';
+import { getTranslationTable } from './getTranslationTable'; 
 import { parseCsv, v2json } from './inputConverters';
 import { getLogger } from './logger';
 import { getMappingProvider } from './mappingProvider';
@@ -101,7 +101,7 @@ export const transform = async (input: unknown, expression: string, extraBinding
     bindings.v2json = v2json;
 
     // these are debug functions, should be removed in production versions
-    bindings.getTable = conformance.getTranslationTable;
+    bindings.getTable = getTranslationTable;
     // bindings.getCodeSystem = conformance.getCodeSystem;
     // bindings.getValueSet = conformance.getValueSet;
     // end of debug functions

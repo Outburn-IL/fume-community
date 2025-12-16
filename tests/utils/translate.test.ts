@@ -5,10 +5,10 @@
 import { test } from '@jest/globals';
 
 import { initCache } from '../../src/helpers/cache';
-import { getTranslationTable } from '../../src/helpers/conformance';
+import { getTranslationTable } from '../../src/helpers/getTranslationTable';
 import { translateCode } from '../../src/helpers/translate';
 
-jest.mock('../../src/helpers/conformance', () => ({
+jest.mock('../../src/helpers/getTranslationTable', () => ({
   getTranslationTable: jest.fn()
 }));
 
