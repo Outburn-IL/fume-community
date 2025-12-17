@@ -58,9 +58,14 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
 
   public async shutDown (): Promise<void> {
     if (this.server) {
-      this.server.close(() => {
-        console.log('server closed');
-        process.exit(0);
+      await new Promise<void>((resolve, reject) => {
+        this.server?.close((err) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve();
+        });
       });
     }
   }
