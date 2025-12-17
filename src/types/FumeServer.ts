@@ -5,7 +5,7 @@
 import { FhirClient } from '@outburn/fhir-client';
 import { Application } from 'express';
 
-import { IAppCache, IAppCacheKeys } from '../helpers/cache/cacheTypes';
+import { IAppCache, IAppCacheKeys } from '../cache';
 import { Logger } from '.';
 import { ICache } from './Cache';
 

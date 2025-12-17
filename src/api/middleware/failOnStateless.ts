@@ -3,13 +3,13 @@
  *   Project name: FUME-COMMUNITY
  */
 
-import express from 'express';
+import type { NextFunction, Request, Response } from 'express';
 
-import config from '../../config';
+import type { FumeEngine } from '../../engine';
 
-export const failOnStateless = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const serverConfig = config.getServerConfig();
-  if (serverConfig.SERVER_STATELESS) {
+export const failOnStateless = (req: Request, res: Response, next: NextFunction) => {
+  const engine = req.app.locals.engine as FumeEngine;
+  if (engine.getConfig().SERVER_STATELESS) {
     res.status(405).json({ message: 'Endpoint unavailable without FHIR server' });
     return;
   }

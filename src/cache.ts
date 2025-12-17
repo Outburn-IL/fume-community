@@ -2,7 +2,30 @@
  * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
  *   Project name: FUME-COMMUNITY
  */
-import { ICache } from '../../types';
+
+import type { FumifierCompiled } from 'fumifier';
+
+import type { ICache } from './types';
+
+export interface ICacheEntry {
+  function: (input: unknown) => Promise<unknown>;
+}
+
+// Maps input codes to arrays of coding objects
+export type TranslationTable = Record<string, Array<{ code: string; [key: string]: unknown }>>;
+
+export interface IAppCache {
+  tables: ICache<TranslationTable>;
+  snapshots: ICache<unknown>;
+  v2keyMap: ICache<string>;
+  expressions: ICache<unknown>;
+  compiledExpressions: ICache<FumifierCompiled>;
+  compiledMappings: ICache<ICacheEntry>;
+  elementDefinition: ICache<unknown>;
+  definitions: ICache<unknown>;
+}
+
+export type IAppCacheKeys = keyof IAppCache;
 
 export class SimpleCache<T> implements ICache<T> {
   private cache: Record<string, T>;
@@ -23,7 +46,7 @@ export class SimpleCache<T> implements ICache<T> {
 
   remove (key: string) {
     if (this.cache[key] !== undefined) {
-    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete this.cache[key];
     }
   }

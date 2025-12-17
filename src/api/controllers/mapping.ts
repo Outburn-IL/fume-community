@@ -5,18 +5,16 @@
 
 import type { Request, Response } from 'express';
 
-import { getCache } from '../../helpers/cache';
-import { convertInputToJson } from '../../helpers/inputConverters';
-import { getLogger } from '../../helpers/logger';
-import { getMappingProvider } from '../../helpers/mappingProvider';
+import type { FumeEngine } from '../../engine';
 
 const get = async (req: Request, res: Response) => {
-  const logger = getLogger();
+  const engine = req.app.locals.engine as FumeEngine;
+  const logger = engine.getLogger();
   try {
     // get mapping id from route
     const mappingId: string = req.params.mappingId;
     // get mapping from provider
-    const provider = getMappingProvider();
+    const provider = engine.getMappingProvider();
     const mapping = provider.getUserMapping(mappingId);
     
     if (mapping) {
@@ -34,12 +32,13 @@ const get = async (req: Request, res: Response) => {
 };
 
 const transform = async (req: Request, res: Response) => {
-  const logger = getLogger();
+  const engine = req.app.locals.engine as FumeEngine;
+  const logger = engine.getLogger();
   try {
     const mappingId = req.params.mappingId;
     
     // Get mapping expression from provider
-    const provider = getMappingProvider();
+    const provider = engine.getMappingProvider();
     const mapping = provider.getUserMapping(mappingId);
     
     if (!mapping) {
@@ -49,16 +48,15 @@ const transform = async (req: Request, res: Response) => {
     }
     
     const contentType = req.get('Content-Type');
-    const inputJson = await convertInputToJson(req.body, contentType);
+    const inputJson = await engine.convertInputToJson(req.body, contentType ?? undefined);
     
     // Check if compiled version is cached (keyed by expression)
-    const cache = getCache();
+    const cache = engine.getCache();
     let compiledMapping = cache.compiledMappings.get(mapping.expression);
     
     if (!compiledMapping) {
       // Not cached - compile and cache it
-      const { cacheMapping } = await import('../../helpers/recacheFromServer');
-      cacheMapping(mapping.expression);
+      engine.cacheMapping(mapping.expression);
       compiledMapping = cache.compiledMappings.get(mapping.expression);
     }
     

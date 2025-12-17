@@ -6,13 +6,7 @@
 import type { Request, Response } from 'express';
 
 import { version as engineVersion } from '../../../package.json';
-import config from '../../config';
-import { getCache } from '../../helpers/cache';
-import { convertInputToJson } from '../../helpers/inputConverters';
-import { getLogger } from '../../helpers/logger';
-import { getMappingProvider } from '../../helpers/mappingProvider';
-import { recacheFromServer } from '../../helpers/recacheFromServer';
-import { transform } from '../../helpers/transform';
+import type { FumeEngine } from '../../engine';
 
 const get = async (req: Request, res: Response) => {
   return res.status(200).json(
@@ -23,9 +17,9 @@ const get = async (req: Request, res: Response) => {
 
 const evaluate = async (req: Request, res: Response) => {
   try {
-    const inputJson = await convertInputToJson(req.body.input, req.body.contentType);
-    const extraBindings = config.getBindings();
-    const response = await transform(inputJson, req.body.fume, extraBindings);
+    const engine = req.app.locals.engine as FumeEngine;
+    const inputJson = await engine.convertInputToJson(req.body.input, req.body.contentType);
+    const response = await engine.transform(inputJson, req.body.fume, engine.getBindings());
     return res.status(200).json(response);
   } catch (error: unknown) {
     const err = error as Record<string, unknown>;
@@ -45,18 +39,20 @@ const evaluate = async (req: Request, res: Response) => {
       start: err.start ?? '',
       position: err.position ?? ''
     };
-    getLogger().error({ error });
+    const engine = req.app.locals.engine as FumeEngine;
+    engine.getLogger().error({ error });
     return res.status(422).json(data);
   }
 };
 
 const recache = async (req: Request, res: Response) => {
   try {
-    const recacheSuccess = await recacheFromServer();
+    const engine = req.app.locals.engine as FumeEngine;
+    const recacheSuccess = await engine.recacheFromServer();
 
     if (recacheSuccess) {
-      const { tables } = getCache();
-      const provider = getMappingProvider();
+      const { tables } = engine.getCache();
+      const provider = engine.getMappingProvider();
       const mappingKeys = provider.getUserMappingKeys();
       
       const response = {
@@ -86,7 +82,8 @@ const operation = async (req: Request, res: Response) => {
       res.status(500).json({ message: `Unknown operation '${operationName}'` });
     }
   } catch (e) {
-    getLogger().error(e);
+    const engine = req.app.locals.engine as FumeEngine;
+    engine.getLogger().error(e);
     res.status(500).json({ message: e });
   }
 };

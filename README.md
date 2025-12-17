@@ -16,6 +16,8 @@ You are welcome to play with the mapping language in our interactive public sand
  
 Installation & deployment instructions can be found at our [getting started](docs/getting-started.md) page.
 
+For breaking changes in the next major refactor, see [migration guide](docs/migration-guide.md).
+
 For further documentation & examples you can watch our [video tutorials](https://youtube.com/playlist?list=PL44ht-s6WWPfgVNkibzMj_UB-ex41rl49).
 
 ---

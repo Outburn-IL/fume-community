@@ -2,12 +2,13 @@
  * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
  *   Project name: FUME-COMMUNITY
  */
-import { getLogger } from './helpers/logger';
 import { FumeServer } from './server';
 
 const server = new FumeServer();
 server.warmUp().then(() => {
-  getLogger().info('FUME is ready!');
+  // warmUp already logs initialization; keep a final line for parity
+  console.info('FUME is ready!');
 }).catch((err) => {
-  getLogger().error({ ERROR: 'FUME failed to initialize', details: err });
+  // eslint-disable-next-line no-console
+  console.error({ ERROR: 'FUME failed to initialize', details: err });
 });

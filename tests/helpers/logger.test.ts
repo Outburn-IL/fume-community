@@ -4,15 +4,16 @@
  */
 import { test } from '@jest/globals';
 
-import { getLogger, setLogger } from '../../src/helpers/logger';
+import { FumeEngine } from '../../src/engine';
 
-describe('getLogger', () => {
+describe('FumeEngine logger', () => {
   afterEach(() => {
     jest.resetAllMocks();
   });
 
   test('uses console logger by default', async () => {
-    const logger = getLogger();
+    const engine = new FumeEngine();
+    const logger = engine.getLogger();
     expect(logger).toBeDefined();
 
     // The default logger uses console methods directly
@@ -22,14 +23,15 @@ describe('getLogger', () => {
   });
 
   test('allows overriding logger', async () => {
+    const engine = new FumeEngine();
     const mockLogger = {
       debug: jest.fn(),
       info: jest.fn(),
       warn: jest.fn(),
       error: jest.fn()
     };
-    setLogger(mockLogger);
-    const logger = getLogger();
+    engine.registerLogger(mockLogger);
+    const logger = engine.getLogger();
     expect(logger).toBeDefined();
 
     logger.info('log');

@@ -3,14 +3,12 @@
  *   Project name: FUME-COMMUNITY
  */
 
-import config from './config';
-import { parseCsv, v2json } from './helpers/inputConverters';
-import { getMappingProvider } from './helpers/mappingProvider';
+export { FumeEngine } from './engine';
 
 /**
  * Export types
  */
-export type { IAppCache, IAppCacheKeys } from './helpers/cache';
+export type { IAppCache, IAppCacheKeys } from './cache';
 export type {
   FhirPackageIdentifier,
   FhirRelease,
@@ -27,12 +25,4 @@ export type {
  * Export classes and utils
  */
 export { FumeServer } from './server';
-export { FumeConfigSchema } from './serverConfigSchema';
-export const fumeUtils = {
-  getMappingProvider,
-  parseCsv,
-  getFhirVersion: config.getFhirVersion,
-  getNavigator: () => config.getGlobalFhirContext().navigator,
-  // getSnapshot: parser.getSnapshot,
-  v2json
-};
+export { FumeConfigSchema } from './serverConfig';

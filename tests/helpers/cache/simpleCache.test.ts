@@ -4,7 +4,7 @@
  */
 import { test } from '@jest/globals';
 
-import { SimpleCache } from '../../../src/helpers/cache/simpleCache';
+import { SimpleCache } from '../../../src/cache';
 
 describe('SimpleCache', () => {
   test('set \\ get works', async () => {
