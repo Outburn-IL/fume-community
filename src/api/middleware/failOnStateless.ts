@@ -7,11 +7,11 @@ import express from 'express';
 
 import config from '../../config';
 
-const serverConfig = config.getServerConfig();
-
 export const failOnStateless = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const serverConfig = config.getServerConfig();
   if (serverConfig.SERVER_STATELESS) {
     res.status(405).json({ message: 'Endpoint unavailable without FHIR server' });
+    return;
   }
   next();
 };
