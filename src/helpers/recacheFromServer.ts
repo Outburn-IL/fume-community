@@ -8,8 +8,6 @@ import { getLogger } from './logger';
 import { getMappingProvider } from './mappingProvider';
 import { transform } from './transform';
 
-const serverConfig = config.getServerConfig();
-
 // Returns the mapping as a function, ready to be called directly from JSONata expressions
 const toFunction = (mapping: string) => {
   return async (input: unknown, bindings?: Record<string, unknown>) => {
@@ -35,6 +33,7 @@ export const cacheMapping = (mappingExpr: string) => {
 // Reloads aliases and mappings from the FHIR server using FumeMappingProvider
 export const recacheFromServer = async (): Promise<boolean> => {
   const logger = getLogger();
+  const serverConfig = config.getServerConfig();
   if (serverConfig.SERVER_STATELESS) {
     logger.error('FUME running in stateless mode. Cannot recache from server.');
     return false;
