@@ -43,6 +43,34 @@ const server = new FumeServer();
 await server.warmUp();
 ```
 
+## Downstream server embedding (Express extensions)
+
+If you have a downstream project that:
+
+- Builds a `FumeServer` programmatically (instead of using the standalone binary)
+- Adds application-level middleware
+- Swaps the cache implementation
+- Registers extra bindings
+- Adds additional Express routes
+
+…the new `FumeServer` still supports that style.
+
+### Key rules
+
+- Register extensions (middleware, cache, bindings, extra routes) **before** calling `warmUp()`.
+- The FHIR client is now **owned by `FumeServer`** and **cannot be overridden**.
+  - Remove any `registerFhirClient(...)` usage.
+  - If you need access to the client (read-only), call `server.getFhirClient()` after `warmUp()`.
+
+### Before → After mapping
+
+- `registerLogger(logger)` stays the same.
+- `registerAppMiddleware(fn)` stays the same.
+- `registerCacheClass(CacheClass, options, keys)` stays the same.
+- `registerBinding(key, value)` stays the same.
+- `getExpressApp()` stays the same (add your extra routes there).
+- `registerFhirClient(...)` was removed (server-managed FHIR client).
+
 ## Removed / changed exports
 
 - `fumeUtils` was removed.
