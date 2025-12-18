@@ -110,10 +110,6 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     return this.bindings;
   }
 
-  public registerFhirClient (client: FhirClient) {
-    this.fhirClient = client;
-  }
-
   public getFhirClient (): FhirClient {
     if (!this.fhirClient) {
       throw new Error('FHIR client not registered');
@@ -176,7 +172,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     this.logger.info(`Loading FUME resources from FHIR server ${FHIR_SERVER_BASE} into cache...`);
 
     if (!this.fhirClient) {
-      this.registerFhirClient(this.createFhirClient());
+      this.fhirClient = this.createFhirClient();
     }
 
     this.mappingProvider = new FumeMappingProvider({

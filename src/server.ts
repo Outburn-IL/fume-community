@@ -2,7 +2,6 @@
  * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
  *   Project name: FUME-COMMUNITY
  */
-import { FhirClient } from '@outburn/fhir-client';
 import cors from 'cors';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import express from 'express';
@@ -38,6 +37,10 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     this.app.use(express.json({ limit: '400mb', type: ['application/json', 'application/fhir+json'] }));
     this.app.use(express.text({ limit: '400mb', type: ['text/plain', 'application/vnd.outburn.fume', 'x-application/hl7-v2+er7', 'text/csv', 'application/xml'] }));
     this.app.use(cors());
+
+    // Mount a stable wrapper so any middleware registered via registerAppMiddleware
+    // will run for ALL routes (including those registered by downstream consumers).
+    this.app.use((req: Request, res: Response, next: NextFunction) => this.appMiddleware(req, res, next));
   }
 
   public async shutDown (): Promise<void> {
@@ -57,17 +60,13 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
   /**
    * Start the server
    * Any extensions to the server should be done before calling this method
-   * i.e. registering alternative logger, cache class, fhir client and express routes.
+   * i.e. registering alternative logger, cache class and express routes.
    * @param serverOptions
    */
   public async warmUp (serverOptions?: ConfigType | undefined): Promise<void> {
     const options = (serverOptions ?? defaultConfig) as ConfigType;
     await this.engine.warmUp(options);
     const { SERVER_PORT } = this.engine.getConfig();
-
-    // mount middleware on application level
-    // all requests will pass through this function
-    this.app.use(this.appMiddleware);
 
     // mount routes handler
     const http = createHttpRouter();
@@ -118,14 +117,6 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     applyToCaches: IAppCacheKeys[]
   ) {
     this.engine.registerCacheClass(CacheClass, cacheClassOptions, applyToCaches);
-  }
-
-  /**
-   * Pass a FHIR client instance to be used by the server
-   * @param fhirClient
-   */
-  public registerFhirClient (fhirClient: FhirClient) {
-    this.engine.registerFhirClient(fhirClient);
   }
 
   /**
