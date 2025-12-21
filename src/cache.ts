@@ -16,13 +16,9 @@ export type TranslationTable = Record<string, Array<{ code: string; [key: string
 
 export interface IAppCache {
   tables: ICache<TranslationTable>;
-  snapshots: ICache<unknown>;
-  v2keyMap: ICache<string>;
   expressions: ICache<unknown>;
   compiledExpressions: ICache<FumifierCompiled>;
   compiledMappings: ICache<ICacheEntry>;
-  elementDefinition: ICache<unknown>;
-  definitions: ICache<unknown>;
 }
 
 export type IAppCacheKeys = keyof IAppCache;

@@ -214,13 +214,9 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
   private initCache () {
     const cacheKeys: IAppCacheKeys[] = [
       'tables',
-      'snapshots',
-      'v2keyMap',
       'expressions',
       'compiledExpressions',
-      'compiledMappings',
-      'elementDefinition',
-      'definitions'
+      'compiledMappings'
     ];
 
     const cache = cacheKeys
