@@ -10,16 +10,20 @@ export { FumeEngine } from './engine';
  */
 export type { IAppCache, IAppCacheKeys } from './cache';
 export type {
-  FhirPackageIdentifier,
-  FhirRelease,
-  // Re-exported from @outburn/types
-  FhirVersion,
-  FhirVersionMinor,
   IAppBinding,
   ICache,
   IConfig,
   IFumeServer,
-  Logger} from './types';
+} from './types';
+
+// Re-exported from @outburn/types
+export type {
+  FhirPackageIdentifier,
+  FhirRelease,
+  FhirVersion,
+  FhirVersionMinor,
+  Logger
+} from '@outburn/types';
 
 /**
  * Export classes and utils
