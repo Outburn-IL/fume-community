@@ -6,11 +6,12 @@
 import { FhirClient } from '@outburn/fhir-client';
 import { FormatConverter } from '@outburn/format-converter';
 import { FumeMappingProvider } from '@outburn/fume-mapping-provider';
-import type { FhirStructureNavigator } from '@outburn/structure-navigator';
+import { FhirStructureNavigator } from '@outburn/structure-navigator';
 import type { Logger } from '@outburn/types';
+import { FhirPackageExplorer } from 'fhir-package-explorer';
 import type { PackageManifest } from 'fhir-package-installer';
-import type { FhirSnapshotGenerator } from 'fhir-snapshot-generator';
-import type { FhirTerminologyRuntime } from 'fhir-terminology-runtime';
+import { FhirSnapshotGenerator } from 'fhir-snapshot-generator';
+import { FhirTerminologyRuntime } from 'fhir-terminology-runtime';
 import fumifier, { type FumifierCompiled, type FumifierOptions, type MappingCacheInterface } from 'fumifier';
 
 import type { IAppCache, IAppCacheKeys } from './cache';
@@ -161,6 +162,12 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     this.initCache();
     this.logger.info('Caches initialized');
 
+    // Create the FHIR client before building the global FHIR context so that
+    // downstream components (e.g. terminology runtime) can reuse it.
+    if (!SERVER_STATELESS && !this.fhirClient) {
+      this.fhirClient = this.createFhirClient();
+    }
+
     await this.initializeGlobalFhirContext();
     this.logger.info('Global FHIR context initialized');
 
@@ -170,10 +177,6 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     }
 
     this.logger.info(`Loading FUME resources from FHIR server ${FHIR_SERVER_BASE} into cache...`);
-
-    if (!this.fhirClient) {
-      this.fhirClient = this.createFhirClient();
-    }
 
     this.mappingProvider = new FumeMappingProvider({
       fhirClient: this.fhirClient,
@@ -289,11 +292,6 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
   }
 
   private async initializeGlobalFhirContext () {
-    const { FhirStructureNavigator } = await import('@outburn/structure-navigator');
-    const { FhirSnapshotGenerator } = await import('fhir-snapshot-generator');
-    const { FhirTerminologyRuntime } = await import('fhir-terminology-runtime');
-    const { FhirPackageExplorer } = await import('fhir-package-explorer');
-
     const {
       FHIR_VERSION,
       FHIR_PACKAGES,
@@ -340,7 +338,8 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       fpe,
       fhirVersion: FHIR_VERSION as FhirVersion,
       cacheMode: 'lazy',
-      logger: this.logger
+      logger: this.logger,
+      fhirClient: this.fhirClient
     });
 
     const normalizedPackageIds = fpe.getNormalizedRootPackages();
