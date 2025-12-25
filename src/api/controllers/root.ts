@@ -51,13 +51,11 @@ const recache = async (req: Request, res: Response) => {
     const recacheSuccess = await engine.recacheFromServer();
 
     if (recacheSuccess) {
-      const { tables } = engine.getCache();
       const provider = engine.getMappingProvider();
       const mappingKeys = provider.getUserMappingKeys();
       
       const response = {
-        message: 'The following Tables & Mappings were loaded to cache',
-        tables: tables.getDict(),
+        message: 'The following Mappings were loaded to cache',
         mappings: mappingKeys
       };
       return res.status(200).json(response);

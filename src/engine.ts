@@ -213,7 +213,6 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
   private initCache () {
     const cacheKeys: IAppCacheKeys[] = [
-      'tables',
       'expressions',
       'compiledExpressions',
       'compiledMappings'
@@ -414,138 +413,6 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     return compiled;
   }
 
-  private async getTranslationTable (tableId: string) {
-    if (tableId === undefined || tableId.trim() === '') {
-      throw new Error('First argument to function getTable must be a table id, url or name');
-    }
-
-    const err = `Failed to fetch ConceptMap whose id, url or name is: '${tableId}'`;
-
-    const client = this.getFhirClient();
-
-    let response: unknown;
-    try {
-      response = await client.read('ConceptMap', tableId);
-    } catch {
-      try {
-        response = await client.search('ConceptMap', { url: tableId });
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if (typeof response === 'object' && response && typeof (response as any).total === 'number' && (response as any).total !== 1) {
-          response = await client.search('ConceptMap', { name: tableId });
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          if (typeof response === 'object' && response && typeof (response as any).total === 'number' && (response as any).total !== 1) {
-            this.logger.error(err);
-            throw new Error(err);
-          }
-        }
-      } catch {
-        this.logger.error(err);
-        throw new Error(err);
-      }
-    }
-
-    const table = await (await fumifier(`(
-      $cm := (resourceType='Bundle' ? [entry[0].resource] : [$]);
-
-      $merge(
-        $cm#$i.id.{
-          $: $merge(
-            $distinct($cm[$i].group.element.code).(
-              $code := $;
-              {
-                $code: $cm[$i].group.element[code=$code].target[
-                  equivalence='equivalent'
-                  or equivalence='equal'
-                  or equivalence='wider'
-                  or equivalence='subsumes'
-                  or equivalence='relatedto'
-                ].code.{
-                  "code": $,
-                  "source": %.%.%.source,
-                  "target": %.%.%.target,
-                  "display": %.display
-                }[]
-              }
-            )
-          )
-        }
-      )
-    )`)).evaluate(response);
-
-    return table;
-  }
-
-  private async translateCode (input: string, tableId: string) {
-    const { tables } = this.getCache();
-
-    try {
-      let map = tables.get(tableId);
-      if (map === undefined) {
-        this.logger.info(`Table ${tableId} not cached, trying to fetch from server...`);
-        const table = await this.getTranslationTable(tableId);
-        if (table) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          map = (table as any)[tableId];
-          tables.set(tableId, map);
-        }
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const mapFiltered = (map as any)?.[input];
-      let result: unknown;
-
-      if (mapFiltered) {
-        if (mapFiltered.length === 1) {
-          result = mapFiltered[0].code;
-        } else {
-          result = await (await fumifier('$mapFiltered.code')).evaluate({}, { mapFiltered });
-        }
-      }
-
-      return result;
-    } catch (error) {
-      this.logger.error({ error });
-      return undefined;
-    }
-  }
-
-  private async translateCoding (input: string, tableId: string) {
-    const { tables } = this.getCache();
-
-    try {
-      let map = tables.get(tableId);
-      if (map === undefined) {
-        this.logger.info(`Table ${tableId} not cached, trying to fetch from server...`);
-        const table = await this.getTranslationTable(tableId);
-        if (table) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          map = (table as any)[tableId];
-          tables.set(tableId, map);
-        }
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const mapFiltered = (map as any)?.[input];
-      let result: unknown;
-
-      if (mapFiltered) {
-        result = mapFiltered.length === 1 ? mapFiltered[0] : mapFiltered;
-      }
-
-      const coding = await (await fumifier(`
-        $result.{
-          'system': target,
-          'code': code,
-          'display': display
-        }`)).evaluate({}, { result, input });
-
-      return coding;
-    } catch (error) {
-      this.logger.error({ error });
-      return undefined;
-    }
-  }
-
   public async transform (input: unknown, expression: string, extraBindings: Record<string, IAppBinding> = {}) {
     try {
       this.logger.info('Running transformation...');
@@ -555,16 +422,9 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
       let bindings: Record<string, unknown> = {};
 
-      bindings.translateCode = this.translateCode.bind(this);
-      bindings.translate = this.translateCode.bind(this);
-      bindings.translateCoding = this.translateCoding.bind(this);
-
       const converter = this.getOrCreateFormatConverter();
       bindings.parseCsv = converter.csvToJson.bind(converter);
       bindings.v2json = converter.hl7v2ToJson.bind(converter);
-
-      // debug function (kept for compatibility)
-      bindings.getTable = this.getTranslationTable.bind(this);
 
       if (this.mappingProvider) {
         const aliases = this.mappingProvider.getAliases();

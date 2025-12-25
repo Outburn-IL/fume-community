@@ -11,11 +11,7 @@ export interface ICacheEntry {
   function: (input: unknown) => Promise<unknown>;
 }
 
-// Maps input codes to arrays of coding objects
-export type TranslationTable = Record<string, Array<{ code: string; [key: string]: unknown }>>;
-
 export interface IAppCache {
-  tables: ICache<TranslationTable>;
   expressions: ICache<unknown>;
   compiledExpressions: ICache<FumifierCompiled>;
   compiledMappings: ICache<ICacheEntry>;
