@@ -216,7 +216,6 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
   private initCache () {
     const cacheKeys: IAppCacheKeys[] = [
-      'expressions',
       'compiledExpressions',
       'compiledMappings'
     ];

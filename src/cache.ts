@@ -12,7 +12,6 @@ export interface ICacheEntry {
 }
 
 export interface IAppCache {
-  expressions: ICache<unknown>;
   compiledExpressions: ICache<FumifierCompiled>;
   compiledMappings: ICache<ICacheEntry>;
 }
