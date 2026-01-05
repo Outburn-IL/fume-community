@@ -56,7 +56,7 @@
     "fhir-snapshot-generator": "^2.0.0",
     "fhir-terminology-runtime": "^0.1.0",
     "fs-extra": "^11.3.3",
-    "fumifier": "^2.0.0",
+    "fumifier": "^2.0.1",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -70,6 +70,7 @@
     "@types/fs-extra": "^11.0.4",
     "@types/jest": "^30.0.0",
     "@types/lodash": "^4.17.21",
+    "@types/supertest": "^6.0.3",
     "@typescript-eslint/eslint-plugin": "^8.51.0",
     "@typescript-eslint/parser": "^8.51.0",
     "cross-env": "^7.0.3",
