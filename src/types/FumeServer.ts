@@ -3,6 +3,7 @@
  *   Project name: FUME-COMMUNITY
  */
 import { FhirClient } from '@outburn/fhir-client';
+import type { FumeMappingProvider } from '@outburn/fume-mapping-provider';
 import { Application } from 'express';
 
 import { IAppCache, IAppCacheKeys } from '../cache';
@@ -15,6 +16,7 @@ export type IAppBinding = unknown;
 export interface IFumeServer<ConfigType> {
   registerLogger: (logger: Logger) => void
   getFhirClient: () => FhirClient
+  getMappingProvider: () => FumeMappingProvider
   registerCacheClass: (
     CacheClass: ICacheClass,
     cacheClassOptions: Record<string, unknown>,

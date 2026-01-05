@@ -2,6 +2,7 @@
  * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
  *   Project name: FUME-COMMUNITY
  */
+import type { FumeMappingProvider } from '@outburn/fume-mapping-provider';
 import cors from 'cors';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import express from 'express';
@@ -124,6 +125,13 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
    */
   public getFhirClient () {
     return this.engine.getFhirClient();
+  }
+
+  /**
+   * @returns mapping provider
+   */
+  public getMappingProvider (): FumeMappingProvider {
+    return this.engine.getMappingProvider();
   }
 
   /**
