@@ -80,7 +80,7 @@ describe('SimpleCache', () => {
     cache.set('key', 'value');
     cache.set('key2', 'value2');
 
-    cache.populate(undefined as any);
+    cache.populate();
     const res = cache.getDict();
     expect(res).toEqual({});
   });

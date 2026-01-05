@@ -208,7 +208,7 @@ describe('integration tests', () => {
     });
   });
 
-  test.skip('Validate all il-core bindings', async () => {
+  test('Validate all il-core bindings', async () => {
     let fume: string;
     let correct;
     let wrong;
@@ -266,7 +266,7 @@ describe('integration tests', () => {
       gender: 'unknown',
       birthDate: '1985'
     });
-    expect(wrong.body.message).toBe('Transformation error: value \'father\' is invalid for element extension[parentName].extension[role].value. This code is not in the required value set');
+    expect(wrong.body.message).toBe('Value "father" for "extension[parentName].extension[role].value" in "il-core-patient" is not in the required ValueSet.');
 
     // Extension-city-code: ['valueCodeableConcept']
     fume = `
@@ -318,7 +318,8 @@ describe('integration tests', () => {
                     },
                     {
                       system: 'http://fhir.health.gov.il/cs/city-symbol',
-                      code: '4000'
+                      code: '4000',
+                      display: 'חיפה'
                     }
                   ]
                 }
@@ -344,113 +345,170 @@ describe('integration tests', () => {
       gender: 'unknown',
       birthDate: '1985'
     });
-    expect(wrong.body.message).toBe('Transformation error: Element address.city.extension[cityCode].value is invalid since none of the codings provided are in the required value set');
+    expect(wrong.body.message).toBe('CodeableConcept.coding does not contain a Coding from the required ValueSet (3 provided) for "address.city.extension[cityCode].value" in "il-core-patient".');
 
     // Extension-hebrew-date: ['extension[day].valueCodeableConcept', 'extension[month].valueCodeableConcept']
-    fume = "InstanceOf: Condition\r\n* onsetDateTime = '2024-06-04T11:52:33.016Z'\r\n  * ($split(value,'-')#$i{$string($i): $}).extension[ext-hebrew-date]\r\n    * extension[day].value\r\n      * coding\r\n        * system = 'http://fhir.health.gov.il/cs/hebrew-date-day'\r\n        * code = `0`\r\n    * extension[month].value\r\n      * coding \r\n        * system = 'http://fhir.health.gov.il/cs/hebrew-date-month'\r\n        * code = `1`\r\n    * extension[year].value = 'התש\"ח'";
+    fume = `
+      InstanceOf: Condition
+      * onsetDateTime = '2024-06-04T11:52:33.016Z'
+        * (($split(value,'-')#$i{$string($i): $})).extension[ext-hebrew-date]
+          * extension[day].value
+            * coding
+              * code = \`0\`
+          * extension[month].value
+            * coding 
+              * code = \`1\`
+          * extension[year].value = 'התש"ח'
+      * subject.reference = 'Patient/123'
+    `;
     correct = await request(globalThis.app).post('/').send({ input: { value: '25-11' }, fume });
     wrong = await request(globalThis.app).post('/').send({ input: { value: '35-19' }, fume });
     expect(correct.body).toStrictEqual({
-      resourceType: 'Condition',
-      onsetDateTime: '2024-06-04T11:52:33.016Z',
-      _onsetDateTime: {
-        extension: [
+      "resourceType": "Condition",
+      "subject": {
+        "reference": "Patient/123"
+      },
+      "onsetDateTime": "2024-06-04T11:52:33.016Z",
+      "_onsetDateTime": {
+        "extension": [
           {
-            url: 'http://fhir.health.gov.il/StructureDefinition/ext-hebrew-date',
-            extension: [
+            "extension": [
               {
-                url: 'day',
-                valueCodeableConcept: {
-                  coding: [
+                "url": "day",
+                "valueCodeableConcept": {
+                  "coding": [
                     {
-                      system: 'http://fhir.health.gov.il/cs/hebrew-date-day',
-                      code: '25'
+                      "system": "http://fhir.health.gov.il/cs/hebrew-date-day",
+                      "code": "25",
+                      "display": "כ\"ה"
                     }
                   ]
                 }
               },
               {
-                url: 'month',
-                valueCodeableConcept: {
-                  coding: [
+                "url": "month",
+                "valueCodeableConcept": {
+                  "coding": [
                     {
-                      system: 'http://fhir.health.gov.il/cs/hebrew-date-month',
-                      code: '11'
+                      "system": "http://fhir.health.gov.il/cs/hebrew-date-month",
+                      "code": "11",
+                      "display": "אב"
                     }
                   ]
                 }
               },
               {
-                url: 'year',
-                valueString: 'התש"ח'
+                "url": "year",
+                "valueString": "התש\"ח"
               }
-            ]
+            ],
+            "url": "http://fhir.health.gov.il/StructureDefinition/ext-hebrew-date"
           }
         ]
       }
     });
-    expect(wrong.body.message).toBe('Transformation error: Element onsetDateTime.extension[ext-hebrew-date].extension[day].value is invalid since none of the codings provided are in the required value set');
+    expect(wrong.body.message).toBe('CodeableConcept.coding does not contain a Coding from the required ValueSet (1 provided) for "onsetDateTime.extension[ext-hebrew-date].extension[day].value" in "Condition".');
 
     // IL-Core-Vital-Signs: ['valueQuantity']
-    fume = "InstanceOf: il-core-vital-signs\r\n* status = 'final'\r\n* code.coding\r\n  * system = 'http://loinc.org'\r\n  * code = '8310-5'\r\n* subject.display = 'aaa'\r\n* effectiveDateTime = '2024-06-04T13:36:49.823Z'\r\n* valueQuantity\r\n  * system = 'http://unitsofmeasure.org'\r\n  * code = value\r\n  * value = '100'";
+    fume = `
+      InstanceOf: il-core-vital-signs
+      * status = 'final'
+      * code.coding
+        * system = 'http://loinc.org'
+        * code = '8310-5'
+      * subject.display = 'aaa'
+      * effectiveDateTime = '2024-06-04T13:36:49.823Z'
+      * valueQuantity
+        * system = 'http://unitsofmeasure.org'
+        * code = value
+        * value = '100'
+    `;
     correct = await request(globalThis.app).post('/').send({ input: { value: 'kg' }, fume });
     wrong = await request(globalThis.app).post('/').send({ input: { value: 'parsecs' }, fume });
     expect(correct.body).toStrictEqual({
-      resourceType: 'Observation',
-      meta: {
-        profile: [
-          'http://fhir.health.gov.il/StructureDefinition/il-core-vital-signs'
+      "resourceType": "Observation",
+      "meta": {
+        "profile": [
+          "http://fhir.health.gov.il/StructureDefinition/il-core-vital-signs"
         ]
       },
-      category: [
+      "status": "final",
+      "category": [
         {
-          coding: [
+          "coding": [
             {
-              system: 'http://terminology.hl7.org/CodeSystem/observation-category',
-              code: 'vital-signs'
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "vital-signs",
+              "display": "Vital Signs"
             }
           ]
         }
       ],
-      status: 'final',
-      code: {
-        coding: [
+      "code": {
+        "coding": [
           {
-            system: 'http://loinc.org',
-            code: '8310-5'
+            "system": "http://loinc.org",
+            "code": "8310-5"
           }
         ]
       },
-      subject: {
-        display: 'aaa'
+      "subject": {
+        "display": "aaa"
       },
-      effectiveDateTime: '2024-06-04T13:36:49.823Z',
-      valueQuantity: {
-        system: 'http://unitsofmeasure.org',
-        code: 'kg',
-        value: 100
+      "effectiveDateTime": "2024-06-04T13:36:49.823Z",
+      "valueQuantity": {
+        "value": 100,
+        "unit": "kilogram",
+        "system": "http://unitsofmeasure.org",
+        "code": "kg"
       }
     });
-    expect(wrong.body.message).toBe('Transformation error: The code \'http://unitsofmeasure.org#parsecs\' is invalid for element Observation.valueQuantity. This code is not in the required value set');
+    expect(wrong.body.message).toBe('Quantity unit code (system="http://unitsofmeasure.org", code="parsecs") for "valueQuantity" in "il-core-vital-signs" is not in the required ValueSet.');
 
     // IL-Core-Address: country
-    fume = "InstanceOf: il-core-patient\r\n* address\r\n  * country = value";
+    fume = `
+    InstanceOf: il-core-patient
+    * identifier[il-id].value = '000000018'
+    * address
+      * country = value
+    * name
+      * given = 'a'
+      * family = 'b'
+    * gender = 'other'
+    * birthDate = '1990'
+    `;
     correct = await request(globalThis.app).post('/').send({ input: { value: 'ISR' }, fume });
     wrong = await request(globalThis.app).post('/').send({ input: { value: 'lalaland' }, fume });
     expect(correct.body).toStrictEqual({
-      resourceType: 'Patient',
-      meta: {
-        profile: [
-          'http://fhir.health.gov.il/StructureDefinition/il-core-patient'
+      "resourceType": "Patient",
+      "meta": {
+        "profile": [
+          "http://fhir.health.gov.il/StructureDefinition/il-core-patient"
         ]
       },
-      address: [
+      "identifier": [
         {
-          country: 'ISR'
+          "system": "http://fhir.health.gov.il/identifier/il-national-id",
+          "value": "000000018"
+        }
+      ],
+      "name": [
+        {
+          "family": "b",
+          "given": [
+            "a"
+          ]
+        }
+      ],
+      "gender": "other",
+      "birthDate": "1990",
+      "address": [
+        {
+          "country": "ISR"
         }
       ]
     });
-    expect(wrong.body.message).toBe('Transformation error: value \'lalaland\' is invalid for element address.country. This code is not in the required value set');
+    expect(wrong.body.message).toBe('Value "lalaland" for "address.country" in "il-core-patient" is not in the required ValueSet.');
   });
 
   test('Validate Task.intent code', async () => {
@@ -585,7 +643,7 @@ describe('integration tests', () => {
     });
   });
 
-  test.skip('Case 8 - Throw runtime error if mandatory element is missing', async () => {
+  test('Case 8 - Throw runtime error if mandatory element is missing', async () => {
     const mapping = `
         InstanceOf: il-core-patient
         * identifier[il-id].value = '000000018'
@@ -599,7 +657,7 @@ describe('integration tests', () => {
     };
 
     const res = await request(globalThis.app).post('/').send(requestBody);
-    expect(res.body.message).toBe('Transformation error: Element \'Patient.birthDate\' has a minimum cardinality of 1, got 0 instead');
+    expect(res.body.message).toBe('The FHIR element "birthDate" is mandatory in "il-core-patient" (minimum 1), but no value was provided.');
   });
 
   test('Case 9 - Automatic conversion of dateTime to date', async () => {
@@ -736,7 +794,7 @@ describe('integration tests', () => {
     });
   });
 
-  test.skip('Case 16 - Supply the full path of the element in the cardinality error', async () => {
+  test('Case 16 - Supply the full path of the element in the cardinality error', async () => {
     const mapping = `
             InstanceOf: bp
             * component[SystolicBP].valueQuantity
@@ -748,7 +806,7 @@ describe('integration tests', () => {
     };
 
     const res = await request(globalThis.app).post('/').send(requestBody);
-    expect(res.body.message).toBe('Transformation error: Element \'Observation.component[SystolicBP].valueQuantity.value\' has a minimum cardinality of 1, got 0 instead');
+    expect(res.body.message).toBe('The FHIR element "component[SystolicBP].valueQuantity.value" is mandatory in "bp/component[SystolicBP].value" (minimum 1), but no value was provided.');
   });
 
   test('Case 17 - Nested extension fixed object overrides assigned obj', async () => {
@@ -810,7 +868,7 @@ describe('integration tests', () => {
     });
   });
 
-  test.skip('Case 18 - Not all missing mandatory elements are catched', async () => {
+  test('Case 18 - Not all missing mandatory elements are caught', async () => {
     const mapping = `
             InstanceOf: il-core-patient
             * gender = 'unknown'
@@ -823,7 +881,7 @@ describe('integration tests', () => {
     };
 
     const res = await request(globalThis.app).post('/').send(requestBody);
-    expect(res.body).toBe('Transformation error: Element identifier has a minimum cardinality of 1, got 0 instead');
+    expect(res.body.message).toBe('The FHIR element "identifier" is mandatory in "il-core-patient" (minimum 1), but no value was provided.');
   });
 
   test('Case 19 - Wrong type of [x] elements when addressing a specific type', async () => {

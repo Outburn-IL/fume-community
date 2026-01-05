@@ -50,8 +50,8 @@ export class SimpleCache<T> implements ICache<T> {
     this.cache = {};
   }
 
-  populate (dict: Record<string, T>) {
-    this.cache = dict || {};
+  populate (dict?: Record<string, T>) {
+    this.cache = dict ?? {};
   }
 
   getDict () {

@@ -11,6 +11,14 @@ import path from 'path';
 import { FumeServer } from '../src/server';
 import { FHIR_PACKAGE_CACHE_DIR, LOCAL_FHIR_API } from './config';
 
+const toErrorMessage = (error: unknown) => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return String(error);
+};
+
 /**
  * Disable axios cache during integration tests
  * @param config
@@ -43,7 +51,7 @@ async function areContainersRunning (): Promise<boolean> {
     );
     
     return hapiRunning && dbRunning;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
@@ -60,8 +68,8 @@ async function waitForFhirApi (maxAttempts, currentAttempt = 1) {
     // Poll the FHIR server capability statement endpoint instead of root
     // Using /metadata is more explicit and aligns with FHIR spec for server availability
     await axios.get(`${LOCAL_FHIR_API}/metadata`);
-  } catch (error: any) {
-    console.error(`Attempt ${currentAttempt} failed:`, error.message);
+  } catch (error: unknown) {
+    console.error(`Attempt ${currentAttempt} failed:`, toErrorMessage(error));
 
     if (currentAttempt >= maxAttempts) {
       throw new Error(`Failed to query FHIR API after ${maxAttempts} attempts`);
@@ -116,8 +124,8 @@ async function setup () {
           console.log(`FHIR core package directory not found (will be downloaded): ${corePkgDir}`);
         }
       }
-    } catch (e: any) {
-      console.error('Failed to delete cached FHIR core package:', e?.message || e);
+    } catch (e: unknown) {
+      console.error('Failed to delete cached FHIR core package:', toErrorMessage(e));
     }
   };
 
@@ -191,8 +199,8 @@ async function setup () {
       headers: { 'Content-Type': 'application/fhir+json' }
     });
     console.log(`Created/Updated Practitioner with ID: ${response.data.id}`);
-  } catch (e: any) {
-    console.error('Failed to create test Practitioner:', e?.message || e);
+  } catch (e: unknown) {
+    console.error('Failed to create test Practitioner:', toErrorMessage(e));
     throw e;
   }
 
