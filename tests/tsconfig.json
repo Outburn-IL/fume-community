@@ -1,0 +1,17 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node", "jest"],
+    "skipLibCheck": true
+  },
+  "include": [
+    "./**/*.ts",
+    "./**/*.d.ts"
+  ],
+  "exclude": [
+    "../dist/**/*",
+    "./.fhir-packages/**/*",
+    "./hapi.postgress.data/**/*"
+  ]
+}
