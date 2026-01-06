@@ -45,7 +45,7 @@
   "dependencies": {
     "@outburn/fhir-client": "^1.3.0",
     "@outburn/format-converter": "^1.0.6",
-    "@outburn/fume-mapping-provider": "^0.2.0",
+    "@outburn/fume-mapping-provider": "^0.3.0",
     "@outburn/structure-navigator": "^1.6.0",
     "axios": "^1.13.2",
     "cors": "^2.8.5",
