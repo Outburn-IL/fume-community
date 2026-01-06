@@ -8,7 +8,7 @@ import type { FumifierCompiled } from 'fumifier';
 import type { ICache } from './types';
 
 export interface ICacheEntry {
-  function: (input: unknown) => Promise<unknown>;
+  function: (input: unknown, bindings?: Record<string, unknown>) => Promise<unknown>;
 }
 
 export interface IAppCache {

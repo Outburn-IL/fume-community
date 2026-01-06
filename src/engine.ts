@@ -14,7 +14,7 @@ import { FhirSnapshotGenerator } from 'fhir-snapshot-generator';
 import { FhirTerminologyRuntime } from 'fhir-terminology-runtime';
 import fumifier, { type FumifierCompiled, type FumifierOptions, type MappingCacheInterface } from 'fumifier';
 
-import type { IAppCache, IAppCacheKeys } from './cache';
+import type { IAppCache, IAppCacheKeys, ICacheEntry } from './cache';
 import { SimpleCache } from './cache';
 import defaultConfig from './serverConfig';
 import type {
@@ -29,10 +29,6 @@ import type { ICacheClass } from './types/FumeServer';
 export interface InitCacheConfig {
   cacheClass: ICacheClass;
   cacheClassOptions: Record<string, unknown>;
-}
-
-export interface ICacheEntry {
-  function: (input: unknown) => Promise<unknown>;
 }
 
 interface GlobalFhirContext {
@@ -506,3 +502,6 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
 // Preserve the type for downstream compatibility if anything imported it previously.
 export type { PackageManifest };
+
+// Preserve the type for downstream compatibility if anything imported it previously.
+export type { ICacheEntry };
