@@ -450,7 +450,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
     if (!cache.compiledMappings.get(mappingExpr)) {
       const mappingFunc = async (input: unknown, bindings?: Record<string, unknown>) => {
-        const res = await this.transform(input, mappingExpr, { ...this.bindings, ...(bindings ?? {}) });
+        const res = await this.transform(input, mappingExpr, bindings ?? {});
         return res;
       };
 
