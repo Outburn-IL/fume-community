@@ -9,7 +9,6 @@ import { FumeMappingProvider } from '@outburn/fume-mapping-provider';
 import { FhirStructureNavigator } from '@outburn/structure-navigator';
 import type { Logger } from '@outburn/types';
 import { FhirPackageExplorer } from 'fhir-package-explorer';
-import type { PackageManifest } from 'fhir-package-installer';
 import { FhirSnapshotGenerator } from 'fhir-snapshot-generator';
 import { FhirTerminologyRuntime } from 'fhir-terminology-runtime';
 import fumifier, { type FumifierCompiled, type FumifierOptions, type MappingCacheInterface } from 'fumifier';
@@ -501,7 +500,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 }
 
 // Preserve the type for downstream compatibility if anything imported it previously.
-export type { PackageManifest };
+export type { PackageManifest } from 'fhir-package-installer';
 
 // Preserve the type for downstream compatibility if anything imported it previously.
 export type { ICacheEntry };

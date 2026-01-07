@@ -2,8 +2,10 @@
   "name": "fume-fhir-converter",
   "version": "3.0.0",
   "description": "FHIR-Utilized Mapping Engine - Community",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "type": "module",
   "author": "Outburn Ltd.",
   "license": "AGPL-3.0",
   "keywords": [
@@ -17,19 +19,20 @@
   ],
   "files": [
     "dist",
-    "src"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -b",
+    "build": "npm run clean && tsup",
     "clean": "rimraf dist",
     "lint": "eslint src",
-    "run": "npm run build && node dist/src/app.js",
+    "run": "npm run build && node dist/index.cjs",
     "dev": "npm run clean && cross-env NODE_ENV=dev nodemon -w src --exec \"npm run run\"",
     "start": "npm run clean && npm run run",
     "eslint:fix": "npx eslint --fix .",
-    "test:debug": "node --inspect-brk --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.integration.js --runInBand",
+    "test:debug": "node --inspect-brk --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.integration.cjs --runInBand",
     "test:stop-hapi": "cd tests && docker compose stop",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.integration.js --runInBand",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.integration.cjs --runInBand",
     "prepare": "npm run build",
     "prepublishOnly": "npm ci && npm run build"
   },
@@ -83,10 +86,15 @@
     "rimraf": "^6.1.2",
     "supertest": "^6.3.4",
     "tslib": "^2.8.1",
+    "tsup": "^8.3.5",
     "typescript": "^5.9.3"
   },
   "exports": {
-    ".": "./dist/src/index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
   },
   "nodemonConfig": {
     "watch": [
