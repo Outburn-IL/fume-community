@@ -10,7 +10,9 @@ describe('root route response code tests', () => {
     await request(globalThis.app).get('/').expect(200);
   });
 
-  test('post empty fails with 422', async () => {
-    await request(globalThis.app).post('/').expect(422);
+  test('post empty fails with 400 (missing expression)', async () => {
+    const res = await request(globalThis.app).post('/').expect(400);
+    expect(res.body.__isFumeError).toBe(true);
+    expect(res.body.code).toBe('NO_EXPRESSION');
   });
 });

@@ -33,8 +33,32 @@ const rootEvaluate = async (req: Request, res: Response) => {
   const engine = getEngine(req);
 
   try {
-    const inputJson = await engine.convertInputToJson(req.body.input, req.body.contentType);
-    const response = await engine.transform(inputJson, req.body.fume, engine.getBindings());
+    const body = (req.body ?? {}) as Record<string, unknown>;
+
+    const expression = body.fume;
+    if (typeof expression !== 'string' || expression.trim() === '') {
+      return res.status(400).json({
+        __isFumeError: true,
+        __isFlashError: false,
+        message: 'No expression was provided (fume). Nothing to evaluate.',
+        code: 'NO_EXPRESSION',
+        name: 'BadRequest',
+        value: '',
+        token: '',
+        cause: '',
+        line: '',
+        start: '',
+        position: ''
+      });
+    }
+
+    const contentType = typeof body.contentType === 'string' ? body.contentType : undefined;
+    const input = body.input;
+
+    // If no input exists, evaluate against null input (no error).
+    const inputJson = input === undefined ? null : await engine.convertInputToJson(input, contentType);
+
+    const response = await engine.transform(inputJson, expression, engine.getBindings());
     return res.status(200).json(response);
   } catch (error: unknown) {
     const err = error as Record<string, unknown>;
