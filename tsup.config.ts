@@ -1,7 +1,12 @@
+/**
+ * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
+ *   Project name: FUME-COMMUNITY
+ */
+
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  entry: ['src/index.ts'],
+  entry: ['src/index.ts', 'src/app.ts'],
   dts: true,
   format: ['cjs', 'esm'],
   outDir: 'dist',

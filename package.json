@@ -26,7 +26,7 @@
     "build": "npm run clean && tsup",
     "clean": "rimraf dist",
     "lint": "eslint src",
-    "run": "npm run build && node dist/index.cjs",
+    "run": "npm run build && node dist/app.cjs",
     "dev": "npm run clean && cross-env NODE_ENV=dev nodemon -w src --exec \"npm run run\"",
     "start": "npm run clean && npm run run",
     "eslint:fix": "npx eslint --fix .",
