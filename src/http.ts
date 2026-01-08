@@ -23,9 +23,24 @@ const failOnStateless = (req: Request, res: Response, next: NextFunction) => {
   next();
 };
 
-const rootGet = async (_req: Request, res: Response) => {
+const rootGet = async (req: Request, res: Response) => {
+  const engine = getEngine(req);
+  const config = engine.getConfig();
+  const fhirServerEndpoint = config.SERVER_STATELESS ? 'n/a' : config.FHIR_SERVER_BASE;
+  const contextPackages = engine.getContextPackages();
+  const uptime = engine.getUptime();
+
   return res.status(200).json({
-    fume_version: `FUME Community v${engineVersion}`
+    fume_version: `FUME Community v${engineVersion}`,
+    fhir_server: fhirServerEndpoint,
+    uptime,
+    context_packages: contextPackages
+  });
+};
+
+const health = async (_req: Request, res: Response) => {
+  return res.status(200).json({
+    status: 'UP'
   });
 };
 
@@ -221,6 +236,7 @@ export const createHttpRouter = () => {
   const root = express.Router();
   root.post('/:operation', rootOperation);
   root.get('/recache', failOnStateless, rootRecache);
+  root.get('/health', health);
   root.get('/', rootGet);
   root.post('/', rootEvaluate);
   router.use('/', root);
