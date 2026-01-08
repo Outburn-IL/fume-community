@@ -34,7 +34,8 @@ interface GlobalFhirContext {
   navigator: FhirStructureNavigator | null;
   generator: FhirSnapshotGenerator | null;
   terminologyRuntime: FhirTerminologyRuntime | null;
-  normalizedPackages: string[];
+  contextPackages: FhirPackageIdentifier[];
+  normalizedPackages: FhirPackageIdentifier[];
   fhirVersion: FhirVersion;
   cachePath?: string;
   registryUrl?: string;
@@ -53,6 +54,7 @@ const defaultGlobalFhirContext = (): GlobalFhirContext => ({
   navigator: null,
   generator: null,
   terminologyRuntime: null,
+  contextPackages: [],
   normalizedPackages: [],
   fhirVersion: '4.0.1',
   isInitialized: false
@@ -336,14 +338,14 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       fhirClient: this.fhirClient
     });
 
-    const normalizedPackageIds = fpe.getNormalizedRootPackages();
-    const normalizedPackages = normalizedPackageIds.map((pkg) => `${pkg.id}@${pkg.version}`);
-
+    const contextPackages = fpe.getContextPackages();
+    const normalizedPackages = fpe.getNormalizedRootPackages();
     this.globalFhirContext = {
       navigator,
       generator,
       terminologyRuntime,
       normalizedPackages,
+      contextPackages,
       fhirVersion: this.getFhirVersion(),
       cachePath: FHIR_PACKAGE_CACHE_DIR || '',
       registryUrl: FHIR_PACKAGE_REGISTRY_URL,
