@@ -18,6 +18,8 @@ Installation & deployment instructions can be found at our [getting started](doc
 
 For breaking changes in the next major refactor, see [migration guide](docs/migration-guide.md).
 
+For the complete public server endpoints, see [HTTP API](docs/http-api.md).
+
 For further documentation & examples you can watch our [video tutorials](https://youtube.com/playlist?list=PL44ht-s6WWPfgVNkibzMj_UB-ex41rl49).
 
 ---
