@@ -113,19 +113,34 @@ async function setup () {
   }
 
   // Helper to delete core package from cache
-  const deleteCorePackage = () => {
-    try {
-      if (FHIR_PACKAGE_CACHE_DIR) {
-        const corePkgDir = path.resolve(FHIR_PACKAGE_CACHE_DIR, 'hl7.fhir.r4.core#4.0.1');
-        if (fs.existsSync(corePkgDir)) {
-          console.log(`Deleting cached FHIR core package to force re-download: ${corePkgDir}`);
-          fs.rmSync(corePkgDir, { recursive: true, force: true });
-        } else {
-          console.log(`FHIR core package directory not found (will be downloaded): ${corePkgDir}`);
+  const deleteCorePackage = async () => {
+    if (!FHIR_PACKAGE_CACHE_DIR) {
+      return;
+    }
+
+    const corePkgDir = path.resolve(FHIR_PACKAGE_CACHE_DIR, 'hl7.fhir.r4.core#4.0.1');
+    if (!fs.existsSync(corePkgDir)) {
+      console.log(`FHIR core package directory not found (will be downloaded): ${corePkgDir}`);
+      return;
+    }
+
+    console.log(`Deleting cached FHIR core package to force re-download: ${corePkgDir}`);
+
+    // Windows can intermittently fail recursive deletes if a previous run was interrupted
+    // while files were being written. Retry a few times to avoid leaving partial JSON caches.
+    const maxAttempts = 5;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        fs.rmSync(corePkgDir, { recursive: true, force: true });
+        return;
+      } catch (e: unknown) {
+        const msg = toErrorMessage(e);
+        console.warn(`Failed to delete core package dir (attempt ${attempt}/${maxAttempts}): ${msg}`);
+        if (attempt === maxAttempts) {
+          throw new Error(`Failed to delete cached FHIR core package directory after ${maxAttempts} attempts: ${msg}`);
         }
+        await new Promise(resolve => setTimeout(resolve, 250));
       }
-    } catch (e: unknown) {
-      console.error('Failed to delete cached FHIR core package:', toErrorMessage(e));
     }
   };
 
@@ -139,7 +154,7 @@ async function setup () {
 
   // Phase 1: Warm-up with DEFAULT public registries (no custom registry URL/TOKEN)
   console.log('Phase 1: Warming FUME with default registry (no custom URL/TOKEN)...');
-  deleteCorePackage();
+  await deleteCorePackage();
   const firstServer = new FumeServer();
   await firstServer.warmUp({
     SERVER_PORT: 42420,

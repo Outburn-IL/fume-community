@@ -18,14 +18,14 @@ describe('using a concept map', () => {
     fumeConceptMapId = await addConcept('concept-fume-aliases.json');
     genderConceptMapId = await addConcept('gender.json', 'gender');
     await addPractitioner('practitioner.json', 'cc829d28-3b32-43df-af57-e72035d98e18');
-    await request(globalThis.app).get('/recache');
+    await request(globalThis.app).post('/$recache');
   });
 
   afterAll(async () => {
     await deleteConcept(fumeConceptMapId);
     await deleteConcept(genderConceptMapId);
     await deletePractitioner('cc829d28-3b32-43df-af57-e72035d98e18');
-    await request(globalThis.app).get('/recache');
+    await request(globalThis.app).post('/$recache');
   });
 
   test('Case 12 - aliases stopped working', async () => {
