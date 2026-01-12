@@ -48,6 +48,7 @@ const evaluate = async (req: Request, res: Response) => {
 const recache = async (req: Request, res: Response) => {
   try {
     const engine = req.app.locals.engine as FumeEngine;
+    const logger = engine.getLogger();
     const recacheSuccess = await engine.recacheFromServer();
 
     if (recacheSuccess) {
@@ -60,12 +61,18 @@ const recache = async (req: Request, res: Response) => {
       };
       return res.status(200).json(response);
     } else {
-      console.error('Error loading cache');
-      return res.status(404).json({ message: 'error loading cache' });
+      logger.error('Failed to load cache');
+      return res.status(500).json({ message: 'error loading cache', code: 'RECACHE_FAILED' });
     }
-  } catch (error) {
-    console.error('Failed to load cache', { error });
-    return res.status(404).json({ message: error });
+  } catch (error: unknown) {
+    const engine = req.app.locals.engine as FumeEngine;
+    const logger = engine.getLogger();
+    const message = (error as { message?: unknown } | undefined)?.message;
+    logger.error({ error }, 'Failed to load cache');
+    return res.status(500).json({
+      message: typeof message === 'string' && message !== '' ? message : 'error loading cache',
+      code: 'RECACHE_FAILED'
+    });
   }
 };
 

@@ -134,8 +134,19 @@ const rootEvaluate = async (req: Request, res: Response) => {
   }
 };
 
-const rootRecache = async (req: Request, res: Response) => {
+const rootRecache = async (req: Request, res: Response, options?: { deprecated?: boolean }) => {
   const engine = getEngine(req);
+  const logger = engine.getLogger();
+
+  if (engine.getConfig().SERVER_STATELESS) {
+    return res.status(405).json({ message: 'Endpoint unavailable without FHIR server' });
+  }
+
+  if (options?.deprecated) {
+    const warning = 'POST /recache is deprecated; use POST /$recache';
+    logger.warn(warning);
+    res.set('Warning', `299 - "${warning}"`);
+  }
 
   try {
     const recacheSuccess = await engine.recacheFromServer();
@@ -146,20 +157,25 @@ const rootRecache = async (req: Request, res: Response) => {
 
       const response = {
         message: 'The following Mappings were loaded to cache',
-        mappings: mappingKeys
+        mappings: mappingKeys,
+        ...(options?.deprecated ? { deprecated: true } : {})
       };
 
       return res.status(200).json(response);
     }
 
-    // preserve previous behavior
-    // eslint-disable-next-line no-console
-    console.error('Error loading cache');
-    return res.status(404).json({ message: 'error loading cache' });
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Failed to load cache', { error });
-    return res.status(404).json({ message: error });
+    logger.error('Failed to load cache');
+    return res.status(500).json({
+      message: 'error loading cache',
+      code: 'RECACHE_FAILED'
+    });
+  } catch (error: unknown) {
+    const message = (error as { message?: unknown } | undefined)?.message;
+    logger.error({ error }, 'Failed to load cache');
+    return res.status(500).json({
+      message: typeof message === 'string' && message !== '' ? message : 'error loading cache',
+      code: 'RECACHE_FAILED'
+    });
   }
 };
 
@@ -167,16 +183,25 @@ const rootOperation = async (req: Request, res: Response) => {
   try {
     const operationName: string = req.params?.operation;
     if (operationName === '$transpile') {
-      res.status(500).json({ message: "Operation '$transpile' is no longer supported" });
-    } else if (operationName === 'recache' || operationName === '$recache') {
-      res.redirect('/recache');
+      return res.status(500).json({ message: "Operation '$transpile' is no longer supported" });
+    } else if (operationName === '$recache') {
+      return await rootRecache(req, res);
+    } else if (operationName === 'recache') {
+      return await rootRecache(req, res, { deprecated: true });
     } else {
-      res.status(500).json({ message: `Unknown operation '${operationName}'` });
+      return res.status(500).json({ message: `Unknown operation '${operationName}'` });
     }
   } catch (e) {
     getEngine(req).getLogger().error(e);
-    res.status(500).json({ message: e });
+    return res.status(500).json({ message: e });
   }
+};
+
+const recacheGetNotAllowed = async (_req: Request, res: Response) => {
+  return res.status(405).json({
+    message: 'GET /recache is not supported. Use POST /$recache instead.',
+    code: 'METHOD_NOT_ALLOWED'
+  });
 };
 
 const mappingGet = async (req: Request, res: Response) => {
@@ -342,7 +367,7 @@ export const createHttpRouter = () => {
   // root
   const root = express.Router();
   root.post('/:operation', rootOperation);
-  root.get('/recache', failOnStateless, rootRecache);
+  root.get('/recache', recacheGetNotAllowed);
   root.get('/health', health);
   root.get('/', rootGet);
   root.post('/', rootEvaluate);
