@@ -10,6 +10,15 @@ import type { FumeEngine } from './engine';
 
 type EngineLocals = { engine: FumeEngine };
 
+type FumeHttpInvocation = {
+  mappingId: string;
+  method: string;
+  subroute: string[];
+  subpath: string;
+  query: Request['query'];
+  headers: Record<string, string | string[] | undefined>;
+};
+
 const getEngine = (req: Request): FumeEngine => {
   return (req.app.locals as EngineLocals).engine;
 };
@@ -167,6 +176,58 @@ const mappingGet = async (req: Request, res: Response) => {
   }
 };
 
+const getSubrouteSegments = (req: Request, mappingId: string): string[] => {
+  const path = req.path ?? '';
+  const prefix = `/${mappingId}`;
+  const remainder = path.startsWith(prefix) ? path.slice(prefix.length) : '';
+  const trimmed = remainder.replace(/^\/+/, '').replace(/\/+$/, '');
+  return trimmed === '' ? [] : trimmed.split('/').filter(Boolean);
+};
+
+const sanitizeHeaders = (headers: Request['headers']): Record<string, string | string[] | undefined> => {
+  const redacted = '[REDACTED]';
+  const out: Record<string, string | string[] | undefined> = {};
+
+  const isSensitiveKey = (key: string) => {
+    const k = key.toLowerCase();
+    return (
+      k === 'authorization' ||
+      k === 'proxy-authorization' ||
+      k === 'cookie' ||
+      k === 'set-cookie' ||
+      k.includes('token') ||
+      k.includes('secret') ||
+      k.includes('password') ||
+      k.includes('session') ||
+      k.includes('api-key') ||
+      k.includes('apikey')
+    );
+  };
+
+  for (const [key, value] of Object.entries(headers)) {
+    if (isSensitiveKey(key)) {
+      out[key] = redacted;
+      continue;
+    }
+    // express typings allow string | string[] | undefined
+    out[key] = value as string | string[] | undefined;
+  }
+
+  return out;
+};
+
+const createFumeHttpInvocation = (req: Request, mappingId: string): FumeHttpInvocation => {
+  const subroute = getSubrouteSegments(req, mappingId);
+  return {
+    mappingId,
+    method: req.method,
+    subroute,
+    subpath: subroute.join('/'),
+    query: req.query,
+    headers: sanitizeHeaders(req.headers)
+  };
+};
+
 const mappingTransform = async (req: Request, res: Response) => {
   const engine = getEngine(req);
   const logger = engine.getLogger();
@@ -195,7 +256,8 @@ const mappingTransform = async (req: Request, res: Response) => {
     }
 
     if (compiledMapping) {
-      const result = await compiledMapping.function(inputJson);
+      const fumeHttpInvocation = createFumeHttpInvocation(req, mappingId);
+      const result = await compiledMapping.function(inputJson, { fumeHttpInvocation });
       res.set('Content-Type', 'application/json');
       res.status(200).json(result);
     } else {
