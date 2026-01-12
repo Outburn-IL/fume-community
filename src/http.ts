@@ -53,6 +53,14 @@ const health = async (_req: Request, res: Response) => {
   });
 };
 
+const isUnsupportedContentTypeError = (error: unknown): boolean => {
+  if (error instanceof Error) {
+    return error.message.startsWith('Unsupported Content-Type:');
+  }
+  const msg = (error as { message?: unknown } | undefined)?.message;
+  return typeof msg === 'string' && msg.startsWith('Unsupported Content-Type:');
+};
+
 const rootEvaluate = async (req: Request, res: Response) => {
   const engine = getEngine(req);
 
@@ -79,12 +87,30 @@ const rootEvaluate = async (req: Request, res: Response) => {
     const contentType = typeof body.contentType === 'string' ? body.contentType : undefined;
     const input = body.input;
 
-    // If no input exists, evaluate against null input (no error).
-    const inputJson = input === undefined ? null : await engine.convertInputToJson(input, contentType);
+    let inputJson: unknown;
+    try {
+      // If no input exists, evaluate against null input (no error).
+      inputJson = input === undefined ? null : await engine.convertInputToJson(input, contentType);
+    } catch (error: unknown) {
+      if (isUnsupportedContentTypeError(error)) {
+        return res.status(415).json({
+          message: (error as { message?: unknown })?.message ?? 'Unsupported Content-Type',
+          code: 'UNSUPPORTED_MEDIA_TYPE'
+        });
+      }
+      throw error;
+    }
 
     const response = await engine.transform(inputJson, expression, engine.getBindings());
     return res.status(200).json(response);
   } catch (error: unknown) {
+    if (isUnsupportedContentTypeError(error)) {
+      return res.status(415).json({
+        message: (error as { message?: unknown })?.message ?? 'Unsupported Content-Type',
+        code: 'UNSUPPORTED_MEDIA_TYPE'
+      });
+    }
+
     const err = error as Record<string, unknown>;
     const isFlashError = !!err.instanceOf || err.token === 'InstanceOf:';
     const line = err.line ?? '';
@@ -245,7 +271,19 @@ const mappingTransform = async (req: Request, res: Response) => {
     }
 
     const contentType = req.get('Content-Type') ?? undefined;
-    const inputJson = await engine.convertInputToJson(req.body, contentType);
+    let inputJson: unknown;
+    try {
+      inputJson = await engine.convertInputToJson(req.body, contentType);
+    } catch (error: unknown) {
+      if (isUnsupportedContentTypeError(error)) {
+        res.status(415).json({
+          message: (error as { message?: unknown })?.message ?? 'Unsupported Content-Type',
+          code: 'UNSUPPORTED_MEDIA_TYPE'
+        });
+        return;
+      }
+      throw error;
+    }
 
     const cache = engine.getCache();
     let compiledMapping = cache.compiledMappings.get(mapping.expression);
@@ -265,6 +303,13 @@ const mappingTransform = async (req: Request, res: Response) => {
       res.status(500).json({ message: 'Failed to compile mapping' });
     }
   } catch (error) {
+    if (isUnsupportedContentTypeError(error)) {
+      res.status(415).json({
+        message: (error as { message?: unknown })?.message ?? 'Unsupported Content-Type',
+        code: 'UNSUPPORTED_MEDIA_TYPE'
+      });
+      return;
+    }
     logger.error({ error });
     res.status(500).json({ message: error });
   }

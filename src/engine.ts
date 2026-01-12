@@ -286,12 +286,12 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       return await converter.csvToJson(input as string);
     }
 
-    if (contentType.startsWith('application/xml')) {
+    if (contentType.startsWith('application/xml') || contentType.startsWith('application/fhir+xml')) {
       this.logger.info('Parsing XML to JSON...');
       return await converter.xmlToJson(input as string);
     }
 
-    if (contentType.startsWith('application/json')) {
+    if (contentType.startsWith('application/json') || contentType.startsWith('application/fhir+json') || contentType.startsWith('text/json')) {
       this.logger.info('Using JSON input as-is');
       return input;
     }
