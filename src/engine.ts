@@ -505,6 +505,19 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     try {
       const { compiledMappings } = this.getCache();
 
+      // Clear terminology ConceptMap cache so mappings that depend on server ConceptMaps
+      // will re-resolve against fresh data after a recache.
+      const terminologyRuntime = this.globalFhirContext.terminologyRuntime;
+      if (terminologyRuntime) {
+        const ftr = terminologyRuntime as unknown as {
+          clearServerConceptMapsFromCache?: () => void | Promise<void>;
+        };
+        if (typeof ftr.clearServerConceptMapsFromCache === 'function') {
+          await ftr.clearServerConceptMapsFromCache();
+          this.logger.info('Cleared FHIR terminology ConceptMap cache.');
+        }
+      }
+
       await this.mappingProvider.reloadAliases();
       const aliasKeys = Object.keys(this.mappingProvider.getAliases());
       if (aliasKeys.length > 0) {
