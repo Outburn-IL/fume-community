@@ -279,12 +279,26 @@ const createFumeHttpInvocation = (req: Request, mappingId: string): FumeHttpInvo
   };
 };
 
-const mappingTransform = async (req: Request, res: Response) => {
+const mappingTransform = async (req: Request, res: Response, next?: NextFunction) => {
   const engine = getEngine(req);
   const logger = engine.getLogger();
 
   try {
     const mappingId = req.params.mappingId;
+
+    // PUT is reserved for mapping update when no internal subroute exists.
+    // (FUME Community doesn't implement update, but downstream products can register it.)
+    if (req.method === 'PUT') {
+      const subroute = getSubrouteSegments(req, mappingId);
+      if (subroute.length === 0) {
+        if (next) {
+          next();
+          return;
+        }
+        res.status(404).json({ message: 'not found' });
+        return;
+      }
+    }
 
     const provider = engine.getMappingProvider();
     const mapping = provider.getUserMapping(mappingId);
@@ -361,7 +375,12 @@ export const createHttpRouter = () => {
   mapping.use(failOnStateless);
   mapping.get('/:mappingId/:operation', mappingOperation);
   mapping.get('/:mappingId/', mappingGet);
+  // Execute mapping (official)
   mapping.post('/:mappingId/', mappingTransform);
+  // Execute mapping with additional routing segments (e.g. /Mapping/{id}/a/b/c)
+  mapping.post('/:mappingId/*subroute', mappingTransform);
+  // PUT executes mapping only when there's a subroute (PUT /Mapping/{id} is reserved for update)
+  mapping.put('/:mappingId/*subroute', mappingTransform);
   router.use('/Mapping/', mapping);
 
   // root
