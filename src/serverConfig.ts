@@ -11,6 +11,7 @@ import { IConfig } from './types';
 export const FumeConfigSchema = z.object({
 	SERVER_PORT: z.preprocess((a) => typeof a === 'string' ? parseInt(a) : a, z.number().int('Must be an integer').positive('Must be positive').default(42420)),
 	SERVER_STATELESS: z.preprocess((a) => a === 'true', z.boolean().default(false)),
+	SERVER_REQUEST_BODY_LIMIT: z.string().min(1).default('400mb'),
 	FHIR_SERVER_BASE: z.string().min(1).url().default('http://hapi-fhir.outburn.co.il/fhir'),
 	FHIR_SERVER_AUTH_TYPE: z.string().default('NONE'),
 	FHIR_SERVER_UN: z.string().default(''),

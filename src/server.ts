@@ -34,9 +34,10 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     this.app = express();
     // Make engine available to route handlers (no module-level state)
     this.app.locals.engine = this.engine;
-    this.app.use(express.urlencoded({ extended: true, limit: '400mb' }));
-    this.app.use(express.json({ limit: '400mb', type: ['application/json', 'application/fhir+json', 'application/json+fhir', 'text/json'] }));
-    this.app.use(express.text({ limit: '400mb', type: ['text/plain', 'application/vnd.outburn.fume', 'x-application/hl7-v2+er7', 'text/csv', 'application/xml', 'application/fhir+xml', 'application/xml+fhir'] }));
+    const requestBodyLimit = defaultConfig.SERVER_REQUEST_BODY_LIMIT;
+    this.app.use(express.urlencoded({ extended: true, limit: requestBodyLimit }));
+    this.app.use(express.json({ limit: requestBodyLimit, type: ['application/json', 'application/fhir+json', 'application/json+fhir', 'text/json'] }));
+    this.app.use(express.text({ limit: requestBodyLimit, type: ['text/plain', 'application/vnd.outburn.fume', 'x-application/hl7-v2+er7', 'text/csv', 'application/xml', 'application/fhir+xml', 'application/xml+fhir'] }));
     this.app.use(cors());
 
     // Mount a stable wrapper so any middleware registered via registerAppMiddleware
