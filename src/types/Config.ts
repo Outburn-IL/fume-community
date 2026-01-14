@@ -10,6 +10,7 @@ export interface IConfig {
   FHIR_SERVER_TIMEOUT: number
   FHIR_VERSION: string
   FHIR_PACKAGES: string
+  PREBUILD_SNAPSHOTS: boolean
   FHIR_SERVER_AUTH_TYPE: string
   FHIR_SERVER_UN: string
   FHIR_SERVER_PW: string

@@ -19,6 +19,7 @@ export const FumeConfigSchema = z.object({
 	FHIR_SERVER_TIMEOUT: z.preprocess((a) => typeof a === 'string' ? parseInt(a) : a, z.number().int('Must be an integer').positive('Must be positive').default(30000)),
 	FHIR_VERSION: z.string().min(1).default('4.0.1'),
 	FHIR_PACKAGES: z.string().default(''),
+	PREBUILD_SNAPSHOTS: z.preprocess((a) => a === 'true', z.boolean().default(false)),
 	FHIR_PACKAGE_REGISTRY_URL: z.string().url().optional(),
 	FHIR_PACKAGE_REGISTRY_TOKEN: z.string().optional(),
 	FHIR_PACKAGE_CACHE_DIR: z.string().optional()

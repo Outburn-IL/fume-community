@@ -323,8 +323,11 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       FHIR_PACKAGES,
       FHIR_PACKAGE_CACHE_DIR,
       FHIR_PACKAGE_REGISTRY_URL,
-      FHIR_PACKAGE_REGISTRY_TOKEN
+      FHIR_PACKAGE_REGISTRY_TOKEN,
+      PREBUILD_SNAPSHOTS
     } = this.config;
+
+    const cacheMode = PREBUILD_SNAPSHOTS ? 'ensure' : 'lazy';
 
     const packageList: FhirPackageIdentifier[] = FHIR_PACKAGES
       ? FHIR_PACKAGES.split(',').map((pkg) => {
@@ -354,7 +357,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     const generator = await FhirSnapshotGenerator.create({
       fpe,
       fhirVersion: FHIR_VERSION as FhirVersion,
-      cacheMode: 'lazy',
+      cacheMode,
       logger: this.logger
     });
 
@@ -363,7 +366,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     const terminologyRuntime = await FhirTerminologyRuntime.create({
       fpe,
       fhirVersion: FHIR_VERSION as FhirVersion,
-      cacheMode: 'lazy',
+      cacheMode,
       logger: this.logger,
       fhirClient: this.fhirClient
     });
