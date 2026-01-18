@@ -18,7 +18,6 @@ describe('FumeConfigSchema', () => {
       FHIR_SERVER_TIMEOUT: 30000,
       FHIR_SERVER_UN: '',
       FHIR_VERSION: '4.0.1',
-      PREBUILD_SNAPSHOTS: false,
       SERVER_PORT: 42420,
       SERVER_REQUEST_BODY_LIMIT: '400mb',
       SERVER_STATELESS: false

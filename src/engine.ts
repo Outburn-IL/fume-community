@@ -323,11 +323,10 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       FHIR_PACKAGES,
       FHIR_PACKAGE_CACHE_DIR,
       FHIR_PACKAGE_REGISTRY_URL,
-      FHIR_PACKAGE_REGISTRY_TOKEN,
-      PREBUILD_SNAPSHOTS
+      FHIR_PACKAGE_REGISTRY_TOKEN
     } = this.config;
 
-    const cacheMode = PREBUILD_SNAPSHOTS ? 'ensure' : 'lazy';
+    const cacheMode = 'lazy';
 
     const packageList: FhirPackageIdentifier[] = FHIR_PACKAGES
       ? FHIR_PACKAGES.split(',').map((pkg) => {
