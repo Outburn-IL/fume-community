@@ -23,7 +23,7 @@ import type {
   ICache,
   IConfig
 } from './types';
-import type { ICacheClass } from './types/FumeServer';
+import type { ICacheClass } from './types/FumeEngine';
 
 export interface InitCacheConfig {
   cacheClass: ICacheClass;

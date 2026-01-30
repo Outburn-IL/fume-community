@@ -6,7 +6,7 @@ import { describe, expect, test } from '@jest/globals';
 
 describe('FumeServer mapping provider', () => {
   test('exposes getMappingProvider()', () => {
-    const provider = globalThis.fumeServer.getMappingProvider();
+    const provider = globalThis.fumeServer.getEngine().getMappingProvider();
     expect(provider).toBeTruthy();
   });
 });

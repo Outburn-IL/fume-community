@@ -58,18 +58,18 @@ If you have a downstream project that:
 ### Key rules
 
 - Register extensions (middleware, cache, bindings, extra routes) **before** calling `warmUp()`.
-- The FHIR client is now **owned by `FumeServer`** and **cannot be overridden**.
-  - Remove any `registerFhirClient(...)` usage.
-  - If you need access to the client (read-only), call `server.getFhirClient()` after `warmUp()`.
+- The FHIR client is **owned by `FumeEngine`** (the server is just an HTTP wrapper).
+  - If you need access to the client (read-only), call `server.getEngine().getFhirClient()` after `warmUp()`.
 
 ### Before → After mapping
 
-- `registerLogger(logger)` stays the same.
 - `registerAppMiddleware(fn)` stays the same.
-- `registerCacheClass(CacheClass, options, keys)` stays the same.
-- `registerBinding(key, value)` stays the same.
 - `getExpressApp()` stays the same (add your extra routes there).
-- `registerFhirClient(...)` was removed (server-managed FHIR client).
+- Engine configuration is now explicit via `server.getEngine()`:
+  - `server.getEngine().registerLogger(logger)`
+  - `server.getEngine().registerCacheClass(CacheClass, options, keys)`
+  - `server.getEngine().registerBinding(key, value)`
+- `registerFhirClient(...)` remains unsupported.
 
 ## Removed / changed exports
 

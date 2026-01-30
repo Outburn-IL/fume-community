@@ -13,6 +13,7 @@ export type {
   IAppBinding,
   ICache,
   IConfig,
+  IFumeEngine,
   IFumeServer,
 } from './types';
 

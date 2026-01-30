@@ -2,22 +2,19 @@
  * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
  *   Project name: FUME-COMMUNITY
  */
-import type { FumeMappingProvider } from '@outburn/fume-mapping-provider';
 import cors from 'cors';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import express from 'express';
 import type { Server } from 'http';
 
-import type { IAppCacheKeys } from './cache';
 import { FumeEngine } from './engine';
 import { createHttpRouter } from './http';
 import defaultConfig from './serverConfig';
 import type {
-  IAppBinding,
-  ICacheClass,
   IConfig,
   IFumeServer,
-  Logger} from './types';
+  IFumeEngine
+} from './types';
 
 export class FumeServer<ConfigType extends IConfig> implements IFumeServer<ConfigType> {
   private readonly app: express.Application;
@@ -62,7 +59,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
   /**
    * Start the server
    * Any extensions to the server should be done before calling this method
-   * i.e. registering alternative logger, cache class and express routes.
+    * i.e. configuring the engine (logger/cache/bindings) and adding express routes.
    * @param serverOptions
    */
   public async warmUp (serverOptions?: ConfigType | undefined): Promise<void> {
@@ -84,6 +81,14 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
   }
 
   /**
+   * Access the underlying, transport-agnostic engine.
+   * Downstream projects should use this instead of server-level proxy methods.
+   */
+  public getEngine (): IFumeEngine<ConfigType> {
+    return this.engine;
+  }
+
+  /**
      * @returns express application
      */
   public getExpressApp () {
@@ -97,76 +102,5 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
   public registerAppMiddleware (middleware: RequestHandler) {
     this.appMiddleware = middleware;
     this.engine.getLogger().info('Registered application middleware...');
-  }
-
-  /**
-   * Register a logger to replace the default logger
-   * @param logger
-   */
-  public registerLogger (logger: Logger) {
-    this.engine.registerLogger(logger);
-  }
-
-  /**
-   * Register a class to replace the default cache class
-   * Cache itself is initialized during warm up
-   * @param CacheClass
-   * @param options
-   */
-  public registerCacheClass (
-    CacheClass: ICacheClass,
-    cacheClassOptions: Record<string, IAppBinding>,
-    applyToCaches: IAppCacheKeys[]
-  ) {
-    this.engine.registerCacheClass(CacheClass, cacheClassOptions, applyToCaches);
-  }
-
-  /**
-   * @returns fhir client
-   */
-  public getFhirClient () {
-    return this.engine.getFhirClient();
-  }
-
-  /**
-   * @returns mapping provider
-   */
-  public getMappingProvider (): FumeMappingProvider {
-    return this.engine.getMappingProvider();
-  }
-
-  /**
-   *
-   * @returns cache
-   */
-  public getCache () {
-    return this.engine.getCache();
-  }
-
-  /**
-   *
-   * @returns config
-   */
-  public getConfig () {
-    return this.engine.getConfig();
-  }
-
-  /**
-     * Register additional bindings for `transform` function
-     * @param key
-     * @param binding
-     */
-  public registerBinding (key: string, binding: IAppBinding) {
-    this.engine.registerBinding(key, binding);
-  }
-
-  /**
-   * Calls transform with any additional bindings passed using `registerBinding`
-   * @param input
-   * @param expression
-   * @returns
-   */
-  public async transform (input: unknown, expression: string, bindings: Record<string, IAppBinding> = {}) {
-    return await this.engine.transform(input, expression, bindings);
   }
 }
