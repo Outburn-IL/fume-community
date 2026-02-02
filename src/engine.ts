@@ -492,14 +492,8 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
   }
 
   public async recacheFromServer (): Promise<boolean> {
-    const serverConfig = this.config;
-    if (serverConfig.SERVER_STATELESS) {
-      this.logger.error('FUME running in stateless mode. Cannot recache from server.');
-      return false;
-    }
-
     if (!this.mappingProvider) {
-      this.logger.error('Mapping provider not initialized. Cannot recache from server.');
+      this.logger.warn('Mapping provider not initialized. Cannot recache mappings.');
       return false;
     }
 
