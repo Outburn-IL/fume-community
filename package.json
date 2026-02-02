@@ -60,7 +60,7 @@
     "fhir-terminology-runtime": "^1.1.0",
     "fs-extra": "^11.3.3",
     "fumifier": "^2.0.5",
-    "zod": "^3.25.76"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.29.0",
