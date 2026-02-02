@@ -3,7 +3,7 @@
  *   Project name: FUME-COMMUNITY
  */
 import axios from 'axios';
-import { v2 as compose } from 'docker-compose';
+import compose from 'docker-compose';
 // import { createMockArtifactoryServer, MOCK_ARTIFACTORY_VALID_TOKEN } from 'fhir-package-installer/mock-artifactory-server';
 import fs from 'fs';
 import path from 'path';
