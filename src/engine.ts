@@ -544,9 +544,3 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     }
   }
 }
-
-// Preserve the type for downstream compatibility if anything imported it previously.
-export type { PackageManifest } from 'fhir-package-installer';
-
-// Preserve the type for downstream compatibility if anything imported it previously.
-export type { ICacheEntry };
