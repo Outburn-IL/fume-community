@@ -37,7 +37,6 @@ export class SimpleCache<T> implements ICache<T> {
 
   remove (key: string) {
     if (this.cache[key] !== undefined) {
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete this.cache[key];
     }
   }

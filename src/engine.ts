@@ -446,7 +446,6 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
       const expr = await this.compileExpression(expression);
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
       let bindings: Record<string, unknown> = {};
 
       const converter = this.getOrCreateFormatConverter();

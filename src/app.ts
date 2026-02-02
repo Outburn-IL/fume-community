@@ -9,6 +9,5 @@ server.warmUp().then(() => {
   // warmUp already logs initialization; keep a final line for parity
   console.info('FUME is ready!');
 }).catch((err) => {
-  // eslint-disable-next-line no-console
   console.error({ ERROR: 'FUME failed to initialize', details: err });
 });
