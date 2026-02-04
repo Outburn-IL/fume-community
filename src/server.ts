@@ -12,9 +12,8 @@ import { createHttpRouter } from './http';
 import defaultConfig from './serverConfig';
 import type {
   IConfig,
-  IFumeServer,
-  IFumeEngine
-} from './types';
+  IFumeEngine,
+  IFumeServer} from './types';
 
 export class FumeServer<ConfigType extends IConfig> implements IFumeServer<ConfigType> {
   private readonly app: express.Application;
