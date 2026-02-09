@@ -7,6 +7,7 @@ import type { Request, Response } from 'express';
 
 import { version as engineVersion } from '../../../package.json';
 import type { FumeEngine } from '../../engine';
+import { getRouteParam } from '../../utils/routeParams';
 
 const get = async (req: Request, res: Response) => {
   return res.status(200).json(
@@ -78,7 +79,7 @@ const recache = async (req: Request, res: Response) => {
 
 const operation = async (req: Request, res: Response) => {
   try {
-    const operationName: string = req.params?.operation;
+    const operationName = getRouteParam(req.params, 'operation') ?? '';
     if (operationName === '$transpile') {
       res.status(500).json({ message: 'Operation \'$transpile\' is no longer supported' });
     } else if (operationName === 'recache' || operationName === '$recache') {
