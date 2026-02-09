@@ -2,10 +2,37 @@
  * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
  *   Project name: FUME-COMMUNITY
  */
-import { test } from '@jest/globals';
+import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
+import axios from 'axios';
 import request from 'supertest';
 
+import { LOCAL_FHIR_API } from '../config';
+import { getResourceFileContents } from '../utils/getResourceFileContents';
+
 describe('root route response code tests', () => {
+  beforeAll(async () => {
+    const testMapping = getResourceFileContents('json', 'test-mapping-route.json');
+    const parsedMapping = JSON.parse(testMapping);
+    const mappingId = 'test-mapping-post-basic';
+
+    parsedMapping.id = mappingId;
+    parsedMapping.url = `http://localdev.fume.health/StructureMap/${mappingId}`;
+    if (Array.isArray(parsedMapping.identifier) && parsedMapping.identifier[0]) {
+      parsedMapping.identifier[0].value = parsedMapping.url;
+    }
+    parsedMapping.name = mappingId;
+    parsedMapping.title = mappingId;
+
+    await axios.put(`${LOCAL_FHIR_API}/StructureMap/${mappingId}`, parsedMapping);
+    await request(globalThis.app).post('/$recache');
+  });
+
+  afterAll(async () => {
+    const mappingId = 'test-mapping-post-basic';
+    await axios.delete(`${LOCAL_FHIR_API}/StructureMap/${mappingId}`);
+    await request(globalThis.app).post('/$recache');
+  });
+
   test('get /', async () => {
     await request(globalThis.app).get('/').expect(200);
   });

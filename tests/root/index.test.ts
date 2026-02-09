@@ -2,7 +2,7 @@
  * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
  *   Project name: FUME-COMMUNITY
  */
-import { test } from '@jest/globals';
+import { describe, expect, test } from '@jest/globals';
 import request from 'supertest';
 
 import { getResourceFileContents } from '../utils/getResourceFileContents';
