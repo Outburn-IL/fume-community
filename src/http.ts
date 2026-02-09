@@ -333,12 +333,19 @@ const mappingTransform = async (req: Request, res: Response, next?: NextFunction
       throw error;
     }
 
+    const expression = typeof mapping.expression === 'string' ? mapping.expression : undefined;
+    if (!expression || expression.trim() === '') {
+      logger.error(`Mapping '${mappingId}' does not contain a valid expression`);
+      res.status(500).json({ message: 'Mapping does not contain a valid expression' });
+      return;
+    }
+
     const cache = engine.getCache();
-    let compiledMapping = cache.compiledMappings.get(mapping.expression);
+    let compiledMapping = cache.compiledMappings.get(expression);
 
     if (!compiledMapping) {
-      engine.cacheMapping(mapping.expression);
-      compiledMapping = cache.compiledMappings.get(mapping.expression);
+      engine.cacheMapping(expression);
+      compiledMapping = cache.compiledMappings.get(expression);
     }
 
     if (compiledMapping) {
