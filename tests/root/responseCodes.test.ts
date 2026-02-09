@@ -13,7 +13,7 @@ describe('root route response code tests', () => {
   beforeAll(async () => {
     const testMapping = getResourceFileContents('json', 'test-mapping-route.json');
     const parsedMapping = JSON.parse(testMapping);
-    const mappingId = 'test-mapping-post-basic';
+    const mappingId = 'TestMappingPostBasic';
 
     parsedMapping.id = mappingId;
     parsedMapping.url = `http://localdev.fume.health/StructureMap/${mappingId}`;
@@ -28,7 +28,7 @@ describe('root route response code tests', () => {
   });
 
   afterAll(async () => {
-    const mappingId = 'test-mapping-post-basic';
+    const mappingId = 'TestMappingPostBasic';
     await axios.delete(`${LOCAL_FHIR_API}/StructureMap/${mappingId}`);
     await request(globalThis.app).post('/$recache');
   });
@@ -60,7 +60,7 @@ describe('root route response code tests', () => {
 
   test('unsupported Content-Type returns 415', async () => {
     const res = await request(globalThis.app)
-      .post('/Mapping/test-mapping-post-basic')
+      .post('/Mapping/TestMappingPostBasic')
       .set('Content-Type', 'application/unsupported')
       .send('x')
       .expect(415);
