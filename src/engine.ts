@@ -476,6 +476,49 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     return compiled;
   }
 
+  private getStaticValueBindings (): Record<string, unknown> {
+    if (!this.mappingProvider) {
+      return {};
+    }
+
+    const provider = this.mappingProvider as unknown as {
+      getStaticJsonValues?: () => Array<{ key: string; value: unknown }>;
+      getStaticJsonValuesObject?: () => Record<string, unknown>;
+      getStaticJsonValueKeys?: () => string[];
+      getStaticJsonValue?: (key: string) => { value: unknown } | undefined;
+    };
+
+    if (provider.getStaticJsonValuesObject) {
+      const valuesObject = provider.getStaticJsonValuesObject();
+      return valuesObject ?? {};
+    }
+
+    if (provider.getStaticJsonValues) {
+      const values = provider.getStaticJsonValues();
+      if (Array.isArray(values)) {
+        return values.reduce((acc, entry) => {
+          if (entry && typeof entry.key === 'string') {
+            acc[entry.key] = entry.value;
+          }
+          return acc;
+        }, {} as Record<string, unknown>);
+      }
+    }
+
+    if (provider.getStaticJsonValueKeys && provider.getStaticJsonValue) {
+      const keys = provider.getStaticJsonValueKeys();
+      return keys.reduce((acc, key) => {
+        const entry = provider.getStaticJsonValue?.(key);
+        if (entry) {
+          acc[key] = entry.value;
+        }
+        return acc;
+      }, {} as Record<string, unknown>);
+    }
+
+    return {};
+  }
+
   public async transform (input: unknown, expression: string, extraBindings: Record<string, IAppBinding> = {}) {
     try {
       this.logger.info('Running transformation...');
@@ -490,8 +533,10 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
       if (this.mappingProvider) {
         const aliases = this.mappingProvider.getAliases();
+        const staticValues = this.getStaticValueBindings();
         bindings = {
           ...aliases,
+          ...staticValues,
           ...bindings,
           ...this.bindings,
           ...extraBindings
@@ -547,6 +592,17 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       const aliasKeys = Object.keys(this.mappingProvider.getAliases());
       if (aliasKeys.length > 0) {
         this.logger.info(`Updated cache with aliases: ${aliasKeys.join(', ')}.`);
+      }
+
+      const staticValueProvider = this.mappingProvider as unknown as {
+        reloadStaticJsonValues?: () => Promise<void>;
+      };
+      if (staticValueProvider.reloadStaticJsonValues) {
+        await staticValueProvider.reloadStaticJsonValues();
+        const staticValueKeys = Object.keys(this.getStaticValueBindings());
+        if (staticValueKeys.length > 0) {
+          this.logger.info(`Updated cache with static values: ${staticValueKeys.join(', ')}.`);
+        }
       }
 
       await this.mappingProvider.reloadUserMappings();
