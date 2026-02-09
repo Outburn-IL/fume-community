@@ -435,6 +435,9 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
         if (!mapping) {
           throw new Error(`Mapping '${key}' not found`);
         }
+        if (typeof mapping.expression !== 'string') {
+          throw new Error(`Mapping '${key}' does not contain a valid expression`);
+        }
         return mapping.expression;
       }
     };
@@ -551,7 +554,11 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
       compiledMappings.reset();
       userMappings.forEach((mapping) => {
-        this.cacheMapping(mapping.expression);
+        if (typeof mapping.expression === 'string') {
+          this.cacheMapping(mapping.expression);
+        } else {
+          this.logger.warn(`Skipping mapping '${mapping.key}' without a valid expression`);
+        }
       });
 
       if (userMappings.length > 0) {
