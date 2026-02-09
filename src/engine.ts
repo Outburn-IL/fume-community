@@ -184,7 +184,15 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     this.logger.info('FUME initializing...');
 
     this.setConfig(options);
-    const { SERVER_STATELESS, FHIR_SERVER_BASE } = this.config;
+    const {
+      SERVER_STATELESS,
+      FHIR_SERVER_BASE,
+      MAPPINGS_FOLDER,
+      MAPPINGS_FILE_EXTENSION,
+      MAPPINGS_FILE_POLLING_INTERVAL_MS,
+      MAPPINGS_SERVER_POLLING_INTERVAL_MS,
+      MAPPINGS_FORCED_RESYNC_INTERVAL_MS
+    } = this.config;
 
     this.initCache();
     this.logger.info('Caches initialized');
@@ -205,10 +213,22 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
     this.logger.info(`Loading FUME resources from FHIR server ${FHIR_SERVER_BASE} into cache...`);
 
-    this.mappingProvider = new FumeMappingProvider({
-      fhirClient: this.fhirClient,
-      logger: this.logger
-    });
+    const mappingsFolder = this.normalizeMappingsFolder(MAPPINGS_FOLDER);
+    const mappingsFileExtension = MAPPINGS_FILE_EXTENSION?.trim();
+    const normalizedFileExtension = mappingsFileExtension && mappingsFileExtension.toLowerCase() !== 'n/a'
+      ? mappingsFileExtension
+      : undefined;
+    const mappingProviderConfig: ConstructorParameters<typeof FumeMappingProvider>[0] = {
+      fhirClient: this.fhirClient as unknown as ConstructorParameters<typeof FumeMappingProvider>[0]['fhirClient'],
+      logger: this.logger,
+      ...(mappingsFolder ? { mappingsFolder } : {}),
+      ...(normalizedFileExtension ? { fileExtension: normalizedFileExtension } : {}),
+      ...(typeof MAPPINGS_FILE_POLLING_INTERVAL_MS === 'number' ? { filePollingIntervalMs: MAPPINGS_FILE_POLLING_INTERVAL_MS } : {}),
+      ...(typeof MAPPINGS_SERVER_POLLING_INTERVAL_MS === 'number' ? { serverPollingIntervalMs: MAPPINGS_SERVER_POLLING_INTERVAL_MS } : {}),
+      ...(typeof MAPPINGS_FORCED_RESYNC_INTERVAL_MS === 'number' ? { forcedResyncIntervalMs: MAPPINGS_FORCED_RESYNC_INTERVAL_MS } : {})
+    };
+
+    this.mappingProvider = new FumeMappingProvider(mappingProviderConfig);
 
     await this.mappingProvider.initialize();
     this.logger.info('FumeMappingProvider initialized');
@@ -239,6 +259,19 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       FHIR_SERVER_BASE: fhirServerBase,
       SERVER_STATELESS: isStatelessMode
     } as IConfig;
+  }
+
+  private normalizeMappingsFolder (value?: string): string | undefined {
+    if (!value) {
+      return undefined;
+    }
+
+    const trimmed = value.trim();
+    if (trimmed === '' || trimmed.toLowerCase() === 'n/a') {
+      return undefined;
+    }
+
+    return trimmed;
   }
 
   private initCache () {

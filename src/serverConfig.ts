@@ -15,6 +15,14 @@ const normalizeRegistryUrl = (value: unknown): unknown => {
 	return trimmed;
 };
 
+const normalizeOptionalPath = (value: unknown): unknown => {
+	if (typeof value !== 'string') return value;
+	const trimmed = value.trim();
+	if (trimmed === '') return undefined;
+	if (trimmed.toLowerCase() === 'n/a') return 'n/a';
+	return trimmed;
+};
+
 export const FumeConfigSchema = z.object({
 	SERVER_PORT: z.preprocess((a) => typeof a === 'string' ? parseInt(a) : a, z.number().int('Must be an integer').positive('Must be positive').default(42420)),
 	SERVER_STATELESS: z.preprocess((a) => a === 'true', z.boolean().default(false)),
@@ -31,7 +39,27 @@ export const FumeConfigSchema = z.object({
 		z.string().url().or(z.literal('n/a'))
 	).optional(),
 	FHIR_PACKAGE_REGISTRY_TOKEN: z.string().optional(),
-	FHIR_PACKAGE_CACHE_DIR: z.string().optional()
+	FHIR_PACKAGE_CACHE_DIR: z.string().optional(),
+	MAPPINGS_FOLDER: z.preprocess(
+		normalizeOptionalPath,
+		z.string().min(1).or(z.literal('n/a'))
+	).optional(),
+	MAPPINGS_FILE_EXTENSION: z.preprocess(
+		normalizeOptionalPath,
+		z.string().min(1)
+	).optional(),
+	MAPPINGS_FILE_POLLING_INTERVAL_MS: z.preprocess(
+		(a) => typeof a === 'string' ? parseInt(a) : a,
+		z.number().int('Must be an integer')
+	).optional(),
+	MAPPINGS_SERVER_POLLING_INTERVAL_MS: z.preprocess(
+		(a) => typeof a === 'string' ? parseInt(a) : a,
+		z.number().int('Must be an integer')
+	).optional(),
+	MAPPINGS_FORCED_RESYNC_INTERVAL_MS: z.preprocess(
+		(a) => typeof a === 'string' ? parseInt(a) : a,
+		z.number().int('Must be an integer')
+	).optional()
 });
 
 dotenv.config();

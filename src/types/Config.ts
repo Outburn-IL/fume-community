@@ -17,4 +17,9 @@ export interface IConfig {
   FHIR_PACKAGE_REGISTRY_TOKEN?: string
   FHIR_PACKAGE_CACHE_DIR?: string
   FHIR_PACKAGE_REGISTRY_ALLOW_HTTP?: boolean // Allow HTTP registry usage (for testing against local mock Artifactory)
+  MAPPINGS_FOLDER?: string
+  MAPPINGS_FILE_EXTENSION?: string
+  MAPPINGS_FILE_POLLING_INTERVAL_MS?: number
+  MAPPINGS_SERVER_POLLING_INTERVAL_MS?: number
+  MAPPINGS_FORCED_RESYNC_INTERVAL_MS?: number
 }
