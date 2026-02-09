@@ -7,6 +7,7 @@ import express, { type NextFunction, type Request, type Response } from 'express
 
 import { version as engineVersion } from '../package.json';
 import type { FumeEngine } from './engine';
+import { getRouteParam } from './utils/routeParams';
 
 type EngineLocals = { engine: FumeEngine };
 
@@ -181,7 +182,7 @@ const rootRecache = async (req: Request, res: Response, options?: { deprecated?:
 
 const rootOperation = async (req: Request, res: Response) => {
   try {
-    const operationName: string = req.params?.operation;
+    const operationName = getRouteParam(req.params, 'operation') ?? '';
     if (operationName === '$transpile') {
       return res.status(500).json({ message: "Operation '$transpile' is no longer supported" });
     } else if (operationName === '$recache') {
@@ -209,7 +210,11 @@ const mappingGet = async (req: Request, res: Response) => {
   const logger = engine.getLogger();
 
   try {
-    const mappingId: string = req.params.mappingId;
+    const mappingId = getRouteParam(req.params, 'mappingId');
+    if (!mappingId) {
+      res.status(400).json({ message: 'missing mappingId' });
+      return;
+    }
     const provider = engine.getMappingProvider();
     const mapping = provider.getUserMapping(mappingId);
 
@@ -284,7 +289,11 @@ const mappingTransform = async (req: Request, res: Response, next?: NextFunction
   const logger = engine.getLogger();
 
   try {
-    const mappingId = req.params.mappingId;
+    const mappingId = getRouteParam(req.params, 'mappingId');
+    if (!mappingId) {
+      res.status(400).json({ message: 'missing mappingId' });
+      return;
+    }
 
     // PUT is reserved for mapping update when no internal subroute exists.
     // (FUME Community doesn't implement update, but downstream products can register it.)
@@ -355,7 +364,7 @@ const mappingTransform = async (req: Request, res: Response, next?: NextFunction
 };
 
 const mappingOperation = async (req: Request, res: Response) => {
-  const operationName: string = req.params?.operation;
+  const operationName = getRouteParam(req.params, 'operation') ?? '';
   if (operationName === '$transpile') {
     res.status(500).json({ message: "Operation '$transpile' is no longer supported" });
   } else {

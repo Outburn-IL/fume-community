@@ -6,13 +6,18 @@
 import type { Request, Response } from 'express';
 
 import type { FumeEngine } from '../../engine';
+import { getRouteParam } from '../../utils/routeParams';
 
 const get = async (req: Request, res: Response) => {
   const engine = req.app.locals.engine as FumeEngine;
   const logger = engine.getLogger();
   try {
     // get mapping id from route
-    const mappingId: string = req.params.mappingId;
+    const mappingId = getRouteParam(req.params, 'mappingId');
+    if (!mappingId) {
+      res.status(400).json({ message: 'missing mappingId' });
+      return;
+    }
     // get mapping from provider
     const provider = engine.getMappingProvider();
     const mapping = provider.getUserMapping(mappingId);
@@ -35,7 +40,11 @@ const transform = async (req: Request, res: Response) => {
   const engine = req.app.locals.engine as FumeEngine;
   const logger = engine.getLogger();
   try {
-    const mappingId = req.params.mappingId;
+    const mappingId = getRouteParam(req.params, 'mappingId');
+    if (!mappingId) {
+      res.status(400).json({ message: 'missing mappingId' });
+      return;
+    }
     
     // Get mapping expression from provider
     const provider = engine.getMappingProvider();
@@ -75,7 +84,7 @@ const transform = async (req: Request, res: Response) => {
 };
 
 const operation = async (req: Request, res: Response) => {
-  const operationName: string = req.params?.operation;
+  const operationName = getRouteParam(req.params, 'operation') ?? '';
   if (operationName === '$transpile') {
     res.status(500).json({ message: 'Operation \'$transpile\' is no longer supported' });
   } else {
