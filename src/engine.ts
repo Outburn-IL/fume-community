@@ -371,7 +371,8 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       FHIR_PACKAGES,
       FHIR_PACKAGE_CACHE_DIR,
       FHIR_PACKAGE_REGISTRY_URL,
-      FHIR_PACKAGE_REGISTRY_TOKEN
+      FHIR_PACKAGE_REGISTRY_TOKEN,
+      MAPPINGS_SERVER_POLLING_INTERVAL_MS
     } = this.config;
 
     const cacheMode = 'lazy';
@@ -415,7 +416,10 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       fhirVersion: FHIR_VERSION as FhirVersion,
       cacheMode,
       logger: this.logger,
-      fhirClient: this.fhirClient
+      fhirClient: this.fhirClient,
+      ...(typeof MAPPINGS_SERVER_POLLING_INTERVAL_MS === 'number'
+        ? { serverConceptMapPollingIntervalMs: MAPPINGS_SERVER_POLLING_INTERVAL_MS }
+        : {})
     });
 
     const contextPackages = fpe.getContextPackages();
