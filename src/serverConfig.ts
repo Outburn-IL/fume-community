@@ -15,6 +15,14 @@ const normalizeRegistryUrl = (value: unknown): unknown => {
 	return trimmed;
 };
 
+const normalizeOptionalUrl = (value: unknown): unknown => {
+	if (typeof value !== 'string') return value;
+	const trimmed = value.trim();
+	if (trimmed === '') return undefined;
+	if (trimmed.toLowerCase() === 'n/a') return 'n/a';
+	return trimmed;
+};
+
 const normalizeOptionalPath = (value: unknown): unknown => {
 	if (typeof value !== 'string') return value;
 	const trimmed = value.trim();
@@ -25,9 +33,11 @@ const normalizeOptionalPath = (value: unknown): unknown => {
 
 export const FumeConfigSchema = z.object({
 	SERVER_PORT: z.preprocess((a) => typeof a === 'string' ? parseInt(a) : a, z.number().int('Must be an integer').positive('Must be positive').default(42420)),
-	SERVER_STATELESS: z.preprocess((a) => a === 'true', z.boolean().default(false)),
 	SERVER_REQUEST_BODY_LIMIT: z.string().min(1).default('400mb'),
-	FHIR_SERVER_BASE: z.string().min(1).url().default('http://hapi-fhir.outburn.co.il/fhir'),
+	FHIR_SERVER_BASE: z.preprocess(
+		normalizeOptionalUrl,
+		z.string().min(1).url().or(z.literal('n/a')).default('http://hapi-fhir.outburn.co.il/fhir')
+	),
 	FHIR_SERVER_AUTH_TYPE: z.string().default('NONE'),
 	FHIR_SERVER_UN: z.string().default(''),
 	FHIR_SERVER_PW: z.string().default(''),

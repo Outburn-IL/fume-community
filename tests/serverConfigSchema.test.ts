@@ -3,7 +3,7 @@
  *   Project name: FUME-COMMUNITY
  */
 
-import { test } from '@jest/globals';
+import { describe, expect,test } from '@jest/globals';
 
 import { FumeConfigSchema } from '../src/serverConfig';
 
@@ -19,8 +19,7 @@ describe('FumeConfigSchema', () => {
       FHIR_SERVER_UN: '',
       FHIR_VERSION: '4.0.1',
       SERVER_PORT: 42420,
-      SERVER_REQUEST_BODY_LIMIT: '400mb',
-      SERVER_STATELESS: false
+      SERVER_REQUEST_BODY_LIMIT: '400mb'
     });
   });
 });

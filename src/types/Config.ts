@@ -4,7 +4,6 @@
  */
 export interface IConfig {
   SERVER_PORT: number
-  SERVER_STATELESS: boolean
   SERVER_REQUEST_BODY_LIMIT?: string
   FHIR_SERVER_BASE: string
   FHIR_SERVER_TIMEOUT: number

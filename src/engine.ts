@@ -183,9 +183,14 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
     this.logger.info('FUME initializing...');
 
+    const deprecatedStateless = (options as { SERVER_STATELESS?: unknown })?.SERVER_STATELESS !== undefined
+      || typeof process?.env?.SERVER_STATELESS === 'string';
+    if (deprecatedStateless) {
+      this.logger.warn('SERVER_STATELESS is deprecated and ignored. Use FHIR_SERVER_BASE and/or MAPPINGS_FOLDER (set to n/a to disable).');
+    }
+
     this.setConfig(options);
     const {
-      SERVER_STATELESS,
       FHIR_SERVER_BASE,
       MAPPINGS_FOLDER,
       MAPPINGS_FILE_EXTENSION,
@@ -194,33 +199,37 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       MAPPINGS_FORCED_RESYNC_INTERVAL_MS
     } = this.config;
 
+    const normalizedFhirServerBase = this.normalizeFhirServerBase(FHIR_SERVER_BASE);
+    const normalizedMappingsFolder = this.normalizeMappingsFolder(MAPPINGS_FOLDER);
+    const hasMappingSources = !!normalizedFhirServerBase || !!normalizedMappingsFolder;
+
     this.initCache();
     this.logger.info('Caches initialized');
 
     // Create the FHIR client before building the global FHIR context so that
     // downstream components (e.g. terminology runtime) can reuse it.
-    if (!SERVER_STATELESS && !this.fhirClient) {
+    if (normalizedFhirServerBase && !this.fhirClient) {
       this.fhirClient = this.createFhirClient();
     }
 
     await this.initializeGlobalFhirContext();
     this.logger.info('Global FHIR context initialized');
 
-    if (SERVER_STATELESS) {
-      this.logger.info('Running in stateless mode');
+    if (!hasMappingSources) {
+      this.logger.info('No mapping sources configured. Skipping mapping provider initialization.');
       return;
     }
 
-    this.logger.info(`Loading FUME resources from FHIR server ${FHIR_SERVER_BASE} into cache...`);
+    this.logger.info('Loading FUME mappings from configured sources into cache...');
 
-    const mappingsFolder = this.normalizeMappingsFolder(MAPPINGS_FOLDER);
+    const mappingsFolder = normalizedMappingsFolder;
     const mappingsFileExtension = MAPPINGS_FILE_EXTENSION?.trim();
     const normalizedFileExtension = mappingsFileExtension && mappingsFileExtension.toLowerCase() !== 'n/a'
       ? mappingsFileExtension
       : undefined;
     const mappingProviderConfig: ConstructorParameters<typeof FumeMappingProvider>[0] = {
-      fhirClient: this.fhirClient as unknown as ConstructorParameters<typeof FumeMappingProvider>[0]['fhirClient'],
       logger: this.logger,
+      ...(this.fhirClient ? { fhirClient: this.fhirClient as ConstructorParameters<typeof FumeMappingProvider>[0]['fhirClient'] } : {}),
       ...(mappingsFolder ? { mappingsFolder } : {}),
       ...(normalizedFileExtension ? { fileExtension: normalizedFileExtension } : {}),
       ...(typeof MAPPINGS_FILE_POLLING_INTERVAL_MS === 'number' ? { filePollingIntervalMs: MAPPINGS_FILE_POLLING_INTERVAL_MS } : {}),
@@ -243,22 +252,28 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
    * Normalize and set runtime config.
    */
   public setConfig (config: Partial<ConfigType>) {
-    let fhirServerBase: string | undefined = config.FHIR_SERVER_BASE ? config.FHIR_SERVER_BASE.trim() : undefined;
-    let isStatelessMode: boolean | undefined = config.SERVER_STATELESS;
-
-    if (!fhirServerBase || fhirServerBase === '' || isStatelessMode) {
-      fhirServerBase = '';
-      isStatelessMode = true;
-    } else {
-      isStatelessMode = false;
-    }
+    const { SERVER_STATELESS: _deprecated, ...rest } = config as Partial<ConfigType> & { SERVER_STATELESS?: boolean };
+    void _deprecated;
+    const fhirServerBase = this.normalizeFhirServerBase(rest.FHIR_SERVER_BASE ?? defaultConfig.FHIR_SERVER_BASE);
 
     this.config = {
       ...defaultConfig,
-      ...config,
-      FHIR_SERVER_BASE: fhirServerBase,
-      SERVER_STATELESS: isStatelessMode
+      ...rest,
+      FHIR_SERVER_BASE: fhirServerBase ?? ''
     } as IConfig;
+  }
+
+  private normalizeFhirServerBase (value?: string): string | undefined {
+    if (!value) {
+      return undefined;
+    }
+
+    const trimmed = value.trim();
+    if (trimmed === '' || trimmed.toLowerCase() === 'n/a') {
+      return undefined;
+    }
+
+    return trimmed;
   }
 
   private normalizeMappingsFolder (value?: string): string | undefined {

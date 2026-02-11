@@ -30,17 +30,12 @@ This section describes how to deploy the server
 
 ## Environment Variables
 
-### Stateless deployment
+Copy the `.env.example` file to `.env` and edit it to set the environment variables.
 
-Stateless means no FHIR server connection. 
-Copy the `.env.example.stateless` file to `.env` and edit it to set the environment variables.
-**NOTE:** In stateless mode, you can run mappings you pass to the API, but you cannot load mappings from a FHIR server. Needless to say, mappings that try to fetch data from a FHIR server using functions like $search, $resolve, $literal etc will throw an error.
-
-### Stateful deployment
-
-Copy the `.env.example.stateful` file to `.env` and edit it to set the environment variables.
-
-**NOTE:** You _MUST_ edit the `FHIR_SERVER_BASE` environment variable to point to your FHIR server
+**Notes:**
+- Set `FHIR_SERVER_BASE` to your FHIR server endpoint, or `n/a` to disable the server source.
+- Set `MAPPINGS_FOLDER` to a folder path (or `n/a`) to enable or disable file-based mappings/aliases.
+- If both sources are unset or `n/a`, saved-mapping endpoints are disabled and return `405`.
 
 # In a Node.js application
 Install the module into your project:

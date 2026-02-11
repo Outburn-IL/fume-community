@@ -24,7 +24,7 @@ import { FumeEngine } from 'fume-fhir-converter';
 
 const engine = new FumeEngine();
 await engine.warmUp({
-  SERVER_STATELESS: true,
+  FHIR_SERVER_BASE: 'n/a',
   FHIR_VERSION: '4.0.1',
   FHIR_PACKAGES: 'il.core.fhir.r4@0.14.2'
 });

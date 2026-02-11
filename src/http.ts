@@ -7,6 +7,7 @@ import express, { type NextFunction, type Request, type Response } from 'express
 
 import { version as engineVersion } from '../package.json';
 import type { FumeEngine } from './engine';
+import { getFhirServerEndpoint, hasMappingSources } from './utils/mappingSources';
 import { getRouteParam } from './utils/routeParams';
 
 type EngineLocals = { engine: FumeEngine };
@@ -26,8 +27,8 @@ const getEngine = (req: Request): FumeEngine => {
 
 const failOnStateless = (req: Request, res: Response, next: NextFunction) => {
   const engine = getEngine(req);
-  if (engine.getConfig().SERVER_STATELESS) {
-    res.status(405).json({ message: 'Endpoint unavailable without FHIR server' });
+  if (!hasMappingSources(engine.getConfig())) {
+    res.status(405).json({ message: 'Endpoint unavailable without mapping sources (FHIR server or mappings folder).' });
     return;
   }
   next();
@@ -36,7 +37,7 @@ const failOnStateless = (req: Request, res: Response, next: NextFunction) => {
 const rootGet = async (req: Request, res: Response) => {
   const engine = getEngine(req);
   const config = engine.getConfig();
-  const fhirServerEndpoint = config.SERVER_STATELESS ? 'n/a' : config.FHIR_SERVER_BASE;
+  const fhirServerEndpoint = getFhirServerEndpoint(config);
   const contextPackages = engine.getContextPackages();
   const uptime = engine.getUptime();
 
@@ -139,8 +140,8 @@ const rootRecache = async (req: Request, res: Response, options?: { deprecated?:
   const engine = getEngine(req);
   const logger = engine.getLogger();
 
-  if (engine.getConfig().SERVER_STATELESS) {
-    return res.status(405).json({ message: 'Endpoint unavailable without FHIR server' });
+  if (!hasMappingSources(engine.getConfig())) {
+    return res.status(405).json({ message: 'Endpoint unavailable without mapping sources (FHIR server or mappings folder).' });
   }
 
   if (options?.deprecated) {

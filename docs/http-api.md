@@ -7,14 +7,19 @@ This document describes the public HTTP surface exposed by the FUME Community se
 FUME exposes two primary ways to evaluate mappings:
 
 - **Ad-hoc expressions**: send an expression in the request body to `POST /`.
-- **Saved mappings (StructureMap)**: when running in *stateful* mode (FHIR server configured), cached StructureMap resources become runnable endpoints under `/Mapping/{mappingId}`.
+- **Saved mappings (StructureMap)**: when mapping sources are configured, cached mappings become runnable endpoints under `/Mapping/{mappingId}`.
 
-### Stateful vs stateless
+### Mapping sources
 
-- **Stateful** (`SERVER_STATELESS=false`): the server connects to a FHIR server, loads mappings and aliases, and enables `/Mapping/*` endpoints.
-- **Stateless** (`SERVER_STATELESS=true`): the server does not connect to a FHIR server.
-  - `POST /` (ad-hoc evaluation) remains available.
-  - `/Mapping/*` endpoints are disabled and return `405`.
+Mappings and aliases can be loaded from:
+
+- **FHIR server** (`FHIR_SERVER_BASE`)
+- **Local files** (`MAPPINGS_FOLDER`)
+
+If both sources are unset or `n/a`:
+
+- `POST /` (ad-hoc evaluation) remains available.
+- `/Mapping/*` endpoints are disabled and return `405`.
 
 ### Content types
 
@@ -90,9 +95,9 @@ Root operations.
 
 #### `POST /$recache` (preferred)
 
-Reloads mappings and aliases from the configured FHIR server into cache. Flushes the ConceptMap cache (`$translate()` calls will re-populate the cache with a fresh version of the requested ConceptMap).
+Reloads mappings and aliases from the configured sources into cache. Flushes the ConceptMap cache (`$translate()` calls will re-populate the cache with a fresh version of the requested ConceptMap).
 
-- Available only in **stateful** mode.
+- Available only when at least one mapping source is configured.
 - Returns `200` with a list of mapping keys on success.
 - Returns `500` if the cache could not be refreshed.
 
@@ -112,7 +117,7 @@ Recache has side-effects, so `GET /recache` is no longer supported.
 
 ## Saved-mapping endpoints (`/Mapping/*`)
 
-All `/Mapping/*` endpoints are available only in **stateful** mode.
+All `/Mapping/*` endpoints are available only when at least one mapping source is configured.
 
 ### `GET /Mapping/{mappingId}`
 

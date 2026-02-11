@@ -6,11 +6,12 @@
 import type { NextFunction, Request, Response } from 'express';
 
 import type { FumeEngine } from '../../engine';
+import { hasMappingSources } from '../../utils/mappingSources';
 
 export const failOnStateless = (req: Request, res: Response, next: NextFunction) => {
   const engine = req.app.locals.engine as FumeEngine;
-  if (engine.getConfig().SERVER_STATELESS) {
-    res.status(405).json({ message: 'Endpoint unavailable without FHIR server' });
+  if (!hasMappingSources(engine.getConfig())) {
+    res.status(405).json({ message: 'Endpoint unavailable without mapping sources (FHIR server or mappings folder).' });
     return;
   }
   next();
