@@ -30,15 +30,6 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     this.app = express();
     // Make engine available to route handlers (no module-level state)
     this.app.locals.engine = this.engine;
-    const requestBodyLimit = defaultConfig.SERVER_REQUEST_BODY_LIMIT;
-    this.app.use(express.urlencoded({ extended: true, limit: requestBodyLimit }));
-    this.app.use(express.json({ limit: requestBodyLimit, type: ['application/json', 'application/fhir+json', 'application/json+fhir', 'text/json'] }));
-    this.app.use(express.text({ limit: requestBodyLimit, type: ['text/plain', 'application/vnd.outburn.fume', 'x-application/hl7-v2+er7', 'text/csv', 'application/xml', 'application/fhir+xml', 'application/xml+fhir'] }));
-    this.app.use(cors());
-
-    // Mount a stable wrapper so any middleware registered via registerAppMiddleware
-    // will run for ALL routes (including those registered by downstream consumers).
-    this.app.use((req: Request, res: Response, next: NextFunction) => this.appMiddleware(req, res, next));
   }
 
   public async shutDown (): Promise<void> {
@@ -62,9 +53,25 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
    * @param serverOptions
    */
   public async warmUp (serverOptions?: ConfigType | undefined): Promise<void> {
+    if (this.server) {
+      throw new Error('Server is already running');
+    }
+
     const options = (serverOptions ?? defaultConfig) as ConfigType;
     await this.engine.warmUp(options);
     const { SERVER_PORT } = this.engine.getConfig();
+
+    // Configure request body parsing using the effective config.
+    // This must happen BEFORE mounting routes.
+    const requestBodyLimit = options.SERVER_REQUEST_BODY_LIMIT ?? defaultConfig.SERVER_REQUEST_BODY_LIMIT;
+    this.app.use(express.urlencoded({ extended: true, limit: requestBodyLimit }));
+    this.app.use(express.json({ limit: requestBodyLimit, type: ['application/json', 'application/fhir+json', 'application/json+fhir', 'text/json'] }));
+    this.app.use(express.text({ limit: requestBodyLimit, type: ['text/plain', 'application/vnd.outburn.fume', 'x-application/hl7-v2+er7', 'text/csv', 'application/xml', 'application/fhir+xml', 'application/xml+fhir'] }));
+    this.app.use(cors());
+
+    // Mount a stable wrapper so any middleware registered via registerAppMiddleware
+    // will run for ALL routes (including those registered by downstream consumers).
+    this.app.use((req: Request, res: Response, next: NextFunction) => this.appMiddleware(req, res, next));
 
     // mount routes handler
     const http = createHttpRouter();
