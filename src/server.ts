@@ -19,6 +19,12 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
   private readonly app: express.Application;
   private server?: Server;
   private readonly engine: FumeEngine<ConfigType>;
+  private bodyParserCache?: {
+    limit: string;
+    urlencoded: RequestHandler;
+    json: RequestHandler;
+    text: RequestHandler;
+  };
 
   // default app middleware does nothing - just calls next
   private appMiddleware: RequestHandler = (req: Request, res: Response, next: NextFunction) => {
@@ -30,6 +36,45 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     this.app = express();
     // Make engine available to route handlers (no module-level state)
     this.app.locals.engine = this.engine;
+
+    // Body parsing must be registered BEFORE downstream consumers add routes,
+    // otherwise those routes won't receive parsed bodies.
+    // We resolve the limit dynamically from the warmed config so consumers can
+    // override it via config passed to warmUp().
+    this.app.use((req: Request, res: Response, next: NextFunction) => {
+      const defaultLimit = defaultConfig.SERVER_REQUEST_BODY_LIMIT ?? '400mb';
+      const effectiveLimit = this.engine.getConfig().SERVER_REQUEST_BODY_LIMIT ?? defaultLimit;
+      if (!this.bodyParserCache || this.bodyParserCache.limit !== effectiveLimit) {
+        this.bodyParserCache = {
+          limit: effectiveLimit,
+          urlencoded: express.urlencoded({ extended: true, limit: effectiveLimit }),
+          json: express.json({ limit: effectiveLimit, type: ['application/json', 'application/fhir+json', 'application/json+fhir', 'text/json'] }),
+          text: express.text({ limit: effectiveLimit, type: ['text/plain', 'application/vnd.outburn.fume', 'x-application/hl7-v2+er7', 'text/csv', 'application/xml', 'application/fhir+xml', 'application/xml+fhir'] })
+        };
+      }
+
+      const bodyParsers = this.bodyParserCache;
+      if (!bodyParsers) {
+        next();
+        return;
+      }
+
+      // Each parser is type-gated; chaining is safe and ensures the right
+      // parser runs based on Content-Type.
+      bodyParsers.urlencoded(req, res, (err) => {
+        if (err) return next(err);
+        bodyParsers.json(req, res, (err2) => {
+          if (err2) return next(err2);
+          bodyParsers.text(req, res, next);
+        });
+      });
+    });
+
+    this.app.use(cors());
+
+    // Mount a stable wrapper so any middleware registered via registerAppMiddleware
+    // will run for ALL routes (including those registered by downstream consumers).
+    this.app.use((req: Request, res: Response, next: NextFunction) => this.appMiddleware(req, res, next));
   }
 
   public async shutDown (): Promise<void> {
@@ -53,25 +98,9 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
    * @param serverOptions
    */
   public async warmUp (serverOptions?: ConfigType | undefined): Promise<void> {
-    if (this.server) {
-      throw new Error('Server is already running');
-    }
-
     const options = (serverOptions ?? defaultConfig) as ConfigType;
     await this.engine.warmUp(options);
     const { SERVER_PORT } = this.engine.getConfig();
-
-    // Configure request body parsing using the effective config.
-    // This must happen BEFORE mounting routes.
-    const requestBodyLimit = options.SERVER_REQUEST_BODY_LIMIT ?? defaultConfig.SERVER_REQUEST_BODY_LIMIT;
-    this.app.use(express.urlencoded({ extended: true, limit: requestBodyLimit }));
-    this.app.use(express.json({ limit: requestBodyLimit, type: ['application/json', 'application/fhir+json', 'application/json+fhir', 'text/json'] }));
-    this.app.use(express.text({ limit: requestBodyLimit, type: ['text/plain', 'application/vnd.outburn.fume', 'x-application/hl7-v2+er7', 'text/csv', 'application/xml', 'application/fhir+xml', 'application/xml+fhir'] }));
-    this.app.use(cors());
-
-    // Mount a stable wrapper so any middleware registered via registerAppMiddleware
-    // will run for ALL routes (including those registered by downstream consumers).
-    this.app.use((req: Request, res: Response, next: NextFunction) => this.appMiddleware(req, res, next));
 
     // mount routes handler
     const http = createHttpRouter();
