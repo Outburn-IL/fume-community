@@ -158,7 +158,6 @@ async function setup () {
   const firstServer = new FumeServer();
   await firstServer.warmUp({
     SERVER_PORT: 42420,
-    SERVER_STATELESS: false,
     FHIR_SERVER_BASE: LOCAL_FHIR_API,
     FHIR_SERVER_AUTH_TYPE: 'NONE',
     FHIR_SERVER_UN: '',
@@ -248,7 +247,6 @@ async function setup () {
   // }
   // await globalThis.fumeServer.warmUp({
   //   SERVER_PORT: 42420,
-  //   SERVER_STATELESS: false,
   //   FHIR_SERVER_BASE: LOCAL_FHIR_API,
   //   FHIR_SERVER_AUTH_TYPE: 'NONE',
   //   FHIR_SERVER_UN: '',
