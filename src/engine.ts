@@ -13,7 +13,7 @@ import { FhirSnapshotGenerator } from 'fhir-snapshot-generator';
 import { FhirTerminologyRuntime } from 'fhir-terminology-runtime';
 import fumifier, { type FumifierCompiled, type FumifierOptions, type MappingCacheInterface } from 'fumifier';
 
-import type { IAppCache, IAppCacheKeys, ICacheEntry } from './cache';
+import type { IAppCache, IAppCacheKeys } from './cache';
 import { SimpleCache } from './cache';
 import defaultConfig from './serverConfig';
 import type {
@@ -291,8 +291,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
   private initCache () {
     const cacheKeys: IAppCacheKeys[] = [
-      'compiledExpressions',
-      'compiledMappings'
+      'compiledExpressions'
     ];
 
     const cache = cacheKeys
@@ -576,21 +575,6 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     }
   }
 
-  // Saves a mapping's compiled function in cache, keyed by expression
-  public cacheMapping (mappingExpr: string) {
-    const cache = this.getCache();
-
-    if (!cache.compiledMappings.get(mappingExpr)) {
-      const mappingFunc = async (input: unknown, bindings?: Record<string, unknown>) => {
-        const res = await this.transform(input, mappingExpr, bindings ?? {});
-        return res;
-      };
-
-      const cacheEntry: ICacheEntry = { function: mappingFunc };
-      cache.compiledMappings.set(mappingExpr, cacheEntry);
-    }
-  }
-
   public async recacheFromServer (): Promise<boolean> {
     if (!this.mappingProvider) {
       this.logger.warn('Mapping provider not initialized. Cannot recache mappings.');
@@ -598,8 +582,6 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     }
 
     try {
-      const { compiledMappings } = this.getCache();
-
       // Clear terminology ConceptMap cache so mappings that depend on server ConceptMaps
       // will re-resolve against fresh data after a recache.
       const terminologyRuntime = this.globalFhirContext.terminologyRuntime;
@@ -626,15 +608,6 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
       await this.mappingProvider.reloadUserMappings();
       const userMappings = this.mappingProvider.getUserMappings();
-
-      compiledMappings.reset();
-      userMappings.forEach((mapping) => {
-        if (typeof mapping.expression === 'string') {
-          this.cacheMapping(mapping.expression);
-        } else {
-          this.logger.warn(`Skipping mapping '${mapping.key}' without a valid expression`);
-        }
-      });
 
       if (userMappings.length > 0) {
         this.logger.info(`Updated cache with mappings: ${userMappings.map((m) => m.key).join(', ')}.`);

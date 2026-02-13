@@ -341,23 +341,10 @@ const mappingTransform = async (req: Request, res: Response, next?: NextFunction
       return;
     }
 
-    const cache = engine.getCache();
-    let compiledMapping = cache.compiledMappings.get(expression);
-
-    if (!compiledMapping) {
-      engine.cacheMapping(expression);
-      compiledMapping = cache.compiledMappings.get(expression);
-    }
-
-    if (compiledMapping) {
-      const fumeHttpInvocation = createFumeHttpInvocation(req, mappingId);
-      const result = await compiledMapping.function(inputJson, { fumeHttpInvocation });
-      res.set('Content-Type', 'application/json');
-      res.status(200).json(result);
-    } else {
-      logger.error(`Failed to compile mapping '${mappingId}'`);
-      res.status(500).json({ message: 'Failed to compile mapping' });
-    }
+    const fumeHttpInvocation = createFumeHttpInvocation(req, mappingId);
+    const result = await engine.transform(inputJson, expression, { fumeHttpInvocation } as unknown as Record<string, unknown>);
+    res.set('Content-Type', 'application/json');
+    res.status(200).json(result);
   } catch (error) {
     if (isUnsupportedContentTypeError(error)) {
       res.status(415).json({

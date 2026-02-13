@@ -58,25 +58,17 @@ const transform = async (req: Request, res: Response) => {
     
     const contentType = req.get('Content-Type');
     const inputJson = await engine.convertInputToJson(req.body, contentType ?? undefined);
-    
-    // Check if compiled version is cached (keyed by expression)
-    const cache = engine.getCache();
-    let compiledMapping = cache.compiledMappings.get(mapping.expression);
-    
-    if (!compiledMapping) {
-      // Not cached - compile and cache it
-      engine.cacheMapping(mapping.expression);
-      compiledMapping = cache.compiledMappings.get(mapping.expression);
+
+    const expression = typeof mapping.expression === 'string' ? mapping.expression : undefined;
+    if (!expression || expression.trim() === '') {
+      logger.error(`Mapping '${mappingId}' does not contain a valid expression`);
+      res.status(500).json({ message: 'Mapping does not contain a valid expression' });
+      return;
     }
-    
-    if (compiledMapping) {
-      const result = await compiledMapping.function(inputJson);
-      res.set('Content-Type', 'application/json');
-      res.status(200).json(result);
-    } else {
-      logger.error(`Failed to compile mapping '${mappingId}'`);
-      res.status(500).json({ message: 'Failed to compile mapping' });
-    }
+
+    const result = await engine.transform(inputJson, expression);
+    res.set('Content-Type', 'application/json');
+    res.status(200).json(result);
   } catch (error) {
     logger.error({ error });
     res.status(500).json({ message: error });

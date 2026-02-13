@@ -7,13 +7,8 @@ import type { FumifierCompiled } from 'fumifier';
 
 import type { ICache } from './types';
 
-export interface ICacheEntry {
-  function: (input: unknown, bindings?: Record<string, unknown>) => Promise<unknown>;
-}
-
 export interface IAppCache {
   compiledExpressions: ICache<FumifierCompiled>;
-  compiledMappings: ICache<ICacheEntry>;
 }
 
 export type IAppCacheKeys = keyof IAppCache;
