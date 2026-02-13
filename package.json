@@ -59,7 +59,7 @@
     "fhir-snapshot-generator": "^2.2.2",
     "fhir-terminology-runtime": "^1.2.0",
     "fs-extra": "^11.3.3",
-    "fumifier": "^2.0.6",
+    "fumifier": "^2.1.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
