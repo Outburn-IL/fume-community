@@ -13,7 +13,7 @@ import { FhirSnapshotGenerator } from 'fhir-snapshot-generator';
 import { FhirTerminologyRuntime } from 'fhir-terminology-runtime';
 import fumifier, { type FumifierCompiled, type FumifierOptions, type MappingCacheInterface } from 'fumifier';
 
-import type { IAppCache, IAppCacheKeys } from './cache';
+import { version as engineVersion } from '../package.json';
 import { SimpleCache } from './cache';
 import defaultConfig from './serverConfig';
 import type {
@@ -23,12 +23,6 @@ import type {
   ICache,
   IConfig
 } from './types';
-import type { ICacheClass } from './types/FumeEngine';
-
-export interface InitCacheConfig {
-  cacheClass: ICacheClass;
-  cacheClassOptions: Record<string, unknown>;
-}
 
 interface GlobalFhirContext {
   navigator: FhirStructureNavigator | null;
@@ -70,8 +64,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
   private globalFhirContext: GlobalFhirContext = defaultGlobalFhirContext();
 
-  private cache?: IAppCache;
-  private cacheConfig: Partial<Record<IAppCacheKeys, InitCacheConfig>> = {};
+  private compiledExpressionCache: ICache<FumifierCompiled> = new SimpleCache<FumifierCompiled>({});
 
   private formatConverter?: FormatConverter;
 
@@ -87,19 +80,8 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     return this.logger;
   }
 
-  public registerCacheClass (
-    CacheClass: ICacheClass,
-    cacheClassOptions: Record<string, unknown>,
-    applyToCaches: IAppCacheKeys[]
-  ) {
-    if (applyToCaches.length === 0) {
-      this.logger.warn('No cache keys provided to apply cache class to');
-      return;
-    }
-
-    applyToCaches.forEach((cacheKey) => {
-      this.cacheConfig[cacheKey] = { cacheClass: CacheClass, cacheClassOptions };
-    });
+  public setCompiledExpressionCache (cache: ICache<FumifierCompiled>) {
+    this.compiledExpressionCache = cache;
   }
 
   public registerBinding (key: string, binding: IAppBinding) {
@@ -122,13 +104,6 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       throw new Error('Mapping provider not initialized');
     }
     return this.mappingProvider;
-  }
-
-  public getCache (): IAppCache {
-    if (!this.cache) {
-      throw new Error('Cache not initialized');
-    }
-    return this.cache;
   }
 
   public getConfig (): ConfigType {
@@ -202,9 +177,6 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     const normalizedFhirServerBase = this.normalizeFhirServerBase(FHIR_SERVER_BASE);
     const normalizedMappingsFolder = this.normalizeMappingsFolder(MAPPINGS_FOLDER);
     const hasMappingSources = !!normalizedFhirServerBase || !!normalizedMappingsFolder;
-
-    this.initCache();
-    this.logger.info('Caches initialized');
 
     // Create the FHIR client before building the global FHIR context so that
     // downstream components (e.g. terminology runtime) can reuse it.
@@ -287,25 +259,6 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     }
 
     return trimmed;
-  }
-
-  private initCache () {
-    const cacheKeys: IAppCacheKeys[] = [
-      'compiledExpressions'
-    ];
-
-    const cache = cacheKeys
-      .map((key) => {
-        const CacheClass = this.cacheConfig[key]?.cacheClass || SimpleCache;
-        const cacheClassOptions = this.cacheConfig[key]?.cacheClassOptions || {};
-        return new CacheClass(cacheClassOptions);
-      })
-      .reduce((acc, cacheInstance, index) => {
-        acc[cacheKeys[index]] = cacheInstance as ICache<unknown>;
-        return acc;
-      }, {} as Record<string, ICache<unknown>>);
-
-    this.cache = cache as unknown as IAppCache;
   }
 
   private getOrCreateFormatConverter (): FormatConverter {
@@ -481,17 +434,32 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
   }
 
   private async compileExpression (expression: string): Promise<FumifierCompiled> {
-    const { compiledExpressions } = this.getCache();
-    let compiled = compiledExpressions.get(expression);
+    const cacheKey = this.getCompiledExpressionCacheKey(expression);
+    let compiled = this.compiledExpressionCache.get(cacheKey);
 
     if (!compiled) {
       const options = await this.getFumifierOptions();
       compiled = await fumifier(expression, options);
       compiled.setLogger(this.logger as unknown as Logger);
-      compiledExpressions.set(expression, compiled);
+      this.compiledExpressionCache.set(cacheKey, compiled);
     }
 
     return compiled;
+  }
+
+  private getCompiledExpressionCacheKey (expression: string): string {
+    const normalizedPackages = this.globalFhirContext.normalizedPackages ?? [];
+    const fhirContext = normalizedPackages
+      .map((p) => `${p.id}@${p.version ?? ''}`)
+      .sort();
+
+    // Stable, serializable identity: different semantics => different key.
+    return JSON.stringify({
+      source: expression,
+      engineVersion,
+      fhirContext,
+      recover: false
+    });
   }
 
   private getStaticValueBindings (): Record<string, unknown> {

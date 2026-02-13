@@ -4,7 +4,7 @@
  */
 export type { ICache } from './Cache';
 export type { IConfig } from './Config';
-export type { IAppBinding, ICacheClass, IFumeEngine } from './FumeEngine';
+export type { IAppBinding, IFumeEngine } from './FumeEngine';
 export type { IFumeServer } from './FumeServer';
 
 // Re-export types from @outburn/types

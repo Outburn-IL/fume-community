@@ -3,15 +3,7 @@
  *   Project name: FUME-COMMUNITY
  */
 
-import type { FumifierCompiled } from 'fumifier';
-
 import type { ICache } from './types';
-
-export interface IAppCache {
-  compiledExpressions: ICache<FumifierCompiled>;
-}
-
-export type IAppCacheKeys = keyof IAppCache;
 
 export class SimpleCache<T> implements ICache<T> {
   private cache: Record<string, T>;
@@ -22,7 +14,7 @@ export class SimpleCache<T> implements ICache<T> {
     this.cache = {};
   }
 
-  get (key: string) {
+  get (key: string): T | undefined {
     return this.cache[key];
   }
 

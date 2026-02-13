@@ -8,7 +8,6 @@ export { FumeEngine } from './engine';
 /**
  * Export types
  */
-export type { IAppCache, IAppCacheKeys } from './cache';
 export type {
   IAppBinding,
   ICache,
