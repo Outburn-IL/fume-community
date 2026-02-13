@@ -66,6 +66,8 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
   private compiledExpressionCache: ICache<FumifierCompiled> = new SimpleCache<FumifierCompiled>({});
 
+  private astCache?: NonNullable<FumifierOptions['astCache']>;
+
   private formatConverter?: FormatConverter;
 
   private startupTime: number = Date.now();
@@ -82,6 +84,10 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
   public setCompiledExpressionCache (cache: ICache<FumifierCompiled>) {
     this.compiledExpressionCache = cache;
+  }
+
+  public setAstCache (cache: NonNullable<FumifierOptions['astCache']>) {
+    this.astCache = cache;
   }
 
   public registerBinding (key: string, binding: IAppBinding) {
@@ -429,7 +435,8 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       mappingCache: this.createMappingCache(),
       navigator: globalContext.navigator,
       terminologyRuntime: globalContext.terminologyRuntime,
-      fhirClient: this.fhirClient
+      fhirClient: this.fhirClient,
+      ...(this.astCache ? { astCache: this.astCache } : {})
     };
   }
 
