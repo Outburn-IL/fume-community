@@ -70,15 +70,8 @@ export const FumeConfigSchema = z.object({
 		(a) => typeof a === 'string' ? parseInt(a) : a,
 		z.number().int('Must be an integer')
 	).optional(),
-
-	// Default internal cache sizing (ignored when external caches are injected)
-	// Fumifier's default internal AST cache (bytes)
-	FUME_DEFAULT_AST_CACHE_MAX_BYTES: z.preprocess(
-		(a) => typeof a === 'string' ? parseInt(a) : a,
-		z.number().int('Must be an integer').positive('Must be positive').default(128 * 1024 * 1024)
-	),
 	// Engine's default compiled-expression cache (entries)
-	FUME_DEFAULT_COMPILED_EXPRESSION_CACHE_MAX_ENTRIES: z.preprocess(
+	FUME_COMPILED_EXPR_CACHE_MAX_ENTRIES: z.preprocess(
 		(a) => typeof a === 'string' ? parseInt(a) : a,
 		z.number().int('Must be an integer').positive('Must be positive').default(1000)
 	)

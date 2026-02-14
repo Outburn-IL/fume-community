@@ -21,8 +21,5 @@ export interface IConfig {
   MAPPINGS_FILE_POLLING_INTERVAL_MS?: number
   MAPPINGS_SERVER_POLLING_INTERVAL_MS?: number
   MAPPINGS_FORCED_RESYNC_INTERVAL_MS?: number
-
-  // Sizing knobs for default internal caches (ignored when external caches are injected)
-  FUME_DEFAULT_AST_CACHE_MAX_BYTES?: number
-  FUME_DEFAULT_COMPILED_EXPRESSION_CACHE_MAX_ENTRIES?: number
+  FUME_COMPILED_EXPR_CACHE_MAX_ENTRIES?: number
 }

@@ -52,7 +52,7 @@
     "@outburn/structure-navigator": "^1.9.1",
     "axios": "^1.13.5",
     "cors": "^2.8.6",
-    "dotenv": "^17.2.4",
+    "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "fhir-package-explorer": "^1.9.2",
     "fhir-package-installer": "^1.11.1",

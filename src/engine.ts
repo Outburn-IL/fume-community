@@ -178,13 +178,10 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     // If a downstream consumer injected a cache via the dedicated APIs, do not override it.
     if (!this.compiledExpressionCacheInjected) {
       this.compiledExpressionCache = new LRUCache<FumifierCompiled>({
-        maxEntries: this.config.FUME_DEFAULT_COMPILED_EXPRESSION_CACHE_MAX_ENTRIES
+        maxEntries: this.config.FUME_COMPILED_EXPR_CACHE_MAX_ENTRIES
       });
     }
 
-    // For the AST cache: when no external cache is injected, fumifier uses its own
-    // default internal AST cache. Its sizing is controlled via env var
-    // FUME_DEFAULT_AST_CACHE_MAX_BYTES and is intentionally not overridden here.
     const {
       FHIR_SERVER_BASE,
       MAPPINGS_FOLDER,
