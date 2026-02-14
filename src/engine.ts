@@ -14,7 +14,7 @@ import { FhirTerminologyRuntime } from 'fhir-terminology-runtime';
 import fumifier, { type FumifierCompiled, type FumifierOptions, type MappingCacheInterface } from 'fumifier';
 
 import { version as engineVersion } from '../package.json';
-import { SimpleCache } from './cache';
+import { LRUCache, SimpleCache } from './cache';
 import defaultConfig from './serverConfig';
 import type {
   FhirPackageIdentifier,
@@ -65,6 +65,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
   private globalFhirContext: GlobalFhirContext = defaultGlobalFhirContext();
 
   private compiledExpressionCache: ICache<FumifierCompiled> = new SimpleCache<FumifierCompiled>({});
+  private compiledExpressionCacheInjected: boolean = false;
 
   private astCache?: NonNullable<FumifierOptions['astCache']>;
 
@@ -83,6 +84,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
   }
 
   public setCompiledExpressionCache (cache: ICache<FumifierCompiled>) {
+    this.compiledExpressionCacheInjected = true;
     this.compiledExpressionCache = cache;
   }
 
@@ -171,6 +173,18 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     }
 
     this.setConfig(options);
+
+    // initialize default internal caches from config.
+    // If a downstream consumer injected a cache via the dedicated APIs, do not override it.
+    if (!this.compiledExpressionCacheInjected) {
+      this.compiledExpressionCache = new LRUCache<FumifierCompiled>({
+        maxEntries: this.config.FUME_DEFAULT_COMPILED_EXPRESSION_CACHE_MAX_ENTRIES
+      });
+    }
+
+    // For the AST cache: when no external cache is injected, fumifier uses its own
+    // default internal AST cache. Its sizing is controlled via env var
+    // FUME_DEFAULT_AST_CACHE_MAX_BYTES and is intentionally not overridden here.
     const {
       FHIR_SERVER_BASE,
       MAPPINGS_FOLDER,

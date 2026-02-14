@@ -3,6 +3,8 @@
  *   Project name: FUME-COMMUNITY
  */
 
+import { LRUCache as LRUCacheImpl } from 'lru-cache';
+
 import type { ICache } from './types';
 
 export class SimpleCache<T> implements ICache<T> {
@@ -42,5 +44,55 @@ export class SimpleCache<T> implements ICache<T> {
 
   getDict () {
     return this.cache;
+  }
+}
+
+export class LRUCache<T extends NonNullable<unknown>> implements ICache<T> {
+  private readonly cache: LRUCacheImpl<string, T, unknown>;
+
+  constructor (options: { maxEntries?: number } = {}) {
+    const maxEntries = typeof options.maxEntries === 'number' && options.maxEntries > 0
+      ? Math.floor(options.maxEntries)
+      : 1000;
+
+    this.cache = new LRUCacheImpl<string, T, unknown>({
+      max: maxEntries,
+      allowStale: false
+    });
+  }
+
+  get (key: string): T | undefined {
+    return this.cache.get(key);
+  }
+
+  set (key: string, value: T) {
+    this.cache.set(key, value);
+  }
+
+  remove (key: string) {
+    this.cache.delete(key);
+  }
+
+  keys () {
+    return Array.from(this.cache.keys());
+  }
+
+  reset () {
+    this.cache.clear();
+  }
+
+  populate (dict: Record<string, T>) {
+    this.reset();
+    for (const [key, value] of Object.entries(dict)) {
+      this.set(key, value);
+    }
+  }
+
+  getDict () {
+    const result: Record<string, T> = {};
+    for (const [key, value] of this.cache.entries()) {
+      result[key] = value;
+    }
+    return result;
   }
 }
