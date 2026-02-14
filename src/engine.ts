@@ -12,15 +12,14 @@ import { FhirPackageExplorer } from 'fhir-package-explorer';
 import { FhirSnapshotGenerator } from 'fhir-snapshot-generator';
 import { FhirTerminologyRuntime } from 'fhir-terminology-runtime';
 import fumifier, { type FumifierCompiled, type FumifierOptions, type MappingCacheInterface } from 'fumifier';
+import { LRUCache } from 'lru-cache';
 
 import { version as engineVersion } from '../package.json';
-import { LRUCache, SimpleCache } from './cache';
 import defaultConfig from './serverConfig';
 import type {
   FhirPackageIdentifier,
   FhirVersion,
   IAppBinding,
-  ICache,
   IConfig
 } from './types';
 
@@ -64,8 +63,15 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
   private globalFhirContext: GlobalFhirContext = defaultGlobalFhirContext();
 
-  private compiledExpressionCache: ICache<FumifierCompiled> = new SimpleCache<FumifierCompiled>({});
-  private compiledExpressionCacheInjected: boolean = false;
+  private readonly compiledExpressionCacheMaxEntries =
+    typeof defaultConfig.FUME_COMPILED_EXPR_CACHE_MAX_ENTRIES === 'number' && defaultConfig.FUME_COMPILED_EXPR_CACHE_MAX_ENTRIES > 0
+      ? Math.floor(defaultConfig.FUME_COMPILED_EXPR_CACHE_MAX_ENTRIES)
+      : 1000;
+
+  private compiledExpressionCache = new LRUCache<string, FumifierCompiled>({
+    max: this.compiledExpressionCacheMaxEntries,
+    allowStale: false
+  });
 
   private astCache?: NonNullable<FumifierOptions['astCache']>;
 
@@ -81,11 +87,6 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
   public getLogger (): Logger {
     return this.logger;
-  }
-
-  public setCompiledExpressionCache (cache: ICache<FumifierCompiled>) {
-    this.compiledExpressionCacheInjected = true;
-    this.compiledExpressionCache = cache;
   }
 
   public setAstCache (cache: NonNullable<FumifierOptions['astCache']>) {
@@ -174,12 +175,16 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
     this.setConfig(options);
 
-    // initialize internal caches from config.
-    if (!this.compiledExpressionCacheInjected) {
-      this.compiledExpressionCache = new LRUCache<FumifierCompiled>({
-        maxEntries: this.config.FUME_COMPILED_EXPR_CACHE_MAX_ENTRIES
-      });
-    }
+    // Initialize internal caches from config.
+    // Compiled expressions are in-process runtime closures and cannot be swapped with an external cache.
+    const compiledExprCacheMaxEntries =
+      typeof this.config.FUME_COMPILED_EXPR_CACHE_MAX_ENTRIES === 'number' && this.config.FUME_COMPILED_EXPR_CACHE_MAX_ENTRIES > 0
+        ? Math.floor(this.config.FUME_COMPILED_EXPR_CACHE_MAX_ENTRIES)
+        : 1000;
+    this.compiledExpressionCache = new LRUCache<string, FumifierCompiled>({
+      max: compiledExprCacheMaxEntries,
+      allowStale: false
+    });
 
     const {
       FHIR_SERVER_BASE,

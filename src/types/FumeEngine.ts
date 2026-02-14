@@ -6,9 +6,8 @@
 import type { FhirClient } from '@outburn/fhir-client';
 import type { FumeMappingProvider } from '@outburn/fume-mapping-provider';
 import type { Logger } from '@outburn/types';
-import type { FumifierCompiled, FumifierOptions } from 'fumifier';
+import type { FumifierOptions } from 'fumifier';
 
-import type { ICache } from './Cache';
 import type { IConfig } from './Config';
 export type IAppBinding = unknown;
 
@@ -18,8 +17,6 @@ export type IAppBinding = unknown;
  */
 export interface IFumeEngine<ConfigType extends IConfig = IConfig> {
   registerLogger: (logger: Logger) => void;
-
-  setCompiledExpressionCache: (cache: ICache<FumifierCompiled>) => void;
 
   setAstCache: (cache: NonNullable<FumifierOptions['astCache']>) => void;
 
