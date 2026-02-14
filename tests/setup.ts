@@ -3,8 +3,8 @@
  *   Project name: FUME-COMMUNITY
  */
 import axios from 'axios';
-import compose from 'docker-compose';
 // import { createMockArtifactoryServer, MOCK_ARTIFACTORY_VALID_TOKEN } from 'fhir-package-installer/mock-artifactory-server';
+import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
@@ -34,83 +34,58 @@ axios.create = function createPatchedAxios (config) {
   return instance;
 };
 
-/**
- * Check if containers are already running
- * @returns true if both containers are running
- */
-async function areContainersRunning (): Promise<boolean> {
-  try {
-    const result = await compose.ps({ cwd: path.join(__dirname) });
-    const services = result.data.services;
-    
-    const hapiRunning = services.some(
-      (s) => s.name.includes('hapi_test') && s.state === 'running'
-    );
-    const dbRunning = services.some(
-      (s) => s.name.includes('hapi_db_test') && s.state === 'running'
-    );
-    
-    return hapiRunning && dbRunning;
-  } catch {
-    return false;
-  }
-}
+async function waitForHapiReady (baseUrl: string, opts?: { maxAttempts?: number; delayMs?: number; timeoutMs?: number }) {
+  const maxAttempts = opts?.maxAttempts ?? 60;
+  const delayMs = opts?.delayMs ?? 2000;
+  const timeoutMs = opts?.timeoutMs ?? 5000;
 
-/**
- * Awaits for the FHIR server to start and for its API to be available
- * @param maxAttempts
- * @param currentAttempt
- * @returns
- */
-async function waitForFhirApi (maxAttempts, currentAttempt = 1) {
-  try {
-    console.log(`Attempt ${currentAttempt} to query FHIR API...`);
-    // Poll the FHIR server capability statement endpoint instead of root
-    // Using /metadata is more explicit and aligns with FHIR spec for server availability
-    await axios.get(`${LOCAL_FHIR_API}/metadata`);
-  } catch (error: unknown) {
-    console.error(`Attempt ${currentAttempt} failed:`, toErrorMessage(error));
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), timeoutMs);
+      const response = await fetch(`${baseUrl}/metadata`, { signal: controller.signal });
+      clearTimeout(timeout);
 
-    if (currentAttempt >= maxAttempts) {
-      throw new Error(`Failed to query FHIR API after ${maxAttempts} attempts`);
+      if (response.ok) {
+        return;
+      }
+    } catch (e: unknown) {
+      if (attempt === 1) {
+        console.log('Waiting for HAPI FHIR server to be ready...');
+      }
+      console.error(`Attempt ${attempt} failed:`, toErrorMessage(e));
     }
 
-    await new Promise(resolve => setTimeout(resolve, 5000));
-    return await waitForFhirApi(maxAttempts, currentAttempt + 1);
+    await new Promise(resolve => setTimeout(resolve, delayMs));
   }
+
+  throw new Error('HAPI FHIR server failed to start within timeout');
 }
 
 async function setup () {
   console.log('--- Global setup starting: dual registry warm-up preflight ---');
-  
-  const containersAlreadyRunning = await areContainersRunning();
-  
-  if (containersAlreadyRunning) {
-    console.log('FHIR server containers already running, skipping startup...');
-  } else {
-    console.log('Starting FHIR server (using docker compose V2)...');
-    await compose.upAll({
-      cwd: path.join(__dirname),
-      config: 'docker-compose.yml',
-      log: true
+
+  console.log('Checking HAPI FHIR server status...');
+  try {
+    const response = await fetch(`${LOCAL_FHIR_API}/metadata`);
+    if (response.ok) {
+      console.log('HAPI FHIR server is already running and healthy!');
+    } else {
+      throw new Error(`Unexpected status: ${response.status}`);
+    }
+  } catch {
+    console.log('Starting HAPI FHIR server...');
+    const composeFile = path.join(__dirname, 'docker-compose.yml');
+    execSync(`docker compose -f "${composeFile}" up -d`, {
+      stdio: 'inherit',
+      cwd: __dirname
     });
   }
-  
-  const result = await compose.ps({ cwd: path.join(__dirname) });
 
-  globalThis.services = result.data.services;
+  await waitForHapiReady(LOCAL_FHIR_API, { maxAttempts: 60, delayMs: 2000 });
 
-  globalThis.services.forEach((service) => {
-    console.log(service.name, service.command, service.state, service.ports);
-  });
-
-  if (containersAlreadyRunning) {
-    console.log('Verifying FHIR server is responsive...');
-    await waitForFhirApi(5); // Quick check with fewer attempts
-  } else {
-    console.log('Waiting for startup of FHIR server!');
-    await waitForFhirApi(30);
-  }
+  // Give it a bit more time to fully stabilize
+  await new Promise(resolve => setTimeout(resolve, 2000));
 
   // Helper to delete core package from cache
   const deleteCorePackage = async () => {
