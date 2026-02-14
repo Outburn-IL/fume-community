@@ -70,7 +70,6 @@ export const FumeConfigSchema = z.object({
 		(a) => typeof a === 'string' ? parseInt(a) : a,
 		z.number().int('Must be an integer')
 	).optional(),
-	// Engine's default compiled-expression cache (entries)
 	FUME_COMPILED_EXPR_CACHE_MAX_ENTRIES: z.preprocess(
 		(a) => typeof a === 'string' ? parseInt(a) : a,
 		z.number().int('Must be an integer').positive('Must be positive').default(1000)

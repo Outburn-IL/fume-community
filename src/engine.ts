@@ -174,8 +174,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
     this.setConfig(options);
 
-    // initialize default internal caches from config.
-    // If a downstream consumer injected a cache via the dedicated APIs, do not override it.
+    // initialize internal caches from config.
     if (!this.compiledExpressionCacheInjected) {
       this.compiledExpressionCache = new LRUCache<FumifierCompiled>({
         maxEntries: this.config.FUME_COMPILED_EXPR_CACHE_MAX_ENTRIES
