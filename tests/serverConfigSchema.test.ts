@@ -13,7 +13,7 @@ describe('FumeConfigSchema', () => {
     expect(config).toStrictEqual({
       FHIR_PACKAGES: '',
       FHIR_SERVER_AUTH_TYPE: 'NONE',
-      FHIR_SERVER_BASE: 'http://hapi-fhir.outburn.co.il/fhir',
+      FHIR_SERVER_BASE: '',
       FHIR_SERVER_PW: '',
       FHIR_SERVER_TIMEOUT: 30000,
       FHIR_SERVER_UN: '',

@@ -36,7 +36,7 @@ export const FumeConfigSchema = z.object({
 	SERVER_REQUEST_BODY_LIMIT: z.string().min(1).default('400mb'),
 	FHIR_SERVER_BASE: z.preprocess(
 		normalizeOptionalUrl,
-		z.string().min(1).url().or(z.literal('n/a')).default('http://hapi-fhir.outburn.co.il/fhir')
+		z.string().min(1).url().or(z.literal('n/a')).default('')
 	),
 	FHIR_SERVER_AUTH_TYPE: z.string().default('NONE'),
 	FHIR_SERVER_UN: z.string().default(''),
