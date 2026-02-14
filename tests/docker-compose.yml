@@ -1,3 +1,5 @@
+name: fume-community_hapi_tests
+
 services:
   db:
     image: postgres:latest
@@ -19,9 +21,16 @@ services:
     depends_on:
       - db
     environment:
+      hapi.fhir.fhir_version: R4
+      hapi.fhir.server_address: http://localhost:8080/fhir
       JVM_OPTS: "-Xms2g -Xms2g"
     volumes:
       - ./hapi.application.yaml:/app/config/application.yaml:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/fhir/metadata"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
 
 volumes:
   hapi_pg_data:
