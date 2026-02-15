@@ -9,5 +9,6 @@ server.warmUp().then(() => {
   // warmUp already logs initialization; keep a final line for parity
   console.info('FUME is ready!');
 }).catch((err) => {
-  console.error({ ERROR: 'FUME failed to initialize', details: err });
+  const message = err instanceof Error ? err.message : String(err);
+  console.error(`FUME failed to initialize: ${message}`);
 });
