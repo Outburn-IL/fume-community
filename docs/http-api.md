@@ -36,6 +36,53 @@ Supported inputs:
 
 If an unsupported content type is provided, the request fails with `415 Unsupported Media Type`.
 
+## Verbose mode
+
+Certain evaluation endpoints support a `verbose` query parameter (e.g. `?verbose=true`) that returns the engine's full evaluation report instead of the raw result.
+
+### Query parameter
+
+- Name: `verbose`
+- Verbose mode is enabled only when `verbose` is one of:
+  - `1`
+  - `true` (case-insensitive)
+- All other values (including missing param) are treated as verbose mode off.
+
+### Supported endpoints
+
+- `POST /`
+- `POST /Mapping/{mappingId}`
+- `POST /Mapping/{mappingId}/{subRoute1}/{subRoute2}/...`
+- `PUT /Mapping/{mappingId}/{subRoute1}/{subRoute2}/...`
+
+### Response shape when verbose is enabled
+
+When verbose mode is enabled:
+
+- The HTTP response status matches the report's `status`.
+- The response body is a JSON object with this shape:
+
+```json
+{
+  "ok": true,
+  "status": 200,
+  "result": {},
+  "diagnostics": {
+    "error": [],
+    "warning": [],
+    "debug": []
+  },
+  "executionId": "..."
+}
+```
+
+Notes:
+
+- `executionId` is always present and is a non-empty string.
+- `diagnostics.error`, `diagnostics.warning`, and `diagnostics.debug` are always present arrays.
+- For certain failures that occur before evaluation (e.g. missing expression, mapping not found, unsupported media type), FUME returns a **synthetic** verbose report with `ok=false` and a single entry in `diagnostics.error`.
+
+
 ## Root endpoints
 
 ### `GET /`
@@ -85,9 +132,12 @@ Notes:
 
 Responses:
 
-- `200`: evaluation result (any JSON)
-- `400`: missing/empty `fume` (a structured error object)
-- `422`: expression evaluation error (structured error object)
+- `200` / `206`: evaluation result (any JSON)
+- `400`: missing/empty expression (`fume`)
+- `415`: unsupported media type (conversion failure)
+- `422`: handled expression compilation/evaluation error
+
+When `?verbose=true` is provided, the response body is the full verbose report (see [Verbose mode](#verbose-mode)).
 
 ### `POST /{operation}`
 
@@ -133,9 +183,12 @@ Fetches the mapping expression for a saved mapping.
 Invokes `mappingTransform` for the saved mapping.
 
 - Request body is treated as the input, converted according to request `Content-Type`.
-- Response `200`: mapping result as JSON
+- Response `200` / `206`: mapping result as JSON
 - Response `404`: mapping not found
-- Response `500`: compilation/transform failure
+- Response `415`: unsupported media type (conversion failure)
+- Response `422`: handled compilation/transform/evaluation failure
+
+When `?verbose=true` is provided, the response body is the full verbose report (see [Verbose mode](#verbose-mode)).
 
 ### Execute a saved mapping with subroutes
 
@@ -144,6 +197,8 @@ These routes allow “routing data” to be passed via the URL after the mapping
 #### `POST /Mapping/{mappingId}/{subRoute1}/{subRoute2}/...`
 
 Same behavior as `POST /Mapping/{mappingId}`.
+
+Supports `?verbose=true` with the same response behavior as the base mapping endpoint.
 
 The difference is that any path segments after `{mappingId}` are captured as routing metadata and exposed via `$fumeHttpInvocation`:
 
@@ -156,12 +211,14 @@ Note: `$fumeHttpInvocation` is also present for `POST /Mapping/{mappingId}`; in 
 
 Same as the POST subroute form, but with `method: "PUT"`.
 
+Supports `?verbose=true` with the same response behavior as the base mapping endpoint.
+
 Important: **PUT is special**
 
 - `PUT /Mapping/{mappingId}` is reserved for **mapping updates** (not implemented in FUME Community).
 - Transform is invoked only when **there is at least one path segment after `{mappingId}`**.
 
-FUME supports this type of invocation mainly to allow [FHIR Subscription](https://hl7.org/fhir/R4/subscription.html) rest-hook events to be sent to a dedicated FUME mapping endoint for processing.
+FUME supports this type of invocation mainly to allow the usage of saved mappings as HTTP interceptors.
 
 ## `$fumeHttpInvocation` binding (saved-mapping transforms)
 
