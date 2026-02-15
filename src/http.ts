@@ -3,10 +3,12 @@
  *   Project name: FUME-COMMUNITY
  */
 
+import { randomUUID } from 'crypto';
 import express, { type NextFunction, type Request, type Response } from 'express';
 
 import { version as engineVersion } from '../package.json';
 import type { FumeEngine } from './engine';
+import type { DiagnosticEntry, EvaluateVerboseReport } from './types';
 import { getFhirServerEndpoint, hasMappingSources } from './utils/mappingSources';
 import { getRouteParam } from './utils/routeParams';
 
@@ -63,14 +65,103 @@ const isUnsupportedContentTypeError = (error: unknown): boolean => {
   return typeof msg === 'string' && msg.startsWith('Unsupported Content-Type:');
 };
 
+const isVerboseRequested = (req: Request): boolean => {
+  const raw = (req.query as Record<string, unknown> | undefined)?.verbose;
+
+  const isTruthy = (value: unknown): boolean => {
+    if (typeof value !== 'string') return false;
+    const trimmed = value.trim();
+    if (trimmed === '1') return true;
+    if (trimmed.toLowerCase() === 'true') return true;
+    return false;
+  };
+
+  if (Array.isArray(raw)) {
+    return raw.some(isTruthy);
+  }
+  return isTruthy(raw);
+};
+
+const normalizeVerboseReport = (report: EvaluateVerboseReport): EvaluateVerboseReport => {
+  const diagnostics = report.diagnostics as EvaluateVerboseReport['diagnostics'] | undefined;
+  return {
+    ok: !!report.ok,
+    status: typeof report.status === 'number' ? report.status : 500,
+    result: (report as { result?: unknown }).result,
+    diagnostics: {
+      error: Array.isArray(diagnostics?.error) ? diagnostics.error : [],
+      warning: Array.isArray(diagnostics?.warning) ? diagnostics.warning : [],
+      debug: Array.isArray(diagnostics?.debug) ? diagnostics.debug : []
+    },
+    executionId: typeof report.executionId === 'string' && report.executionId !== '' ? report.executionId : randomUUID()
+  };
+};
+
+const createSyntheticVerboseReport = (status: number, primaryError: { code: string; message: string; level: DiagnosticEntry['level'] }): EvaluateVerboseReport => {
+  return {
+    ok: false,
+    status,
+    result: undefined,
+    diagnostics: {
+      error: [
+        {
+          code: primaryError.code,
+          message: primaryError.message,
+          severity: 1,
+          level: primaryError.level,
+          timestamp: Date.now()
+        }
+      ],
+      warning: [],
+      debug: []
+    },
+    executionId: randomUUID()
+  };
+};
+
+const reportToLegacyFumeError = (report: EvaluateVerboseReport) => {
+  const primary =
+    report.diagnostics.error[0]
+    ?? report.diagnostics.warning[0]
+    ?? report.diagnostics.debug[0];
+
+  const code = primary?.code ?? 'EVALUATION_FAILED';
+  const message = primary?.message ?? 'Evaluation failed';
+  const isFlashError = typeof code === 'string' && code.startsWith('F');
+
+  return {
+    __isFumeError: true,
+    __isFlashError: isFlashError,
+    message,
+    code,
+    name: 'EvaluationError',
+    value: '',
+    token: '',
+    cause: '',
+    line: primary?.line ?? '',
+    start: primary?.start ?? '',
+    position: primary?.position ?? ''
+  };
+};
+
 const rootEvaluate = async (req: Request, res: Response) => {
   const engine = getEngine(req);
+  const verbose = isVerboseRequested(req);
 
   try {
     const body = (req.body ?? {}) as Record<string, unknown>;
 
     const expression = body.fume;
     if (typeof expression !== 'string' || expression.trim() === '') {
+      if (verbose) {
+        const report = createSyntheticVerboseReport(400, {
+          code: 'NO_EXPRESSION',
+          level: 'error',
+          message: 'Missing expression'
+        });
+        return res.status(report.status).json(report);
+      }
+
       return res.status(400).json({
         __isFumeError: true,
         __isFlashError: false,
@@ -95,6 +186,15 @@ const rootEvaluate = async (req: Request, res: Response) => {
       inputJson = input === undefined ? null : await engine.convertInputToJson(input, contentType);
     } catch (error: unknown) {
       if (isUnsupportedContentTypeError(error)) {
+        if (verbose) {
+          const report = createSyntheticVerboseReport(415, {
+            code: 'UNSUPPORTED_MEDIA_TYPE',
+            level: 'error',
+            message: 'Unsupported content-type'
+          });
+          return res.status(report.status).json(report);
+        }
+
         return res.status(415).json({
           message: (error as { message?: unknown })?.message ?? 'Unsupported Content-Type',
           code: 'UNSUPPORTED_MEDIA_TYPE'
@@ -103,10 +203,29 @@ const rootEvaluate = async (req: Request, res: Response) => {
       throw error;
     }
 
-    const response = await engine.transform(inputJson, expression, engine.getBindings());
-    return res.status(200).json(response);
+    const report = normalizeVerboseReport(await engine.transformVerbose(inputJson, expression, engine.getBindings()));
+
+    if (verbose) {
+      return res.status(report.status).json(report);
+    }
+
+    // Preserve legacy behavior in default mode: only status=200 counts as success.
+    if (report.ok) {
+      return res.status(200).json(report.result);
+    }
+
+    return res.status(422).json(reportToLegacyFumeError(report));
   } catch (error: unknown) {
     if (isUnsupportedContentTypeError(error)) {
+      if (verbose) {
+        const report = createSyntheticVerboseReport(415, {
+          code: 'UNSUPPORTED_MEDIA_TYPE',
+          level: 'error',
+          message: 'Unsupported content-type'
+        });
+        return res.status(report.status).json(report);
+      }
+
       return res.status(415).json({
         message: (error as { message?: unknown })?.message ?? 'Unsupported Content-Type',
         code: 'UNSUPPORTED_MEDIA_TYPE'
@@ -288,6 +407,7 @@ const createFumeHttpInvocation = (req: Request, mappingId: string): FumeHttpInvo
 const mappingTransform = async (req: Request, res: Response, next?: NextFunction) => {
   const engine = getEngine(req);
   const logger = engine.getLogger();
+  const verbose = isVerboseRequested(req);
 
   try {
     const mappingId = getRouteParam(req.params, 'mappingId');
@@ -315,6 +435,16 @@ const mappingTransform = async (req: Request, res: Response, next?: NextFunction
 
     if (!mapping) {
       logger.error(`Mapping '${mappingId}' not found!`);
+      if (verbose) {
+        const report = createSyntheticVerboseReport(404, {
+          code: 'MAPPING_NOT_FOUND',
+          level: 'error',
+          message: 'Mapping not found'
+        });
+        res.status(report.status).json(report);
+        return;
+      }
+
       res.status(404).json({ message: 'not found' });
       return;
     }
@@ -325,6 +455,16 @@ const mappingTransform = async (req: Request, res: Response, next?: NextFunction
       inputJson = await engine.convertInputToJson(req.body, contentType);
     } catch (error: unknown) {
       if (isUnsupportedContentTypeError(error)) {
+        if (verbose) {
+          const report = createSyntheticVerboseReport(415, {
+            code: 'UNSUPPORTED_MEDIA_TYPE',
+            level: 'error',
+            message: 'Unsupported content-type'
+          });
+          res.status(report.status).json(report);
+          return;
+        }
+
         res.status(415).json({
           message: (error as { message?: unknown })?.message ?? 'Unsupported Content-Type',
           code: 'UNSUPPORTED_MEDIA_TYPE'
@@ -342,11 +482,36 @@ const mappingTransform = async (req: Request, res: Response, next?: NextFunction
     }
 
     const fumeHttpInvocation = createFumeHttpInvocation(req, mappingId);
-    const result = await engine.transform(inputJson, expression, { fumeHttpInvocation } as unknown as Record<string, unknown>);
+
+    const report = normalizeVerboseReport(
+      await engine.transformVerbose(inputJson, expression, { fumeHttpInvocation } as unknown as Record<string, unknown>)
+    );
+
     res.set('Content-Type', 'application/json');
-    res.status(200).json(result);
+    if (verbose) {
+      res.status(report.status).json(report);
+      return;
+    }
+
+    // Preserve legacy behavior in default mode: only status=200 counts as success.
+    if (report.ok) {
+      res.status(200).json(report.result);
+      return;
+    }
+
+    res.status(422).json(reportToLegacyFumeError(report));
   } catch (error) {
     if (isUnsupportedContentTypeError(error)) {
+      if (verbose) {
+        const report = createSyntheticVerboseReport(415, {
+          code: 'UNSUPPORTED_MEDIA_TYPE',
+          level: 'error',
+          message: 'Unsupported content-type'
+        });
+        res.status(report.status).json(report);
+        return;
+      }
+
       res.status(415).json({
         message: (error as { message?: unknown })?.message ?? 'Unsupported Content-Type',
         code: 'UNSUPPORTED_MEDIA_TYPE'
