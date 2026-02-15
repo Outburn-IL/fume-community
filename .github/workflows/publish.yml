@@ -1,9 +1,8 @@
 name: Publish to npm
 
 on:
-  push:
-    tags:
-      - 'v*'  # Triggers on version tags like v0.10.0, v1.0.0, etc.
+  release:
+    types: [published]
 
 permissions:
   contents: read
@@ -16,6 +15,9 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.release.tag_name }}
+        fetch-depth: 0
       
     - name: Setup Node.js
       uses: actions/setup-node@v4
