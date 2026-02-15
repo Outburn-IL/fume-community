@@ -6,7 +6,7 @@ export type { ICache } from './Cache';
 export type { IConfig } from './Config';
 export type { IAppBinding, IFumeEngine } from './FumeEngine';
 export type { IFumeServer } from './FumeServer';
-export type { DiagnosticEntry, DiagnosticLevel, EvaluateVerboseReport } from './VerboseReport';
+export type { DiagnosticEntry, DiagnosticLevel, EvaluateVerboseReport, FumeHttpEvaluationError } from './VerboseReport';
 
 // Re-export types from @outburn/types
 export type {

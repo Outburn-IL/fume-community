@@ -3,6 +3,7 @@
  *   Project name: FUME-COMMUNITY
  */
 
+import type { FumeHttpEvaluationError } from '@outburn/types';
 import { randomUUID } from 'crypto';
 import express, { type NextFunction, type Request, type Response } from 'express';
 
@@ -119,7 +120,7 @@ const createSyntheticVerboseReport = (status: number, primaryError: { code: stri
   };
 };
 
-const reportToLegacyFumeError = (report: EvaluateVerboseReport) => {
+const reportToLegacyFumeError = (report: EvaluateVerboseReport): FumeHttpEvaluationError => {
   const primary =
     report.diagnostics.error[0]
     ?? report.diagnostics.warning[0]

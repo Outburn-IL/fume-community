@@ -12,6 +12,7 @@ export type {
   DiagnosticEntry,
   DiagnosticLevel,
   EvaluateVerboseReport,
+  FumeHttpEvaluationError,
   IAppBinding,
   ICache,
   IConfig,
