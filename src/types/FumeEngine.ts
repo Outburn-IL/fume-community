@@ -9,6 +9,7 @@ import type { Logger } from '@outburn/types';
 import type { FumifierOptions } from 'fumifier';
 
 import type { IConfig } from './Config';
+import type { EvaluateVerboseReport } from './VerboseReport';
 export type IAppBinding = unknown;
 
 /**
@@ -32,5 +33,6 @@ export interface IFumeEngine<ConfigType extends IConfig = IConfig> {
   getMappingProvider: () => FumeMappingProvider;
 
   convertInputToJson: (input: unknown, contentType?: string) => Promise<unknown>;
+  transformVerbose: (input: unknown, expression: string, extraBindings?: Record<string, IAppBinding>) => Promise<EvaluateVerboseReport>;
   transform: (input: unknown, expression: string, extraBindings?: Record<string, IAppBinding>) => Promise<unknown>;
 }

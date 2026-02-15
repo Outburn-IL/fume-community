@@ -9,6 +9,9 @@ export { FumeEngine } from './engine';
  * Export types
  */
 export type {
+  DiagnosticEntry,
+  DiagnosticLevel,
+  EvaluateVerboseReport,
   IAppBinding,
   ICache,
   IConfig,

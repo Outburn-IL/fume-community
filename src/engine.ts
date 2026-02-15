@@ -11,12 +11,14 @@ import type { Logger } from '@outburn/types';
 import { FhirPackageExplorer } from 'fhir-package-explorer';
 import { FhirSnapshotGenerator } from 'fhir-snapshot-generator';
 import { FhirTerminologyRuntime } from 'fhir-terminology-runtime';
-import fumifier, { type FumifierCompiled, type FumifierOptions, type MappingCacheInterface } from 'fumifier';
+import fumifier, { type FumifierCompiled, FumifierError, type FumifierOptions, type MappingCacheInterface } from 'fumifier';
 import { LRUCache } from 'lru-cache';
 
 import { version as engineVersion } from '../package.json';
 import defaultConfig from './serverConfig';
 import type {
+  DiagnosticEntry,
+  EvaluateVerboseReport,
   FhirPackageIdentifier,
   FhirVersion,
   IAppBinding,
@@ -527,38 +529,72 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     return {};
   }
 
+  private getEvaluationBindings (extraBindings: Record<string, IAppBinding> = {}): Record<string, unknown> {
+    let bindings: Record<string, unknown> = {};
+
+    const converter = this.getOrCreateFormatConverter();
+    bindings.parseCsv = converter.csvToJson.bind(converter);
+    bindings.v2json = converter.hl7v2ToJson.bind(converter);
+
+    if (this.mappingProvider) {
+      const aliases = this.mappingProvider.getAliases();
+      const staticValues = this.getStaticValueBindings();
+      bindings = {
+        ...aliases,
+        ...staticValues,
+        ...bindings,
+        ...this.bindings,
+        ...extraBindings
+      };
+    } else {
+      bindings = {
+        ...bindings,
+        ...this.bindings,
+        ...extraBindings
+      };
+    }
+
+    return bindings;
+  }
+
+  public async transformVerbose (input: unknown, expression: string, extraBindings: Record<string, IAppBinding> = {}): Promise<EvaluateVerboseReport> {
+    this.logger.info('Running transformation (verbose)...');
+
+    const expr = await this.compileExpression(expression);
+    const bindings = this.getEvaluationBindings(extraBindings);
+
+    const report = await expr.evaluateVerbose(input, bindings);
+    return report as EvaluateVerboseReport;
+  }
+
   public async transform (input: unknown, expression: string, extraBindings: Record<string, IAppBinding> = {}) {
     try {
       this.logger.info('Running transformation...');
 
-      const expr = await this.compileExpression(expression);
+      const report = await this.transformVerbose(input, expression, extraBindings);
 
-      let bindings: Record<string, unknown> = {};
-
-      const converter = this.getOrCreateFormatConverter();
-      bindings.parseCsv = converter.csvToJson.bind(converter);
-      bindings.v2json = converter.hl7v2ToJson.bind(converter);
-
-      if (this.mappingProvider) {
-        const aliases = this.mappingProvider.getAliases();
-        const staticValues = this.getStaticValueBindings();
-        bindings = {
-          ...aliases,
-          ...staticValues,
-          ...bindings,
-          ...this.bindings,
-          ...extraBindings
-        };
-      } else {
-        bindings = {
-          ...bindings,
-          ...this.bindings,
-          ...extraBindings
-        };
+      if (report.ok) {
+        return report.result;
       }
 
-      const res = await expr.evaluate(input, bindings);
-      return res;
+      const primary: DiagnosticEntry | undefined =
+        report.diagnostics?.error?.[0]
+        ?? report.diagnostics?.warning?.[0]
+        ?? report.diagnostics?.debug?.[0];
+
+      const code = primary?.code ?? 'EVALUATION_FAILED';
+      const message = primary?.message ?? 'Evaluation failed';
+
+      const properties: Record<string, unknown> = {
+        executionId: report.executionId,
+        ...(primary?.position !== undefined ? { position: primary.position } : {}),
+        ...(primary?.start !== undefined ? { start: primary.start } : {}),
+        ...(primary?.line !== undefined ? { line: primary.line } : {}),
+        ...(typeof primary?.fhirParent === 'string' ? { fhirParent: primary.fhirParent } : {}),
+        ...(typeof primary?.fhirElement === 'string' ? { fhirElement: primary.fhirElement } : {})
+      };
+
+      throw new FumifierError(code, message, properties);
     } catch (error) {
       this.logger.error(error);
       throw error;
