@@ -41,7 +41,7 @@ const normalizeOptionalCacheDir = (value: unknown): unknown => {
 
 export const FumeConfigSchema = z.object({
 	SERVER_PORT: z.preprocess((a) => typeof a === 'string' ? parseInt(a) : a, z.number().int('Must be an integer').positive('Must be positive').default(42420)),
-	SERVER_REQUEST_BODY_LIMIT: z.string().min(1).default('400mb'),
+	FUME_REQUEST_BODY_LIMIT: z.string().min(1).default('400mb'),
 	FUME_EVAL_THROW_LEVEL: z.preprocess(
 		(a) => typeof a === 'string' ? parseInt(a) : a,
 		z.number().int('Must be an integer').nonnegative('Must be non-negative').default(30)

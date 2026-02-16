@@ -24,7 +24,7 @@ describe('FumeConfigSchema', () => {
       FUME_EVAL_VALIDATION_LEVEL: 30,
       FUME_COMPILED_EXPR_CACHE_MAX_ENTRIES: 1000,
       SERVER_PORT: 42420,
-      SERVER_REQUEST_BODY_LIMIT: '400mb'
+      FUME_REQUEST_BODY_LIMIT: '400mb'
     });
   });
 

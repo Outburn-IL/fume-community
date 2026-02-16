@@ -43,8 +43,8 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     // We resolve the limit dynamically from the warmed config so consumers can
     // override it via config passed to warmUp().
     this.app.use((req: Request, res: Response, next: NextFunction) => {
-      const defaultLimit = defaultConfig.SERVER_REQUEST_BODY_LIMIT ?? '400mb';
-      const effectiveLimit = this.engine.getConfig().SERVER_REQUEST_BODY_LIMIT ?? defaultLimit;
+      const defaultLimit = defaultConfig.FUME_REQUEST_BODY_LIMIT ?? '400mb';
+      const effectiveLimit = this.engine.getConfig().FUME_REQUEST_BODY_LIMIT ?? defaultLimit;
       if (!this.bodyParserCache || this.bodyParserCache.limit !== effectiveLimit) {
         this.bodyParserCache = {
           limit: effectiveLimit,

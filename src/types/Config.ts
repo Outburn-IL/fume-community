@@ -4,7 +4,7 @@
  */
 export interface IConfig {
   SERVER_PORT: number
-  SERVER_REQUEST_BODY_LIMIT?: string
+  FUME_REQUEST_BODY_LIMIT?: string
   FUME_EVAL_THROW_LEVEL?: number
   FUME_EVAL_LOG_LEVEL?: number
   FUME_EVAL_DIAG_COLLECT_LEVEL?: number

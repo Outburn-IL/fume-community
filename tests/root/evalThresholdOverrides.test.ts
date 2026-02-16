@@ -14,7 +14,7 @@ describe('evaluation threshold overrides (per call bindings precedence)', () => 
 
     await engine.warmUp({
       SERVER_PORT: 0,
-      SERVER_REQUEST_BODY_LIMIT: '400mb',
+      FUME_REQUEST_BODY_LIMIT: '400mb',
 
       // Keep mapping sources disabled; we only need the global FHIR context initialized.
       FHIR_SERVER_BASE: 'n/a',
