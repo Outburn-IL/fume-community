@@ -10,11 +10,11 @@ import type { Server } from 'http';
 import { FumeEngine } from './engine';
 import { createHttpRouter } from './http';
 import defaultConfig from './serverConfig';
-import { withPrefix } from './utils/logging';
 import type {
   IConfig,
   IFumeEngine,
   IFumeServer} from './types';
+import { withPrefix } from './utils/logging';
 
 export class FumeServer<ConfigType extends IConfig> implements IFumeServer<ConfigType> {
   private readonly app: express.Application;
@@ -137,6 +137,6 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
    */
   public registerAppMiddleware (middleware: RequestHandler) {
     this.appMiddleware = middleware;
-    this.engine.getLogger().info('Registered application middleware...');
+    withPrefix(this.engine.getLogger(), '[server]').info('Registered application middleware...');
   }
 }
