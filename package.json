@@ -56,7 +56,7 @@
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "fhir-package-explorer": "^1.9.2",
-    "fhir-package-installer": "^1.11.1",
+    "fhir-package-installer": "^1.11.2",
     "fhir-snapshot-generator": "^2.2.2",
     "fhir-terminology-runtime": "^1.2.0",
     "fs-extra": "^11.3.3",
