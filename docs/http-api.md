@@ -272,9 +272,8 @@ FUME Community intentionally does not implement mapping updates so it can stay s
 - Handle **mapping update** at `PUT /Mapping/:mappingId`.
 - Keep **transform** behavior at `PUT /Mapping/:mappingId/<any subroute...>`.
 
-### Recommended approach: intercept via `registerAppMiddleware`
+### Recommended approach: intercept via `appMiddleware`
 
-Because FUME mounts its own router and then installs a 404 handler, registering new Express routes *after* `warmUp()` may not run (they can end up behind the 404 handler). A robust approach is to intercept the base PUT using app middleware.
 
 Example:
 
@@ -282,9 +281,11 @@ Example:
 import type { Request, Response, NextFunction } from 'express';
 import { FumeServer } from 'fume-fhir-converter';
 
-const server = new FumeServer();
-
-server.registerAppMiddleware((req: Request, res: Response, next: NextFunction) => {
+const server = await FumeServer.create({
+  config: {
+    SERVER_PORT: 42420,
+  },
+  appMiddleware: (req: Request, res: Response, next: NextFunction) => {
   // Only intercept base PUT /Mapping/:mappingId
   const match = req.path.match(/^\/Mapping\/([^\/]+)\/?$/);
   if (req.method === 'PUT' && match) {
@@ -296,12 +297,7 @@ server.registerAppMiddleware((req: Request, res: Response, next: NextFunction) =
   }
 
   next();
-});
-
-// Note: when embedding as a module, FUME does not read process.env/.env automatically.
-// Pass configuration explicitly from your host application.
-await server.warmUp({
-  SERVER_PORT: 42420,
+  }
 });
 ```
 

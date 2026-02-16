@@ -17,16 +17,17 @@ Most usage patterns relied on global state via helper modules or `fumeUtils` exp
 
 ### After
 
-Create a `FumeEngine` and warm it up explicitly:
+Create a `FumeEngine`:
 
 ```ts
 import { FumeEngine } from 'fume-fhir-converter';
 
-const engine = new FumeEngine();
-await engine.warmUp({
-  FHIR_SERVER_BASE: 'n/a',
-  FHIR_VERSION: '4.0.1',
-  FHIR_PACKAGES: 'il.core.fhir.r4@0.14.2'
+const engine = await FumeEngine.create({
+  config: {
+    FHIR_SERVER_BASE: 'n/a',
+    FHIR_VERSION: '4.0.1',
+    FHIR_PACKAGES: 'il.core.fhir.r4@0.14.2'
+  }
 });
 
 const out = await engine.transform(input, expression);
@@ -39,11 +40,12 @@ No HTTP changes were introduced.
 ```ts
 import { FumeServer } from 'fume-fhir-converter';
 
-const server = new FumeServer();
 // Note: when embedding as a module, FUME does not read process.env/.env automatically.
 // Pass configuration explicitly from your host application.
-await server.warmUp({
-  SERVER_PORT: 42420,
+await FumeServer.create({
+  config: {
+    SERVER_PORT: 42420,
+  }
 });
 ```
 
@@ -61,19 +63,18 @@ If you have a downstream project that:
 
 ### Key rules
 
-- Register extensions (middleware, cache, bindings, extra routes) **before** calling `warmUp()`.
+- Pass config + injections (logger/AST cache/initial bindings) via `create()`.
+- Use `configureApp` to register extra Express routes/middleware **before** the built-in FUME router is mounted.
+- `registerBinding()` is the only supported runtime mutation (additions after startup).
 - The FHIR client is **owned by `FumeEngine`** (the server is just an HTTP wrapper).
-  - If you need access to the client (read-only), call `server.getEngine().getFhirClient()` after `warmUp()`.
+  - Access it via `server.getEngine().getFhirClient()`.
 
 ### Before → After mapping
 
-- `registerAppMiddleware(fn)` stays the same.
-- `getExpressApp()` stays the same (add your extra routes there).
-- Engine configuration is now explicit via `server.getEngine()`:
-  - `server.getEngine().registerLogger(logger)`
-  - `server.getEngine().registerCacheClass(CacheClass, options, keys)`
-  - `server.getEngine().registerBinding(key, value)`
-- `registerFhirClient(...)` remains unsupported.
+- Use `FumeServer.create({ config, engine: { logger, astCache, bindings }, appMiddleware, configureApp })`.
+- Runtime-only APIs:
+  - `server.registerAppMiddleware(fn)`
+  - `server.registerBinding(key, value)` (or `server.getEngine().registerBinding(...)`)
 
 ## Removed / changed exports
 
