@@ -31,6 +31,14 @@ const normalizeOptionalPath = (value: unknown): unknown => {
 	return trimmed;
 };
 
+const normalizeOptionalCacheDir = (value: unknown): unknown => {
+	if (typeof value !== 'string') return value;
+	const trimmed = value.trim();
+	if (trimmed === '') return undefined;
+	if (trimmed.toLowerCase() === 'n/a') return undefined;
+	return trimmed;
+};
+
 export const FumeConfigSchema = z.object({
 	SERVER_PORT: z.preprocess((a) => typeof a === 'string' ? parseInt(a) : a, z.number().int('Must be an integer').positive('Must be positive').default(42420)),
 	SERVER_REQUEST_BODY_LIMIT: z.string().min(1).default('400mb'),
@@ -65,7 +73,7 @@ export const FumeConfigSchema = z.object({
 		z.string().url().or(z.literal('n/a'))
 	).optional(),
 	FHIR_PACKAGE_REGISTRY_TOKEN: z.string().optional(),
-	FHIR_PACKAGE_CACHE_DIR: z.string().optional(),
+	FHIR_PACKAGE_CACHE_DIR: z.preprocess(normalizeOptionalCacheDir, z.string().min(1)).optional(),
 	MAPPINGS_FOLDER: z.preprocess(
 		normalizeOptionalPath,
 		z.string().min(1).or(z.literal('n/a'))

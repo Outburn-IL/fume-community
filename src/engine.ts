@@ -357,6 +357,10 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       MAPPINGS_SERVER_POLLING_INTERVAL_MS
     } = this.config;
 
+    const cachePathOverride = (typeof FHIR_PACKAGE_CACHE_DIR === 'string' && FHIR_PACKAGE_CACHE_DIR.trim() !== '')
+      ? FHIR_PACKAGE_CACHE_DIR.trim()
+      : undefined;
+
     const cacheMode = 'lazy';
 
     const packageList: FhirPackageIdentifier[] = FHIR_PACKAGES
@@ -370,13 +374,13 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     this.logger.info({
       packageContext: packageList,
       fhirVersion: FHIR_VERSION,
-      cachePath: FHIR_PACKAGE_CACHE_DIR,
+      cachePath: cachePathOverride,
       registryUrl: FHIR_PACKAGE_REGISTRY_URL
     });
 
     const fpe = await FhirPackageExplorer.create({
       context: packageList,
-      cachePath: FHIR_PACKAGE_CACHE_DIR || '',
+      ...(cachePathOverride ? { cachePath: cachePathOverride } : {}),
       fhirVersion: FHIR_VERSION as FhirVersion,
       skipExamples: true,
       logger: this.logger,
@@ -413,7 +417,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       normalizedPackages,
       contextPackages,
       fhirVersion: this.getFhirVersion(),
-      cachePath: FHIR_PACKAGE_CACHE_DIR || '',
+      cachePath: fpe.getCachePath(),
       registryUrl: FHIR_PACKAGE_REGISTRY_URL,
       registryToken: FHIR_PACKAGE_REGISTRY_TOKEN,
       isInitialized: true

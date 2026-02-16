@@ -27,4 +27,11 @@ describe('FumeConfigSchema', () => {
       SERVER_REQUEST_BODY_LIMIT: '400mb'
     });
   });
+
+  test('Treat empty FHIR_PACKAGE_CACHE_DIR as unset', async () => {
+    const config = FumeConfigSchema.parse({
+      FHIR_PACKAGE_CACHE_DIR: ''
+    });
+    expect(config.FHIR_PACKAGE_CACHE_DIR).toBeUndefined();
+  });
 });
