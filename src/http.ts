@@ -204,7 +204,34 @@ const rootEvaluate = async (req: Request, res: Response) => {
       throw error;
     }
 
-    const report = normalizeVerboseReport(await engine.transformVerbose(inputJson, expression, engine.getBindings()));
+    const baseBindings = engine.getBindings();
+
+    // In non-verbose mode we don't return the diagnostics bag.
+    // Setting collectLevel = throwLevel preserves evaluateVerbose ok/status semantics (all throwables are still collected)
+    // while avoiding collection of non-throwable diagnostics.
+    const effectiveThrowLevel = (() => {
+      const raw = (baseBindings as Record<string, unknown>)?.throwLevel;
+      if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
+      if (typeof raw === 'string') {
+        const parsed = parseInt(raw, 10);
+        if (Number.isFinite(parsed)) return parsed;
+      }
+
+      const fallback = (engine.getConfig() as { FUME_EVAL_THROW_LEVEL?: unknown })?.FUME_EVAL_THROW_LEVEL;
+      if (typeof fallback === 'number' && Number.isFinite(fallback)) return fallback;
+      if (typeof fallback === 'string') {
+        const parsed = parseInt(fallback, 10);
+        if (Number.isFinite(parsed)) return parsed;
+      }
+
+      return 30;
+    })();
+
+    const evaluationBindings = verbose
+      ? baseBindings
+      : { ...baseBindings, collectLevel: effectiveThrowLevel };
+
+    const report = normalizeVerboseReport(await engine.transformVerbose(inputJson, expression, evaluationBindings));
 
     if (verbose) {
       return res.status(report.status).json(report);

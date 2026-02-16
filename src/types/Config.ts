@@ -5,6 +5,10 @@
 export interface IConfig {
   SERVER_PORT: number
   SERVER_REQUEST_BODY_LIMIT?: string
+  FUME_EVAL_THROW_LEVEL?: number
+  FUME_EVAL_LOG_LEVEL?: number
+  FUME_EVAL_DIAG_COLLECT_LEVEL?: number
+  FUME_EVAL_VALIDATION_LEVEL?: number
   FHIR_SERVER_BASE: string
   FHIR_SERVER_TIMEOUT: number
   FHIR_VERSION: string

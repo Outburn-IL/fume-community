@@ -177,6 +177,13 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
     this.setConfig(options);
 
+    // Global defaults for fumifier policy thresholds.
+    // These become the default evaluation environment values unless overridden per call via extraBindings.
+    this.registerBinding('throwLevel', typeof this.config.FUME_EVAL_THROW_LEVEL === 'number' ? this.config.FUME_EVAL_THROW_LEVEL : 30);
+    this.registerBinding('logLevel', typeof this.config.FUME_EVAL_LOG_LEVEL === 'number' ? this.config.FUME_EVAL_LOG_LEVEL : 40);
+    this.registerBinding('collectLevel', typeof this.config.FUME_EVAL_DIAG_COLLECT_LEVEL === 'number' ? this.config.FUME_EVAL_DIAG_COLLECT_LEVEL : 70);
+    this.registerBinding('validationLevel', typeof this.config.FUME_EVAL_VALIDATION_LEVEL === 'number' ? this.config.FUME_EVAL_VALIDATION_LEVEL : 30);
+
     // Initialize internal caches from config.
     // Compiled expressions are in-process runtime closures and cannot be swapped with an external cache.
     const compiledExprCacheMaxEntries =

@@ -34,6 +34,22 @@ const normalizeOptionalPath = (value: unknown): unknown => {
 export const FumeConfigSchema = z.object({
 	SERVER_PORT: z.preprocess((a) => typeof a === 'string' ? parseInt(a) : a, z.number().int('Must be an integer').positive('Must be positive').default(42420)),
 	SERVER_REQUEST_BODY_LIMIT: z.string().min(1).default('400mb'),
+	FUME_EVAL_THROW_LEVEL: z.preprocess(
+		(a) => typeof a === 'string' ? parseInt(a) : a,
+		z.number().int('Must be an integer').nonnegative('Must be non-negative').default(30)
+	),
+	FUME_EVAL_LOG_LEVEL: z.preprocess(
+		(a) => typeof a === 'string' ? parseInt(a) : a,
+		z.number().int('Must be an integer').nonnegative('Must be non-negative').default(40)
+	),
+	FUME_EVAL_DIAG_COLLECT_LEVEL: z.preprocess(
+		(a) => typeof a === 'string' ? parseInt(a) : a,
+		z.number().int('Must be an integer').nonnegative('Must be non-negative').default(70)
+	),
+	FUME_EVAL_VALIDATION_LEVEL: z.preprocess(
+		(a) => typeof a === 'string' ? parseInt(a) : a,
+		z.number().int('Must be an integer').nonnegative('Must be non-negative').default(30)
+	),
 	FHIR_SERVER_BASE: z.preprocess(
 		normalizeOptionalUrl,
 		z.string().min(1).url().or(z.literal('n/a')).default('')
