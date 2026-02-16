@@ -15,14 +15,15 @@ import fumifier, { type FumifierCompiled, FumifierError, type FumifierOptions, t
 import { LRUCache } from 'lru-cache';
 
 import { version as engineVersion } from '../package.json';
-import { defaultConfig } from './serverConfig';
+import { defaultConfig, parseFumeConfig } from './serverConfig';
 import type {
   DiagnosticEntry,
   EvaluateVerboseReport,
   FhirPackageIdentifier,
   FhirVersion,
   IAppBinding,
-  IConfig
+  IConfig,
+  FumeEngineCreateOptions
 } from './types';
 import { createNullLogger, withPrefix } from './utils/logging';
 
@@ -50,9 +51,9 @@ const defaultGlobalFhirContext = (): GlobalFhirContext => ({
 });
 
 export class FumeEngine<ConfigType extends IConfig = IConfig> {
-  private config: IConfig = { ...defaultConfig };
-  private bindings: Record<string, IAppBinding> = {};
-  private logger: Logger = createNullLogger();
+  private readonly config: ConfigType;
+  private bindings: Record<string, IAppBinding>;
+  private readonly logger: Logger;
 
   private fhirClient?: FhirClient;
   private mappingProvider?: FumeMappingProvider;
@@ -75,6 +76,56 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
   private startupTime: number = Date.now();
 
+  private constructor (init: {
+    config: ConfigType;
+    logger: Logger;
+    astCache?: NonNullable<FumifierOptions['astCache']>;
+    bindings?: Record<string, IAppBinding>;
+  }) {
+    this.config = Object.freeze({ ...(init.config as unknown as Record<string, unknown>) }) as unknown as ConfigType;
+    this.logger = init.logger;
+    this.astCache = init.astCache;
+    this.bindings = init.bindings ?? {};
+  }
+
+  public static async create <ConfigType extends IConfig = IConfig> (
+    options: FumeEngineCreateOptions<ConfigType>
+  ): Promise<FumeEngine<ConfigType>> {
+    const logger = options.logger ?? createNullLogger();
+    const deprecatedStateless = (options.config as { SERVER_STATELESS?: unknown })?.SERVER_STATELESS !== undefined;
+
+    const parsed = parseFumeConfig(options.config) as unknown as ConfigType;
+    const normalizedFhirServerBase = FumeEngine.normalizeFhirServerBase(parsed.FHIR_SERVER_BASE);
+    const normalizedConfig = {
+      ...(parsed as unknown as Record<string, unknown>),
+      // Preserve current runtime behavior: if disabled, store as empty string.
+      FHIR_SERVER_BASE: normalizedFhirServerBase ?? ''
+    } as ConfigType;
+
+    const thresholdDefaults: Record<string, IAppBinding> = {
+      throwLevel: typeof (normalizedConfig as IConfig).FUME_EVAL_THROW_LEVEL === 'number' ? (normalizedConfig as IConfig).FUME_EVAL_THROW_LEVEL : 30,
+      logLevel: typeof (normalizedConfig as IConfig).FUME_EVAL_LOG_LEVEL === 'number' ? (normalizedConfig as IConfig).FUME_EVAL_LOG_LEVEL : 40,
+      collectLevel: typeof (normalizedConfig as IConfig).FUME_EVAL_DIAG_COLLECT_LEVEL === 'number' ? (normalizedConfig as IConfig).FUME_EVAL_DIAG_COLLECT_LEVEL : 70,
+      validationLevel: typeof (normalizedConfig as IConfig).FUME_EVAL_VALIDATION_LEVEL === 'number' ? (normalizedConfig as IConfig).FUME_EVAL_VALIDATION_LEVEL : 30
+    };
+
+    // Merge order: config-derived defaults first, then user bindings override.
+    const initialBindings: Record<string, IAppBinding> = {
+      ...thresholdDefaults,
+      ...(options.bindings ?? {})
+    };
+
+    const engine = new FumeEngine<ConfigType>({
+      config: normalizedConfig,
+      logger,
+      astCache: options.astCache,
+      bindings: initialBindings
+    });
+
+    await engine.initialize({ deprecatedStateless });
+    return engine;
+  }
+
   private getEngineLogger (): Logger {
     return this.getChildLogger('[engine]');
   }
@@ -83,18 +134,8 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     return withPrefix(this.logger, prefix);
   }
 
-  public registerLogger (logger: Logger) {
-    this.logger = logger;
-    // Recreate converter with the new logger (converter captures logger)
-    this.formatConverter = undefined;
-  }
-
   public getLogger (): Logger {
     return this.logger;
-  }
-
-  public setAstCache (cache: NonNullable<FumifierOptions['astCache']>) {
-    this.astCache = cache;
   }
 
   public registerBinding (key: string, binding: IAppBinding) {
@@ -163,35 +204,21 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     this.globalFhirContext = defaultGlobalFhirContext();
   }
 
-  /**
-   * Warm-up the engine: set config, init cache, init FHIR context, optionally init mapping provider.
-   */
-  public async warmUp (serverOptions?: ConfigType): Promise<void> {
-    const options = serverOptions ?? (defaultConfig as unknown as ConfigType);
-
+  private async initialize (meta?: { deprecatedStateless?: boolean }) {
     const log = this.getEngineLogger();
 
     log.info('FUME initializing...');
 
-    const deprecatedStateless = (options as { SERVER_STATELESS?: unknown })?.SERVER_STATELESS !== undefined;
-    if (deprecatedStateless) {
+    if (meta?.deprecatedStateless) {
       log.warn('SERVER_STATELESS is deprecated and ignored. Use FHIR_SERVER_BASE and/or MAPPINGS_FOLDER (set to n/a to disable).');
     }
 
-    this.setConfig(options);
-
-    // Global defaults for fumifier policy thresholds.
-    // These become the default evaluation environment values unless overridden per call via extraBindings.
-    this.registerBinding('throwLevel', typeof this.config.FUME_EVAL_THROW_LEVEL === 'number' ? this.config.FUME_EVAL_THROW_LEVEL : 30);
-    this.registerBinding('logLevel', typeof this.config.FUME_EVAL_LOG_LEVEL === 'number' ? this.config.FUME_EVAL_LOG_LEVEL : 40);
-    this.registerBinding('collectLevel', typeof this.config.FUME_EVAL_DIAG_COLLECT_LEVEL === 'number' ? this.config.FUME_EVAL_DIAG_COLLECT_LEVEL : 70);
-    this.registerBinding('validationLevel', typeof this.config.FUME_EVAL_VALIDATION_LEVEL === 'number' ? this.config.FUME_EVAL_VALIDATION_LEVEL : 30);
-
     // Initialize internal caches from config.
     // Compiled expressions are in-process runtime closures and cannot be swapped with an external cache.
+    const compiledExprCacheConfigValue = (this.config as unknown as IConfig).FUME_COMPILED_EXPR_CACHE_MAX_ENTRIES;
     const compiledExprCacheMaxEntries =
-      typeof this.config.FUME_COMPILED_EXPR_CACHE_MAX_ENTRIES === 'number' && this.config.FUME_COMPILED_EXPR_CACHE_MAX_ENTRIES > 0
-        ? Math.floor(this.config.FUME_COMPILED_EXPR_CACHE_MAX_ENTRIES)
+      typeof compiledExprCacheConfigValue === 'number' && compiledExprCacheConfigValue > 0
+        ? Math.floor(compiledExprCacheConfigValue)
         : 1000;
     this.compiledExpressionCache = new LRUCache<string, FumifierCompiled>({
       max: compiledExprCacheMaxEntries,
@@ -205,10 +232,10 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       MAPPINGS_FILE_POLLING_INTERVAL_MS,
       MAPPINGS_SERVER_POLLING_INTERVAL_MS,
       MAPPINGS_FORCED_RESYNC_INTERVAL_MS
-    } = this.config;
+    } = this.config as unknown as IConfig;
 
-    const normalizedFhirServerBase = this.normalizeFhirServerBase(FHIR_SERVER_BASE);
-    const normalizedMappingsFolder = this.normalizeMappingsFolder(MAPPINGS_FOLDER);
+    const normalizedFhirServerBase = FumeEngine.normalizeFhirServerBase(FHIR_SERVER_BASE);
+    const normalizedMappingsFolder = FumeEngine.normalizeMappingsFolder(MAPPINGS_FOLDER);
     const hasMappingSources = !!normalizedFhirServerBase || !!normalizedMappingsFolder;
 
     // Create the FHIR client before building the global FHIR context so that
@@ -243,7 +270,6 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     };
 
     this.mappingProvider = new FumeMappingProvider(mappingProviderConfig);
-
     await this.mappingProvider.initialize();
     log.info('FumeMappingProvider initialized');
 
@@ -253,22 +279,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     }
   }
 
-  /**
-   * Normalize and set runtime config.
-   */
-  public setConfig (config: Partial<ConfigType>) {
-    const { SERVER_STATELESS: _deprecated, ...rest } = config as Partial<ConfigType> & { SERVER_STATELESS?: boolean };
-    void _deprecated;
-    const fhirServerBase = this.normalizeFhirServerBase(rest.FHIR_SERVER_BASE ?? defaultConfig.FHIR_SERVER_BASE);
-
-    this.config = {
-      ...defaultConfig,
-      ...rest,
-      FHIR_SERVER_BASE: fhirServerBase ?? ''
-    } as IConfig;
-  }
-
-  private normalizeFhirServerBase (value?: string): string | undefined {
+  private static normalizeFhirServerBase (value?: string): string | undefined {
     if (!value) {
       return undefined;
     }
@@ -281,7 +292,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     return trimmed;
   }
 
-  private normalizeMappingsFolder (value?: string): string | undefined {
+  private static normalizeMappingsFolder (value?: string): string | undefined {
     if (!value) {
       return undefined;
     }

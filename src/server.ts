@@ -13,7 +13,9 @@ import { defaultConfig } from './serverConfig';
 import type {
   IConfig,
   IFumeEngine,
-  IFumeServer} from './types';
+  IFumeServer,
+  FumeServerCreateOptions
+} from './types';
 import { withPrefix } from './utils/logging';
 
 export class FumeServer<ConfigType extends IConfig> implements IFumeServer<ConfigType> {
@@ -32,8 +34,8 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     next();
   };
 
-  constructor () {
-    this.engine = new FumeEngine<ConfigType>();
+  private constructor (engine: FumeEngine<ConfigType>) {
+    this.engine = engine;
     this.app = express();
     // Make engine available to route handlers (no module-level state)
     this.app.locals.engine = this.engine;
@@ -78,6 +80,43 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     this.app.use((req: Request, res: Response, next: NextFunction) => this.appMiddleware(req, res, next));
   }
 
+  public static async create <ConfigType extends IConfig = IConfig> (
+    options: FumeServerCreateOptions<ConfigType>
+  ): Promise<FumeServer<ConfigType>> {
+    const engine = await FumeEngine.create<ConfigType>({
+      config: options.config,
+      ...(options.engine?.logger ? { logger: options.engine.logger } : {}),
+      ...(options.engine?.astCache ? { astCache: options.engine.astCache } : {}),
+      ...(options.engine?.bindings ? { bindings: options.engine.bindings } : {})
+    });
+
+    const server = new FumeServer<ConfigType>(engine);
+
+    if (options.appMiddleware) {
+      server.registerAppMiddleware(options.appMiddleware);
+    }
+
+    // Allow downstream consumers to register routes/middleware BEFORE the built-in router
+    // and its trailing 404 handler are mounted.
+    options.configureApp?.(server.app, server);
+
+    const { SERVER_PORT } = engine.getConfig();
+
+    // mount routes handler
+    const http = createHttpRouter();
+    server.app.use('/', http.routes);
+
+    // catch any routes that are not found
+    // This allows consumers to extend the server with their own routes
+    // and still have a default 404 handler
+    server.app.use(http.notFound);
+
+    server.server = server.app.listen(SERVER_PORT);
+    withPrefix(engine.getLogger(), '[server]').info(`FUME server is running on port ${SERVER_PORT}`);
+
+    return server;
+  }
+
   public async shutDown (): Promise<void> {
     if (this.server) {
       await new Promise<void>((resolve, reject) => {
@@ -92,28 +131,8 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     }
   }
 
-  /**
-   * Start the server
-   * Any extensions to the server should be done before calling this method
-    * i.e. configuring the engine (logger/cache/bindings) and adding express routes.
-   * @param serverOptions
-   */
-  public async warmUp (serverOptions?: ConfigType | undefined): Promise<void> {
-    const options = (serverOptions ?? defaultConfig) as ConfigType;
-    await this.engine.warmUp(options);
-    const { SERVER_PORT } = this.engine.getConfig();
-
-    // mount routes handler
-    const http = createHttpRouter();
-    this.app.use('/', http.routes);
-
-    // catch any routes that are not found
-    // This allows consumers to extend the server with their own routes
-    // and still have a default 404 handler
-    this.app.use(http.notFound);
-
-    this.server = this.app.listen(SERVER_PORT);
-    withPrefix(this.engine.getLogger(), '[server]').info(`FUME server is running on port ${SERVER_PORT}`);
+  public registerBinding (key: string, binding: unknown): void {
+    this.engine.registerBinding(key, binding);
   }
 
   /**

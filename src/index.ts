@@ -13,6 +13,8 @@ export type {
   DiagnosticLevel,
   EvaluateVerboseReport,
   FumeHttpEvaluationError,
+  FumeEngineCreateOptions,
+  FumeServerCreateOptions,
   IAppBinding,
   ICache,
   IConfig,
