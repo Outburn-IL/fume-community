@@ -5,6 +5,7 @@
 import { afterEach, describe, expect, jest, test } from '@jest/globals';
 
 import { FumeEngine } from '../../src/engine';
+import { FHIR_PACKAGE_CACHE_DIR } from '../config';
 
 describe('FumeEngine logger', () => {
   afterEach(() => {
@@ -22,7 +23,25 @@ describe('FumeEngine logger', () => {
       // noop
     });
 
-    const engine = new FumeEngine();
+    const engine = await FumeEngine.create({
+      config: {
+        SERVER_PORT: 0,
+        FUME_REQUEST_BODY_LIMIT: '400mb',
+
+        // Keep mapping sources disabled; we only need the global FHIR context initialized.
+        FHIR_SERVER_BASE: 'n/a',
+        FHIR_SERVER_AUTH_TYPE: 'NONE',
+        FHIR_SERVER_UN: '',
+        FHIR_SERVER_PW: '',
+        FHIR_SERVER_TIMEOUT: 30000,
+
+        MAPPINGS_FOLDER: 'n/a',
+
+        FHIR_VERSION: '4.0.1',
+        FHIR_PACKAGES: 'il.core.fhir.r4@0.14.2,fume.outburn.r4@0.1.1,il.tasmc.fhir.r4@0.1.1',
+        FHIR_PACKAGE_CACHE_DIR
+      }
+    });
     const logger = engine.getLogger();
     expect(logger).toBeDefined();
 
@@ -38,14 +57,35 @@ describe('FumeEngine logger', () => {
   });
 
   test('allows overriding logger', async () => {
-    const engine = new FumeEngine();
     const mockLogger = {
       debug: jest.fn(),
       info: jest.fn(),
       warn: jest.fn(),
       error: jest.fn()
     };
-    engine.registerLogger(mockLogger);
+
+    const engine = await FumeEngine.create({
+      config: {
+        SERVER_PORT: 0,
+        FUME_REQUEST_BODY_LIMIT: '400mb',
+
+        // Keep mapping sources disabled; we only need the global FHIR context initialized.
+        FHIR_SERVER_BASE: 'n/a',
+        FHIR_SERVER_AUTH_TYPE: 'NONE',
+        FHIR_SERVER_UN: '',
+        FHIR_SERVER_PW: '',
+        FHIR_SERVER_TIMEOUT: 30000,
+
+        MAPPINGS_FOLDER: 'n/a',
+
+        FHIR_VERSION: '4.0.1',
+        FHIR_PACKAGES: 'il.core.fhir.r4@0.14.2,fume.outburn.r4@0.1.1,il.tasmc.fhir.r4@0.1.1',
+        FHIR_PACKAGE_CACHE_DIR
+      },
+      logger: mockLogger
+    });
+
+    jest.clearAllMocks();
     const logger = engine.getLogger();
     expect(logger).toBeDefined();
 

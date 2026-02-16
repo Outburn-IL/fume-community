@@ -130,8 +130,8 @@ async function setup () {
   // Phase 1: Warm-up with DEFAULT public registries (no custom registry URL/TOKEN)
   console.log('Phase 1: Warming FUME with default registry (no custom URL/TOKEN)...');
   await deleteCorePackage();
-  const firstServer = new FumeServer();
-  await firstServer.warmUp({
+  const firstServer = await FumeServer.create({
+    config: {
     SERVER_PORT: 42420,
     FHIR_SERVER_BASE: LOCAL_FHIR_API,
     FHIR_SERVER_AUTH_TYPE: 'NONE',
@@ -141,6 +141,7 @@ async function setup () {
     FHIR_VERSION: '4.0.1',
     FHIR_PACKAGES: 'il.core.fhir.r4@0.14.2,fume.outburn.r4@0.1.1,il.tasmc.fhir.r4@0.1.1',
     FHIR_PACKAGE_CACHE_DIR
+    }
   });
   assertCorePackagePresent('Phase 1');
   // Since we're using Phase 1 server for tests, set global references

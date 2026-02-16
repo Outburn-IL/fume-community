@@ -10,9 +10,8 @@ import { FHIR_PACKAGE_CACHE_DIR } from '../config';
 
 describe('evaluation threshold overrides (per call bindings precedence)', () => {
   test('extraBindings.throwLevel overrides global FUME_EVAL_THROW_LEVEL (without mutating engine bindings)', async () => {
-    const engine = new FumeEngine();
-
-    await engine.warmUp({
+    const engine = await FumeEngine.create({
+      config: {
       SERVER_PORT: 0,
       FUME_REQUEST_BODY_LIMIT: '400mb',
 
@@ -36,6 +35,7 @@ describe('evaluation threshold overrides (per call bindings precedence)', () => 
       FUME_EVAL_LOG_LEVEL: 0,
       FUME_EVAL_DIAG_COLLECT_LEVEL: 70,
       FUME_EVAL_VALIDATION_LEVEL: 30
+      }
     });
 
     expect((engine.getBindings() as Record<string, unknown>).throwLevel).toBe(33);
