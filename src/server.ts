@@ -10,6 +10,7 @@ import type { Server } from 'http';
 import { FumeEngine } from './engine';
 import { createHttpRouter } from './http';
 import defaultConfig from './serverConfig';
+import { withPrefix } from './utils/logging';
 import type {
   IConfig,
   IFumeEngine,
@@ -112,7 +113,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     this.app.use(http.notFound);
 
     this.server = this.app.listen(SERVER_PORT);
-    this.engine.getLogger().info(`FUME server is running on port ${SERVER_PORT}`);
+    withPrefix(this.engine.getLogger(), '[server]').info(`FUME server is running on port ${SERVER_PORT}`);
   }
 
   /**

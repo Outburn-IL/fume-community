@@ -24,6 +24,7 @@ import type {
   IAppBinding,
   IConfig
 } from './types';
+import { createNullLogger, withPrefix } from './utils/logging';
 
 interface GlobalFhirContext {
   navigator: FhirStructureNavigator | null;
@@ -38,13 +39,6 @@ interface GlobalFhirContext {
   isInitialized: boolean;
 }
 
-const createDefaultLogger = (): Logger => ({
-  debug: console.debug,
-  info: console.info,
-  warn: console.warn,
-  error: console.error
-});
-
 const defaultGlobalFhirContext = (): GlobalFhirContext => ({
   navigator: null,
   generator: null,
@@ -58,7 +52,7 @@ const defaultGlobalFhirContext = (): GlobalFhirContext => ({
 export class FumeEngine<ConfigType extends IConfig = IConfig> {
   private config: IConfig = { ...defaultConfig };
   private bindings: Record<string, IAppBinding> = {};
-  private logger: Logger = createDefaultLogger();
+  private logger: Logger = createNullLogger();
 
   private fhirClient?: FhirClient;
   private mappingProvider?: FumeMappingProvider;
@@ -80,6 +74,14 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
   private formatConverter?: FormatConverter;
 
   private startupTime: number = Date.now();
+
+  private getEngineLogger (): Logger {
+    return this.getChildLogger('[engine]');
+  }
+
+  private getChildLogger (prefix: string): Logger {
+    return withPrefix(this.logger, prefix);
+  }
 
   public registerLogger (logger: Logger) {
     this.logger = logger;
@@ -167,12 +169,14 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
   public async warmUp (serverOptions?: ConfigType): Promise<void> {
     const options = serverOptions ?? (defaultConfig as unknown as ConfigType);
 
-    this.logger.info('FUME initializing...');
+    const log = this.getEngineLogger();
+
+    log.info('FUME initializing...');
 
     const deprecatedStateless = (options as { SERVER_STATELESS?: unknown })?.SERVER_STATELESS !== undefined
       || typeof process?.env?.SERVER_STATELESS === 'string';
     if (deprecatedStateless) {
-      this.logger.warn('SERVER_STATELESS is deprecated and ignored. Use FHIR_SERVER_BASE and/or MAPPINGS_FOLDER (set to n/a to disable).');
+      log.warn('SERVER_STATELESS is deprecated and ignored. Use FHIR_SERVER_BASE and/or MAPPINGS_FOLDER (set to n/a to disable).');
     }
 
     this.setConfig(options);
@@ -215,14 +219,14 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     }
 
     await this.initializeGlobalFhirContext();
-    this.logger.info('Global FHIR context initialized');
+    log.info('Global FHIR context initialized');
 
     if (!hasMappingSources) {
-      this.logger.info('No mapping sources configured. Skipping mapping provider initialization.');
+      log.info('No mapping sources configured. Skipping mapping provider initialization.');
       return;
     }
 
-    this.logger.info('Loading FUME mappings from configured sources into cache...');
+    log.info('Loading FUME mappings from configured sources into cache...');
 
     const mappingsFolder = normalizedMappingsFolder;
     const mappingsFileExtension = MAPPINGS_FILE_EXTENSION?.trim();
@@ -230,7 +234,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       ? mappingsFileExtension
       : undefined;
     const mappingProviderConfig: ConstructorParameters<typeof FumeMappingProvider>[0] = {
-      logger: this.logger,
+      logger: this.getChildLogger('[mapping-provider]'),
       ...(this.fhirClient ? { fhirClient: this.fhirClient as ConstructorParameters<typeof FumeMappingProvider>[0]['fhirClient'] } : {}),
       ...(mappingsFolder ? { mappingsFolder } : {}),
       ...(normalizedFileExtension ? { fileExtension: normalizedFileExtension } : {}),
@@ -242,11 +246,11 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     this.mappingProvider = new FumeMappingProvider(mappingProviderConfig);
 
     await this.mappingProvider.initialize();
-    this.logger.info('FumeMappingProvider initialized');
+    log.info('FumeMappingProvider initialized');
 
     const recacheResult = await this.recacheFromServer();
     if (recacheResult) {
-      this.logger.info('Successfully loaded cache');
+      log.info('Successfully loaded cache');
     }
   }
 
@@ -293,36 +297,37 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
   private getOrCreateFormatConverter (): FormatConverter {
     if (!this.formatConverter) {
-      this.formatConverter = new FormatConverter(this.logger);
+      this.formatConverter = new FormatConverter(this.getChildLogger('[format-converter]'));
     }
     return this.formatConverter;
   }
 
   public async convertInputToJson (input: unknown, contentType?: string) {
+    const log = this.getEngineLogger();
     if (!contentType || contentType === '') {
-      this.logger.info("Content-Type is empty - defaulting to 'application/json'");
+      log.info("Content-Type is empty - defaulting to 'application/json'");
       contentType = 'application/json';
     }
 
     const converter = this.getOrCreateFormatConverter();
 
     if (contentType.startsWith('x-application/hl7-v2+er7')) {
-      this.logger.info('Parsing HL7 V2.x message...');
+      log.info('Parsing HL7 V2.x message...');
       return await converter.hl7v2ToJson(input as string);
     }
 
     if (contentType.startsWith('text/csv')) {
-      this.logger.info('Parsing CSV to JSON...');
+      log.info('Parsing CSV to JSON...');
       return await converter.csvToJson(input as string);
     }
 
     if (contentType.startsWith('application/xml') || contentType.startsWith('application/fhir+xml')) {
-      this.logger.info('Parsing XML to JSON...');
+      log.info('Parsing XML to JSON...');
       return await converter.xmlToJson(input as string);
     }
 
     if (contentType.startsWith('application/json') || contentType.startsWith('application/fhir+json') || contentType.startsWith('text/json')) {
-      this.logger.info('Using JSON input as-is');
+      log.info('Using JSON input as-is');
       return input;
     }
 
@@ -343,7 +348,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       auth
     });
 
-    this.logger.info(`Using FHIR server: ${FHIR_SERVER_BASE}`);
+    this.getEngineLogger().info(`Using FHIR server: ${FHIR_SERVER_BASE}`);
     return client;
   }
 
@@ -371,7 +376,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       })
       : [];
 
-    this.logger.info({
+    this.getEngineLogger().info({
       packageContext: packageList,
       fhirVersion: FHIR_VERSION,
       cachePath: cachePathOverride,
@@ -383,7 +388,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       ...(cachePathOverride ? { cachePath: cachePathOverride } : {}),
       fhirVersion: FHIR_VERSION as FhirVersion,
       skipExamples: true,
-      logger: this.logger,
+      logger: this.getChildLogger('[package-explorer]'),
       registryUrl: FHIR_PACKAGE_REGISTRY_URL,
       registryToken: FHIR_PACKAGE_REGISTRY_TOKEN
     });
@@ -392,16 +397,16 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       fpe,
       fhirVersion: FHIR_VERSION as FhirVersion,
       cacheMode,
-      logger: this.logger
+      logger: this.getChildLogger('[snapshot-generator]')
     });
 
-    const navigator = new FhirStructureNavigator(generator, this.logger);
+    const navigator = new FhirStructureNavigator(generator, this.getChildLogger('[structure-navigator]'));
 
     const terminologyRuntime = await FhirTerminologyRuntime.create({
       fpe,
       fhirVersion: FHIR_VERSION as FhirVersion,
       cacheMode,
-      logger: this.logger,
+      logger: this.getChildLogger('[terminology-runtime]'),
       fhirClient: this.fhirClient,
       ...(typeof MAPPINGS_SERVER_POLLING_INTERVAL_MS === 'number'
         ? { serverConceptMapPollingIntervalMs: MAPPINGS_SERVER_POLLING_INTERVAL_MS }
@@ -475,7 +480,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     if (!compiled) {
       const options = await this.getFumifierOptions();
       compiled = await fumifier(expression, options);
-      compiled.setLogger(this.logger as unknown as Logger);
+      compiled.setLogger(this.getChildLogger('[fumifier]') as unknown as Logger);
       this.compiledExpressionCache.set(cacheKey, compiled);
     }
 
@@ -569,7 +574,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
   }
 
   public async transformVerbose (input: unknown, expression: string, extraBindings: Record<string, IAppBinding> = {}): Promise<EvaluateVerboseReport> {
-    this.logger.info('Running transformation (verbose)...');
+    this.getEngineLogger().info('Running transformation (verbose)...');
 
     const expr = await this.compileExpression(expression);
     const bindings = this.getEvaluationBindings(extraBindings);
@@ -580,7 +585,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
   public async transform (input: unknown, expression: string, extraBindings: Record<string, IAppBinding> = {}) {
     try {
-      this.logger.info('Running transformation...');
+      this.getEngineLogger().info('Running transformation...');
 
       const report = await this.transformVerbose(input, expression, extraBindings);
 
@@ -607,14 +612,15 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
       throw new FumifierError(code, message, properties);
     } catch (error) {
-      this.logger.error(error);
+      this.getEngineLogger().error(error);
       throw error;
     }
   }
 
   public async recacheFromServer (): Promise<boolean> {
+    const log = this.getEngineLogger();
     if (!this.mappingProvider) {
-      this.logger.warn('Mapping provider not initialized. Cannot recache mappings.');
+      log.warn('Mapping provider not initialized. Cannot recache mappings.');
       return false;
     }
 
@@ -624,12 +630,12 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       const terminologyRuntime = this.globalFhirContext.terminologyRuntime;
       if (terminologyRuntime) {
         await terminologyRuntime.clearServerConceptMapsFromCache();
-        this.logger.info('Cleared FHIR terminology ConceptMap cache.');
+        log.info('Cleared FHIR terminology ConceptMap cache.');
       }
       await this.mappingProvider.reloadAliases();
       const aliasKeys = Object.keys(this.mappingProvider.getAliases());
       if (aliasKeys.length > 0) {
-        this.logger.info(`Updated cache with aliases: ${aliasKeys.join(', ')}.`);
+        log.info(`Updated cache with aliases: ${aliasKeys.join(', ')}.`);
       }
 
       const staticValueProvider = this.mappingProvider as unknown as {
@@ -639,7 +645,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
         await staticValueProvider.reloadStaticJsonValues();
         const staticValueKeys = Object.keys(this.getStaticValueBindings());
         if (staticValueKeys.length > 0) {
-          this.logger.info(`Updated cache with static values: ${staticValueKeys.join(', ')}.`);
+          log.info(`Updated cache with static values: ${staticValueKeys.join(', ')}.`);
         }
       }
 
@@ -647,12 +653,12 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
       const userMappings = this.mappingProvider.getUserMappings();
 
       if (userMappings.length > 0) {
-        this.logger.info(`Updated cache with mappings: ${userMappings.map((m) => m.key).join(', ')}.`);
+        log.info(`Updated cache with mappings: ${userMappings.map((m) => m.key).join(', ')}.`);
       }
 
       return true;
     } catch (e) {
-      this.logger.error(e);
+      log.error(e);
       return false;
     }
   }

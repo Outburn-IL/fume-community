@@ -73,15 +73,15 @@ export const FumeConfigSchema = z.object({
 		z.string().url().or(z.literal('n/a'))
 	).optional(),
 	FHIR_PACKAGE_REGISTRY_TOKEN: z.string().optional(),
-	FHIR_PACKAGE_CACHE_DIR: z.preprocess(normalizeOptionalCacheDir, z.string().min(1)).optional(),
+	FHIR_PACKAGE_CACHE_DIR: z.preprocess(normalizeOptionalCacheDir, z.string().min(1).optional()),
 	MAPPINGS_FOLDER: z.preprocess(
 		normalizeOptionalPath,
-		z.string().min(1).or(z.literal('n/a'))
-	).optional(),
+		z.string().min(1).or(z.literal('n/a')).optional()
+	),
 	MAPPINGS_FILE_EXTENSION: z.preprocess(
 		normalizeOptionalPath,
-		z.string().min(1)
-	).optional(),
+		z.string().min(1).optional()
+	),
 	MAPPINGS_FILE_POLLING_INTERVAL_MS: z.preprocess(
 		(a) => typeof a === 'string' ? parseInt(a) : a,
 		z.number().int('Must be an integer')

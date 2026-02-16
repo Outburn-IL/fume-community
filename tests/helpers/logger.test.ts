@@ -11,15 +11,30 @@ describe('FumeEngine logger', () => {
     jest.resetAllMocks();
   });
 
-  test('uses console logger by default', async () => {
+  test('uses null logger by default', async () => {
+    const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => {
+      // noop
+    });
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {
+      // noop
+    });
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {
+      // noop
+    });
+
     const engine = new FumeEngine();
     const logger = engine.getLogger();
     expect(logger).toBeDefined();
 
-    // The default logger uses console methods directly
-    expect(logger.info).toBe(console.info);
-    expect(logger.warn).toBe(console.warn);
-    expect(logger.error).toBe(console.error);
+    expect(logger.debug).toBeUndefined();
+
+    logger.info('hello');
+    logger.warn('warn');
+    logger.error('error');
+
+    expect(infoSpy).not.toHaveBeenCalled();
+    expect(warnSpy).not.toHaveBeenCalled();
+    expect(errorSpy).not.toHaveBeenCalled();
   });
 
   test('allows overriding logger', async () => {
