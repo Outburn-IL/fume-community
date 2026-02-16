@@ -15,7 +15,7 @@ import fumifier, { type FumifierCompiled, FumifierError, type FumifierOptions, t
 import { LRUCache } from 'lru-cache';
 
 import { version as engineVersion } from '../package.json';
-import defaultConfig from './serverConfig';
+import { defaultConfig } from './serverConfig';
 import type {
   DiagnosticEntry,
   EvaluateVerboseReport,
@@ -173,8 +173,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
     log.info('FUME initializing...');
 
-    const deprecatedStateless = (options as { SERVER_STATELESS?: unknown })?.SERVER_STATELESS !== undefined
-      || typeof process?.env?.SERVER_STATELESS === 'string';
+    const deprecatedStateless = (options as { SERVER_STATELESS?: unknown })?.SERVER_STATELESS !== undefined;
     if (deprecatedStateless) {
       log.warn('SERVER_STATELESS is deprecated and ignored. Use FHIR_SERVER_BASE and/or MAPPINGS_FOLDER (set to n/a to disable).');
     }

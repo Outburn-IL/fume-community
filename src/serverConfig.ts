@@ -3,7 +3,6 @@
  *   Project name: FUME-COMMUNITY
  */
 
-import * as dotenv from 'dotenv';
 import { z } from 'zod';
 
 import { IConfig } from './types';
@@ -100,6 +99,15 @@ export const FumeConfigSchema = z.object({
 	)
 });
 
-dotenv.config();
-export const config: IConfig = FumeConfigSchema.parse(process.env);
-export default config;
+/**
+ * Default config values (schema defaults only).
+ *
+ * Intentionally does NOT read from process.env or dotenv.
+ * Consumers starting FUME as a module should pass config explicitly.
+ */
+export const defaultConfig: IConfig = FumeConfigSchema.parse({});
+
+/**
+ * Parse and validate a config object (e.g. provided by a downstream consumer).
+ */
+export const parseFumeConfig = (value: unknown): IConfig => FumeConfigSchema.parse(value);

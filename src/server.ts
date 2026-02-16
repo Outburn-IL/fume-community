@@ -9,7 +9,7 @@ import type { Server } from 'http';
 
 import { FumeEngine } from './engine';
 import { createHttpRouter } from './http';
-import defaultConfig from './serverConfig';
+import { defaultConfig } from './serverConfig';
 import type {
   IConfig,
   IFumeEngine,

@@ -40,7 +40,11 @@ No HTTP changes were introduced.
 import { FumeServer } from 'fume-fhir-converter';
 
 const server = new FumeServer();
-await server.warmUp();
+// Note: when embedding as a module, FUME does not read process.env/.env automatically.
+// Pass configuration explicitly from your host application.
+await server.warmUp({
+  SERVER_PORT: 42420,
+});
 ```
 
 ## Downstream server embedding (Express extensions)
