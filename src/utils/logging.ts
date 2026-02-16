@@ -1,18 +1,25 @@
 import type { Logger } from '@outburn/types';
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'silent';
+
+type EmittedLogLevel = Exclude<LogLevel, 'silent'>;
 
 const levelRank: Record<LogLevel, number> = {
 	debug: 10,
 	info: 20,
 	warn: 30,
 	error: 40,
+	silent: 100,
 };
 
 export function parseLogLevel(value: unknown): LogLevel | undefined {
 	if (typeof value !== 'string') return undefined;
 
 	switch (value.trim().toLowerCase()) {
+		case 'silent':
+		case 'none':
+		case 'off':
+			return 'silent';
 		case 'debug':
 			return 'debug';
 		case 'info':
@@ -70,7 +77,7 @@ export function createConsoleLogger(): Logger {
 	const color = (ansi: string, text: string): string => useColors ? `${ansi}${text}\x1b[0m` : text;
 	const dim = (text: string): string => color('\x1b[90m', text);
 
-	const levelTag = (level: LogLevel): string => {
+	const levelTag = (level: EmittedLogLevel): string => {
 		const tag = level.toUpperCase().padEnd(5, ' ');
 		switch (level) {
 			case 'debug':
@@ -84,7 +91,7 @@ export function createConsoleLogger(): Logger {
 		}
 	};
 
-	const formatLine = (level: LogLevel, args: unknown[]): string => {
+	const formatLine = (level: EmittedLogLevel, args: unknown[]): string => {
 		const ts = new Date().toISOString();
 		const msg = formatArgs(args);
 		return `${dim(ts)} ${levelTag(level)} ${msg}`;

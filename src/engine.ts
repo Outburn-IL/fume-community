@@ -305,29 +305,29 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
   public async convertInputToJson (input: unknown, contentType?: string) {
     const log = this.getEngineLogger();
     if (!contentType || contentType === '') {
-      log.info("Content-Type is empty - defaulting to 'application/json'");
+      log.debug?.("Content-Type is empty - defaulting to 'application/json'");
       contentType = 'application/json';
     }
 
     const converter = this.getOrCreateFormatConverter();
 
     if (contentType.startsWith('x-application/hl7-v2+er7')) {
-      log.info('Parsing HL7 V2.x message...');
+      log.debug?.('Parsing HL7 V2.x message...', { contentType });
       return await converter.hl7v2ToJson(input as string);
     }
 
     if (contentType.startsWith('text/csv')) {
-      log.info('Parsing CSV to JSON...');
+      log.debug?.('Parsing CSV to JSON...', { contentType });
       return await converter.csvToJson(input as string);
     }
 
     if (contentType.startsWith('application/xml') || contentType.startsWith('application/fhir+xml')) {
-      log.info('Parsing XML to JSON...');
+      log.debug?.('Parsing XML to JSON...', { contentType });
       return await converter.xmlToJson(input as string);
     }
 
     if (contentType.startsWith('application/json') || contentType.startsWith('application/fhir+json') || contentType.startsWith('text/json')) {
-      log.info('Using JSON input as-is');
+      log.debug?.('Using JSON input as-is', { contentType, inputType: typeof input });
       return input;
     }
 
@@ -574,19 +574,35 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
   }
 
   public async transformVerbose (input: unknown, expression: string, extraBindings: Record<string, IAppBinding> = {}): Promise<EvaluateVerboseReport> {
-    this.getEngineLogger().info('Running transformation (verbose)...');
+    const log = this.getEngineLogger();
+    const fumeHttpInvocation = (extraBindings as Record<string, unknown>)?.fumeHttpInvocation as
+      | { mappingId?: unknown; method?: unknown; subpath?: unknown }
+      | undefined;
+
+    const invocationMeta = {
+      invocation: 'engine.transformVerbose',
+      ...(typeof fumeHttpInvocation?.mappingId === 'string' ? { mappingId: fumeHttpInvocation.mappingId } : {}),
+      ...(typeof fumeHttpInvocation?.method === 'string' ? { method: fumeHttpInvocation.method } : {}),
+      ...(typeof fumeHttpInvocation?.subpath === 'string' ? { subpath: fumeHttpInvocation.subpath } : {}),
+    };
+
+    log.debug?.('Starting transformation (verbose)', invocationMeta);
 
     const expr = await this.compileExpression(expression);
     const bindings = this.getEvaluationBindings(extraBindings);
 
     const report = await expr.evaluateVerbose(input, bindings);
+    log.debug?.('Finished transformation (verbose)', {
+      ...invocationMeta,
+      executionId: (report as { executionId?: unknown })?.executionId,
+      ok: (report as { ok?: unknown })?.ok,
+      status: (report as { status?: unknown })?.status,
+    });
     return report as EvaluateVerboseReport;
   }
 
   public async transform (input: unknown, expression: string, extraBindings: Record<string, IAppBinding> = {}) {
     try {
-      this.getEngineLogger().info('Running transformation...');
-
       const report = await this.transformVerbose(input, expression, extraBindings);
 
       if (report.ok) {
