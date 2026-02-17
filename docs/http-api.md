@@ -144,6 +144,126 @@ Responses:
 
 When `?verbose=true` is provided, the response body is the full verbose report (see [Verbose mode](#verbose-mode)).
 
+#### Example: Blood Pressure Observation from JSON
+
+Expression:
+
+```txt
+Instance: $uuid()
+InstanceOf: bp
+* status = 'final'
+* effectiveDateTime = $now()
+* subject.identifier.value = mrn
+* component[SystolicBP].valueQuantity.value = systolic
+* component[DiastolicBP].valueQuantity.value = diastolic
+```
+
+Input:
+
+```json
+{
+  "mrn": "PP875023983",
+  "systolic": 120,
+  "diastolic": 80
+}
+```
+
+Request (PowerShell):
+
+```powershell
+$expression = @'
+Instance: $uuid()
+InstanceOf: bp
+* status = 'final'
+* effectiveDateTime = $now()
+* subject.identifier.value = mrn
+* component[SystolicBP].valueQuantity.value = systolic
+* component[DiastolicBP].valueQuantity.value = diastolic
+'@
+
+$body = @{
+  fume = $expression
+  input = @{ mrn = 'PP875023983'; systolic = 120; diastolic = 80 }
+  contentType = 'application/json'
+} | ConvertTo-Json -Depth 30
+
+Invoke-RestMethod -Method Post -Uri 'http://localhost:42420/' -ContentType 'application/json' -Body $body
+```
+
+Example output (one run). Note: `id` and `effectiveDateTime` will differ because they come from `$uuid()` and `$now()`:
+
+```json
+{
+  "resourceType": "Observation",
+  "id": "3c91d1da-894c-4e5e-b400-93121a2043e9",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/StructureDefinition/bp"
+    ]
+  },
+  "status": "final",
+  "category": [
+    {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+          "code": "vital-signs",
+          "display": "Vital Signs"
+        }
+      ]
+    }
+  ],
+  "code": {
+    "coding": [
+      {
+        "system": "http://loinc.org",
+        "code": "85354-9"
+      }
+    ]
+  },
+  "subject": {
+    "identifier": {
+      "value": "PP875023983"
+    }
+  },
+  "effectiveDateTime": "2026-02-16T23:50:49.527Z",
+  "component": [
+    {
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "8480-6"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 120,
+        "unit": "millimeter of mercury",
+        "system": "http://unitsofmeasure.org",
+        "code": "mm[Hg]"
+      }
+    },
+    {
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "8462-4"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 80,
+        "unit": "millimeter of mercury",
+        "system": "http://unitsofmeasure.org",
+        "code": "mm[Hg]"
+      }
+    }
+  ]
+}
+```
+
 ### `POST /{operation}`
 
 Root operations.
@@ -194,6 +314,17 @@ Invokes `mappingTransform` for the saved mapping.
 - Response `422`: handled compilation/transform/evaluation failure
 
 When `?verbose=true` is provided, the response body is the full verbose report (see [Verbose mode](#verbose-mode)).
+
+##### Example (same BP mapping, as a saved mapping)
+
+If you saved the BP expression above as `bpDemo.fume` and configured `MAPPINGS_FOLDER`, you can invoke it like this:
+
+```sh
+curl -s \
+  -H "Content-Type: application/json" \
+  -d '{"mrn":"PP875023983","systolic":120,"diastolic":80}' \
+  http://localhost:42420/Mapping/bpDemo
+```
 
 ### Execute a saved mapping with subroutes
 
