@@ -4,8 +4,9 @@
  */
 
 import { readFileSync } from 'fs';
-import { resolve } from 'path';
 import yaml from 'js-yaml';
+import { resolve } from 'path';
+
 import { version } from '../package.json';
 
 const raw = yaml.load(

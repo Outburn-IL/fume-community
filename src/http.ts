@@ -6,7 +6,7 @@
 import type { FumeHttpEvaluationError } from '@outburn/types';
 import { randomUUID } from 'crypto';
 import express, { type NextFunction, type Request, type Response } from 'express';
-import { apiReference } from '@scalar/express-api-reference';
+import swaggerUi from 'swagger-ui-express';
 
 import { version as engineVersion } from '../package.json';
 import type { FumeEngine } from './engine';
@@ -573,7 +573,7 @@ export const createHttpRouter = () => {
   router.get('/openapi.json', (_req, res) => {
     res.json(openApiSpec);
   });
-  router.use('/docs', apiReference({content: openApiSpec}));
+  router.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiSpec));
 
   // /Mapping/*
   const mapping = express.Router();
