@@ -7,8 +7,8 @@
 
 import * as dotenv from 'dotenv';
 
-import type { IConfig } from './types';
 import { FumeConfigSchema } from './serverConfig';
+import type { IConfig } from './types';
 
 export const loadFumeConfigFromEnv = (opts?: dotenv.DotenvConfigOptions): IConfig => {
 	dotenv.config(opts);
