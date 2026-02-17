@@ -20,30 +20,16 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run unit tests
-        run: npm run test:unit
-        
-  integration-test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
+      - name: Build
+        run: npm run build
       
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run integration tests
-        run: npm run test:integration
+      - name: Run tests
+        run: npm test
       
   merge-check:
-    needs: [test, integration-test]
+    needs: [test]
     runs-on: ubuntu-latest
     steps:
       - name: Check test status
-        if: ${{ needs.test.result != 'success' || needs.integration-test.result != 'success' }}
+        if: ${{ needs.test.result != 'success' }}
         run: exit 1 # Exit with a non-zero status code if tests fail

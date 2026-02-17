@@ -37,11 +37,9 @@ jobs:
     - name: Build package
       run: npm run build
 
-    - name: Run unit tests
-      run: npm run test:unit
-      
-    - name: Run integration tests
-      run: npm run test:integration
+    - name: Run tests
+      run: npm test
+
       
     - name: Verify package contents
       run: npm pack --dry-run
