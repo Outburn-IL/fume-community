@@ -153,11 +153,17 @@ components:
         cause:
           type: string
         line:
-          type: integer
+          oneOf:
+            - type: string
+            - type: integer
         start:
-          type: integer
+          oneOf:
+            - type: string
+            - type: integer
         position:
-          type: integer
+          oneOf:
+            - type: string
+            - type: integer
       example:
         __isFumeError: true
         __isFlashError: false
