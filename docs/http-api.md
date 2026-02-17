@@ -330,6 +330,13 @@ curl -s \
 
 These routes allow “routing data” to be passed via the URL after the mapping id.
 
+Note on Swagger/OpenAPI:
+
+- OpenAPI cannot represent the Express route shape used here (`/:mappingId/*subroute`).
+- As a result, Swagger UI “Try it out” cannot be used to test the multi-segment
+  form.
+- The OpenAPI spec documents this route only to describe the behavior.
+
 #### `POST /Mapping/{mappingId}/{subRoute1}/{subRoute2}/...`
 
 Same behavior as `POST /Mapping/{mappingId}`.

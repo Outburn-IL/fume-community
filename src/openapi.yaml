@@ -523,7 +523,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FumeError'
-  /Mapping/{mappingId}/{subroutes}:
+  /Mapping/{mappingId}/{subroute}:
     post:
       tags:
         - Mapping
@@ -532,6 +532,14 @@ paths:
         Same as `POST /Mapping/{mappingId}`, but path segments after the
         mapping ID are captured as routing metadata and exposed via
         `$fumeHttpInvocation`.
+
+        OpenAPI cannot model Express-style multi-segment wildcard routes.
+        The actual server route supports an arbitrary number of path segments
+        after `{mappingId}` (e.g. `POST /Mapping/{mappingId}/a/b/123`).
+
+        This path is documented with a single `{subroute}` segment for
+        documentation purposes only. Swagger UI "Try it out" (and many
+        generated clients) cannot reliably invoke the multi-segment form.
       operationId: executeMappingWithSubroutes
       parameters:
         - name: mappingId
@@ -540,12 +548,16 @@ paths:
           schema:
             type: string
           description: The ID of the saved mapping
-        - name: subroutes
+        - name: subroute
           in: path
           required: true
           schema:
             type: string
-          description: One or more sub-route path segments (e.g. `a/b/123`)
+          description: >-
+            Documentation-only placeholder for the wildcard route remainder.
+            For real multi-segment usage, call the endpoint as
+            `/Mapping/{mappingId}/...` with one or more additional path
+            segments (e.g. `/Mapping/{mappingId}/a/b/123`).
         - $ref: '#/components/parameters/verbose'
       requestBody:
         description: Input data for the mapping
@@ -600,12 +612,15 @@ paths:
           schema:
             type: string
           description: The ID of the saved mapping
-        - name: subroutes
+        - name: subroute
           in: path
           required: true
           schema:
             type: string
-          description: One or more sub-route path segments (required for PUT transforms)
+          description: >-
+            Documentation-only placeholder for the wildcard route remainder
+            (required for PUT transforms). Use one or more additional path
+            segments after `{mappingId}` when invoking manually.
         - $ref: '#/components/parameters/verbose'
       requestBody:
         description: Input data for the mapping
