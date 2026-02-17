@@ -20,6 +20,7 @@ export default defineConfig({
   skipNodeModulesBundle: true,
   noExternal: [], // No ESM-only dependencies to bundle currently
   splitting: false,
+  shims: true, // adjust the ESM bundle to define __dirname
   outExtension({ format }) {
     if (format === 'esm') return { js: '.mjs' };
     return { js: '.cjs' };
