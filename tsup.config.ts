@@ -3,6 +3,8 @@
  *   Project name: FUME-COMMUNITY
  */
 
+import { copyFileSync } from 'fs';
+
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
@@ -21,5 +23,8 @@ export default defineConfig({
   outExtension({ format }) {
     if (format === 'esm') return { js: '.mjs' };
     return { js: '.cjs' };
+  },
+  onSuccess: async () => {
+    copyFileSync('src/openapi.yaml', 'dist/openapi.yaml');
   }
 });

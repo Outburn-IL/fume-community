@@ -6,9 +6,11 @@
 import type { FumeHttpEvaluationError } from '@outburn/types';
 import { randomUUID } from 'crypto';
 import express, { type NextFunction, type Request, type Response } from 'express';
+import { apiReference } from '@scalar/express-api-reference';
 
 import { version as engineVersion } from '../package.json';
 import type { FumeEngine } from './engine';
+import { openApiSpec } from './openapi';
 import type { DiagnosticEntry, EvaluateVerboseReport } from './types';
 import { getFhirServerEndpoint, hasMappingSources } from './utils/mappingSources';
 import { getRouteParam } from './utils/routeParams';
@@ -566,6 +568,12 @@ const notFound = (_req: Request, res: Response) => {
 
 export const createHttpRouter = () => {
   const router = express.Router();
+
+  // OpenAPI spec
+  router.get('/openapi.json', (_req, res) => {
+    res.json(openApiSpec);
+  });
+  router.use('/docs', apiReference({content: openApiSpec}));
 
   // /Mapping/*
   const mapping = express.Router();

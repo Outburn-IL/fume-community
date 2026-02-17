@@ -1,0 +1,618 @@
+openapi: '3.0.3'
+info:
+  title: FUME Community API
+  version: 0.0.0
+  description: |
+    FHIR-Utilized Mapping Engine — Community Edition.  
+    Evaluate ad-hoc FUME expressions or execute saved StructureMap mappings.
+  license:
+    name: AGPL-3.0
+    url: https://www.gnu.org/licenses/agpl-3.0.html
+tags:
+  - name: Server
+    description: General server metadata endpoints.
+  - name: Evaluation
+    description: Ad-hoc evaluation endpoints.
+  - name: Health
+    description: Liveness/readiness endpoints.
+  - name: Cache
+    description: Cache and mapping refresh endpoints.
+  - name: Mapping
+    description: Saved mapping retrieval and execution endpoints.
+servers:
+  - url: /
+    description: Current server
+components:
+  schemas:
+    ServerInfo:
+      type: object
+      properties:
+        fume_version:
+          type: string
+          example: FUME Community v3.0.0
+        fhir_server:
+          type: string
+          example: http://hapi-fhir:8080/fhir
+        uptime:
+          type: string
+          example: 2 days, 15 hours, 57 minutes and 26 seconds
+        context_packages:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                example: hl7.fhir.r4.core
+              version:
+                type: string
+                example: 4.0.1
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: UP
+    DiagnosticsObject:
+      type: object
+      properties:
+        error:
+          type: array
+          items:
+            $ref: '#/components/schemas/Diagnostic'
+        warning:
+          type: array
+          items:
+            $ref: '#/components/schemas/Diagnostic'
+        debug:
+          type: array
+          items:
+            $ref: '#/components/schemas/Diagnostic'
+      required:
+        - error
+        - warning
+        - debug
+    Diagnostic:
+      type: object
+      description: A single diagnostic entry emitted during evaluation/validation.
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          example: F5120
+        position:
+          type: integer
+          example: 57
+        start:
+          type: integer
+          example: 52
+        line:
+          type: integer
+          example: 2
+        instanceOf:
+          type: string
+          example: Patient
+        fhirElement:
+          type: string
+          example: extension[data-absent-reason].value
+        bindingStrength:
+          type: string
+          example: required
+        expansionMode:
+          type: string
+          example: full
+        value:
+          description: The value that triggered the diagnostic (may be any JSON type).
+        message:
+          type: string
+          example: 'Value "abc" for "extension[data-absent-reason].value" in "Patient" is not in the required ValueSet.'
+        severity:
+          type: integer
+          example: 12
+        level:
+          type: string
+          example: invalid
+        timestamp:
+          type: integer
+          format: int64
+          example: 1771327039703
+    VerboseReport:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: true
+        status:
+          type: integer
+          description: HTTP-like status code of the evaluation result (e.g. 200, 206)
+          example: 206
+        result:
+          description: The raw evaluation result
+        diagnostics:
+          $ref: '#/components/schemas/DiagnosticsObject'
+        executionId:
+          type: string
+    FumeError:
+      type: object
+      description: Structured FUME error payload returned on compilation/evaluation failures.
+      properties:
+        __isFumeError:
+          type: boolean
+        __isFlashError:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: string
+        name:
+          type: string
+        value:
+          type: string
+        token:
+          type: string
+        cause:
+          type: string
+        line:
+          type: integer
+        start:
+          type: integer
+        position:
+          type: integer
+      example:
+        __isFumeError: true
+        __isFlashError: false
+        message: 'Missing expression after ":". Objects must contain only key-value pairs'
+        code: F1101
+        name: ''
+        value: ''
+        token: ':'
+        cause: ''
+        line: 1
+        start: 6
+        position: 7
+    RecacheResponse:
+      type: object
+      description: Recache result describing what was loaded into cache.
+      properties:
+        message:
+          type: string
+          example: The following Mappings were loaded to cache
+        mappings:
+          type: array
+          items:
+            type: string
+          description: List of mapping keys loaded into cache
+      example:
+        message: The following Mappings were loaded to cache
+        mappings:
+          - Patient12
+          - exampleForRepo
+  parameters:
+    verbose:
+      name: verbose
+      in: query
+      required: false
+      description: When set to `true` or `1`, returns the full evaluation report instead of the raw result.
+      schema:
+        type: string
+        enum:
+          - 'true'
+          - '1'
+paths:
+  /:
+    get:
+      tags:
+        - Server
+      summary: Server info
+      description: >-
+        Returns basic server information including version, configured FHIR
+        server, uptime, and loaded context packages.
+      operationId: getServerInfo
+      responses:
+        '200':
+          description: Server info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerInfo'
+    post:
+      tags:
+        - Evaluation
+      summary: Evaluate ad-hoc expression
+      description: >-
+        Evaluate an ad-hoc FUME expression. The request body can be a JSON
+        object with `fume` (required), `input`, and `contentType` fields.
+      operationId: evaluateExpression
+      parameters:
+        - $ref: '#/components/parameters/verbose'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fume
+              properties:
+                fume:
+                  type: string
+                  description: FUME expression to evaluate
+                  example: '{ resourceType: id }'
+                input:
+                  description: Input data for the expression
+                  example:
+                    resourceType: Patient
+                    id: '123'
+                contentType:
+                  type: string
+                  description: Content type for input conversion
+                  example: application/json
+            examples:
+              validRequest:
+                summary: Valid request
+                value:
+                  fume: '{ resourceType: id }'
+                  input:
+                    resourceType: Patient
+                    id: '123'
+                  contentType: application/json
+              invalidRequest:
+                summary: Invalid request (missing fume)
+                value:
+                  input:
+                    resourceType: Patient
+                    id: '123'
+                  contentType: application/json
+              invalidRequest2:
+                summary: Invalid request (invalid fume)
+                value:
+                  fume: '{ resourceType: id '
+                  input:
+                    resourceType: Patient
+                    id: '123'
+                  contentType: application/json
+              invalidRequest3:
+                summary: Invalid request (unsupported content type)
+                value:
+                  fume: '{ resourceType: id }'
+                  input:
+                    resourceType: Patient
+                    id: '123'
+                  contentType: application/invalid
+              partialResult:
+                summary: Partial result (with diagnostics)
+                value:
+                  fume: 'InstanceOf: Patient\n* extension[data-absent-reason].value = "abc"'
+      responses:
+        '200':
+          description: Evaluation result
+          content:
+            application/json:
+              schema: {}
+              examples:
+                result:
+                  summary: Response
+                  value:
+                    Patient: '123'
+        '206':
+          description: Partial evaluation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerboseReport'
+        '400':
+          description: Missing or empty `fume` expression
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FumeError'
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    properties:
+                      message:
+                        type: string
+                      code:
+                        type: string
+                  - $ref: '#/components/schemas/VerboseReport'
+              examples:
+                unsupportedMediaType:
+                  summary: Unsupported media type
+                  value:
+                    message: "Unsupported Content-Type: 'application/invalid'"
+                    code: "UNSUPPORTED_MEDIA_TYPE"
+                verboseUnsupportedMediaType:
+                  summary: Unsupported media type (verbose mode)
+                  value:
+                    ok: false
+                    status: 415
+                    diagnostics:
+                      error:
+                        - code: UNSUPPORTED_MEDIA_TYPE
+                          message: Unsupported content-type
+                          severity: 1
+                          level: error
+                          timestamp: 1771328556787
+                      warning: []
+                      debug: []
+                    executionId: 4362008e-3736-4510-94a2-f9969a0565c9
+        '422':
+          description: Expression compilation or evaluation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FumeError'
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health probe
+      description: Health check endpoint for load balancers and liveness/readiness probes.
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /$recache:
+    post:
+      tags:
+        - Cache
+      summary: Reload mappings
+      description: >-
+        Reloads mappings and aliases from the configured sources into cache.
+        Flushes the ConceptMap cache. Available only when at least one mapping
+        source is configured.
+      operationId: recache
+      responses:
+        '200':
+          description: Mappings reloaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecacheResponse'
+        '405':
+          description: Method not allowed. No mapping sources configured.
+        '500':
+          description: Cache could not be refreshed
+  /recache:
+    get:
+      tags:
+        - Cache
+      summary: Recache (method not allowed)
+      description: >-
+        Recache has side-effects, so GET is no longer supported. Use `POST
+        /$recache` instead.
+      operationId: recacheGetDisabled
+      deprecated: true
+      responses:
+        '405':
+          description: Method not allowed. Use POST /$recache.
+    post:
+      tags:
+        - Cache
+      summary: Reload mappings (deprecated)
+      description: >-
+        Same as `POST /$recache`, but deprecated. Emits a warning in logs and a
+        Warning response header. Will be removed in future releases.
+      operationId: recacheDeprecated
+      deprecated: true
+      responses:
+        '200':
+          description: Mappings reloaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecacheResponse'
+        '405':
+          description: Method not allowed. No mapping sources configured.
+        '500':
+          description: Cache could not be refreshed
+  /Mapping/{mappingId}:
+    get:
+      tags:
+        - Mapping
+      summary: Fetch mapping expression
+      description: Fetches the FUME expression for a saved mapping.
+      operationId: getMappingExpression
+      parameters:
+        - name: mappingId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the saved mapping
+      responses:
+        '200':
+          description: Mapping expression (FUME source)
+          content:
+            application/vnd.outburn.fume:
+              schema:
+                type: string
+              examples:
+                exampleMapping:
+                  summary: Example mapping expression
+                  value: |
+                    // Example FUME mapping expression
+                    InstanceOf: Patient
+                    * name.text = first_name & ' ' & last_name
+        '404':
+          description: Mapping not found
+    post:
+      tags:
+        - Mapping
+      summary: Execute saved mapping
+      description: >-
+        Invokes the saved mapping transform. The request body is treated as the
+        input, converted according to the request Content-Type.
+      operationId: executeMappingById
+      parameters:
+        - name: mappingId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the saved mapping
+        - $ref: '#/components/parameters/verbose'
+      requestBody:
+        description: Input data for the mapping
+        content:
+          application/json:
+            schema:
+              type: object
+          application/fhir+json:
+            schema:
+              type: object
+          application/xml:
+            schema:
+              type: string
+          application/fhir+xml:
+            schema:
+              type: string
+          text/csv:
+            schema:
+              type: string
+          x-application/hl7-v2+er7:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: Mapping result (any JSON). When `?verbose` is enabled, returns a VerboseReport.
+        '206':
+          description: Partial result
+        '404':
+          description: Mapping not found
+        '415':
+          description: Unsupported media type
+        '422':
+          description: Compilation, transform, or evaluation failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FumeError'
+  /Mapping/{mappingId}/{subroutes}:
+    post:
+      tags:
+        - Mapping
+      summary: Execute saved mapping with subroutes
+      description: >-
+        Same as `POST /Mapping/{mappingId}`, but path segments after the
+        mapping ID are captured as routing metadata and exposed via
+        `$fumeHttpInvocation`.
+      operationId: executeMappingWithSubroutes
+      parameters:
+        - name: mappingId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the saved mapping
+        - name: subroutes
+          in: path
+          required: true
+          schema:
+            type: string
+          description: One or more sub-route path segments (e.g. `a/b/123`)
+        - $ref: '#/components/parameters/verbose'
+      requestBody:
+        description: Input data for the mapping
+        content:
+          application/json:
+            schema:
+              type: object
+          application/fhir+json:
+            schema:
+              type: object
+          application/xml:
+            schema:
+              type: string
+          application/fhir+xml:
+            schema:
+              type: string
+          text/csv:
+            schema:
+              type: string
+          x-application/hl7-v2+er7:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: Mapping result (any JSON). When `?verbose` is enabled, returns a VerboseReport.
+        '206':
+          description: Partial result
+        '404':
+          description: Mapping not found
+        '415':
+          description: Unsupported media type
+        '422':
+          description: Compilation, transform, or evaluation failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FumeError'
+    put:
+      tags:
+        - Mapping
+      summary: Execute saved mapping with subroutes (PUT)
+      description: >-
+        Same as the POST subroute form, but with method PUT. Transform is
+        invoked only when there is at least one path segment after the mapping
+        ID. `PUT /Mapping/{mappingId}` without subroutes is reserved for
+        mapping updates.
+      operationId: executeMappingWithSubroutesPut
+      parameters:
+        - name: mappingId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the saved mapping
+        - name: subroutes
+          in: path
+          required: true
+          schema:
+            type: string
+          description: One or more sub-route path segments (required for PUT transforms)
+        - $ref: '#/components/parameters/verbose'
+      requestBody:
+        description: Input data for the mapping
+        content:
+          application/json:
+            schema:
+              type: object
+          application/fhir+json:
+            schema:
+              type: object
+          application/xml:
+            schema:
+              type: string
+          application/fhir+xml:
+            schema:
+              type: string
+          text/csv:
+            schema:
+              type: string
+          x-application/hl7-v2+er7:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: Mapping result (any JSON). When `?verbose` is enabled, returns a VerboseReport.
+        '206':
+          description: Partial result
+        '404':
+          description: Mapping not found
+        '415':
+          description: Unsupported media type
+        '422':
+          description: Compilation, transform, or evaluation failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FumeError'
