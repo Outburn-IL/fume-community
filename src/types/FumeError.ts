@@ -3,8 +3,8 @@
  *   Project name: FUME-COMMUNITY
  */
 
-import { JsonataError } from 'jsonata';
+import { FumifierError } from 'fumifier';
 
-export type FumeError = JsonataError & {
+export type FumeError = FumifierError & {
   __isFumeError: true
 };

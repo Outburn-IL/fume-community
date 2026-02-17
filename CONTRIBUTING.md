@@ -38,7 +38,7 @@ Once you forked the repository, clone it to your local work station and open it 
  ```
 This will start the server in development mode on `localhost:42420` (the default port).
 
-5. To change the default port or any other environment variable, you should create a file named `.env`. You can find two sample templates in the repository ([Stateful](https://github.com/Outburn-IL/fume-community/blob/main/.env.example.stateful) \ [Stateless](https://github.com/Outburn-IL/fume-community/blob/main/.env.example.stateless)).
+5. To change the default port or any other environment variable, you should create a file named `.env`. You can find a sample template in the repository ([.env.example](https://github.com/Outburn-IL/fume-community/blob/main/.env.example)).
 
 ### Testing your changes
 

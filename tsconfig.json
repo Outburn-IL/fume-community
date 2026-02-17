@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "commonjs",
+    "target": "ES2020",
+    "module": "ES2020",
     "declaration": true,
-    "declarationMap": true,
+    "declarationMap": false,
     "pretty": true,
     "sourceMap": true,
     "outDir": "dist",
-    "importHelpers": true,
+    "importHelpers": false,
     "strict": true,
     "noImplicitAny": false,
     "strictNullChecks": true,
@@ -21,7 +21,7 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
+    "emitDecoratorMetadata": false,
     "resolveJsonModule": true,
     "allowJs": true
   },
@@ -29,6 +29,7 @@
     "**/*.ts"
   ],
   "exclude": [
-    "dist/**/*"
+    "dist/**/*",
+    "tests/**/*"
   ]
 }

@@ -2,7 +2,7 @@
  * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
  *   Project name: FUME-COMMUNITY
  */
-import { test } from '@jest/globals';
+import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import request from 'supertest';
 
 import { addConcept, addPractitioner, deleteConcept, deletePractitioner } from '../utils/fhirHelpers';
@@ -18,14 +18,14 @@ describe('using a concept map', () => {
     fumeConceptMapId = await addConcept('concept-fume-aliases.json');
     genderConceptMapId = await addConcept('gender.json', 'gender');
     await addPractitioner('practitioner.json', 'cc829d28-3b32-43df-af57-e72035d98e18');
-    await request(globalThis.app).get('/recache');
+    await request(globalThis.app).post('/$recache');
   });
 
   afterAll(async () => {
     await deleteConcept(fumeConceptMapId);
     await deleteConcept(genderConceptMapId);
     await deletePractitioner('cc829d28-3b32-43df-af57-e72035d98e18');
-    await request(globalThis.app).get('/recache');
+    await request(globalThis.app).post('/$recache');
   });
 
   test('Case 12 - aliases stopped working', async () => {
@@ -164,6 +164,7 @@ describe('using a concept map', () => {
               coding: [
                 {
                   system: 'http://terminology.hl7.org/CodeSystem/v2-0203',
+                  display: 'Medical License number',
                   code: 'MD'
                 }
               ]

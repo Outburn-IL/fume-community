@@ -185,4 +185,16 @@ Dockerfile
 
 .github
 README.md
-snapshots
+tests
+docs
+CONTRIBUTING.md
+LICENSE
+jest.config.js
+jest.integration.js
+.eslintrc.js
+.eslintignore
+.babelrc
+.npmignore
+.header
+example-StructureMap.json
+.env.example.*

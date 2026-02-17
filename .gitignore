@@ -1,14 +1,11 @@
 
 dist
 node_modules
-snapshots
 .vscode
 .history
 .idea
 .env
 .env.test
 .eslintcache
-**/hapi.postgress.data
-
-fhirPackageIndex.json
 tests/.fhir-packages
+/mappings/

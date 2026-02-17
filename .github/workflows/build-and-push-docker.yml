@@ -1,7 +1,6 @@
 name: Build Docker and Push
 
 on:
-  # Trigger automatically only after semantic-release has finished and published the GitHub Release
   release:
     types: [published]
   # Allow manual runs
@@ -12,31 +11,14 @@ env:
 
 jobs:
   deploy:
-    # Run for manual dispatch or a published release
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'release' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          # Always fetch full history, we'll checkout tag explicitly if release event.
           fetch-depth: 0
 
-      - name: Determine release tag (release event)
-        if: ${{ github.event_name == 'release' }}
-        run: |
-          TAG="${{ github.event.release.tag_name }}"
-          echo "RELEASE_VERSION=${TAG#v}" >> "$GITHUB_ENV"
-          echo "Resolved release version from tag: ${TAG#v}"
-
-      - name: Determine release version (manual dispatch)
-        if: ${{ github.event_name == 'workflow_dispatch' }}
-        run: |
-          VERSION=$(jq -r '.version' package.json)
-          echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
-          echo "Resolved release version from package.json: $VERSION"
-
-      - name: Checkout tag commit (release only)
+      - name: Checkout release tag commit
         if: ${{ github.event_name == 'release' }}
         run: |
           TAG="${{ github.event.release.tag_name }}"
@@ -45,13 +27,23 @@ jobs:
             git checkout "$TAG"
             echo "Checked out tag $TAG"
           else
-            echo "Tag $TAG not found after fetch"; exit 1;
+            echo "Tag $TAG not found after fetch"
+            exit 1
           fi
 
-      - name: Validate derived version
+      - name: Determine release version (from release)
+        if: ${{ github.event_name == 'release' }}
         run: |
-          if [ -z "$RELEASE_VERSION" ]; then echo "RELEASE_VERSION is empty"; exit 1; fi
-          echo "Final version: $RELEASE_VERSION"
+          TAG="${{ github.event.release.tag_name }}"
+          echo "RELEASE_VERSION=${TAG#v}" >> "$GITHUB_ENV"
+          echo "Using version from release tag: ${TAG#v}"
+
+      - name: Determine release version (manual dispatch)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          VERSION=$(jq -r '.version' package.json)
+          echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "Using version from package.json: $VERSION"
 
       - name: Validate required secrets
         run: |
@@ -67,6 +59,35 @@ jobs:
       - name: Build Docker image
         run: |
           docker build --tag "$DOCKER_IMAGE_NAME:$RELEASE_VERSION" .
+
+      - name: Smoke test container /health
+        run: |
+          set -e
+          docker rm -f fume_smoke_test >/dev/null 2>&1 || true
+          docker run -d --name fume_smoke_test -p 42420:42420 \
+            -e SERVER_PORT=42420 \
+            -e FHIR_SERVER_BASE=n/a \
+            -e FHIR_SERVER_AUTH_TYPE=NONE \
+            -e FHIR_SERVER_TIMEOUT=30000 \
+            -e FHIR_VERSION=4.0.1 \
+            -e FHIR_PACKAGES='' \
+            "$DOCKER_IMAGE_NAME:$RELEASE_VERSION"
+
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:42420/health >/dev/null; then
+              echo "Health OK"
+              break
+            fi
+            echo "Waiting for /health... ($i/60)"
+            sleep 2
+            if [ "$i" -eq 60 ]; then
+              echo "Container logs:"
+              docker logs fume_smoke_test || true
+              exit 1
+            fi
+          done
+
+          docker rm -f fume_smoke_test
 
       - name: Push Docker image
         run: |

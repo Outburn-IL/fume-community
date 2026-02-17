@@ -2,34 +2,21 @@
  * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
  *   Project name: FUME-COMMUNITY
  */
-import { Application } from 'express';
+import type { Application, RequestHandler } from 'express';
 
-import { IAppCache, IAppCacheKeys } from '../helpers/cache/cacheTypes';
-import { IFhirPackageIndex } from '../helpers/conformance';
-import { ICache } from './Cache';
-import { IFhirClient } from './FhirClient';
-import { ILogger } from './Logger';
+import type { IConfig } from './Config';
+import type { IFumeEngine } from './FumeEngine';
 
-export type ICacheClass = new <T>(options: Record<string, any>) => ICache<T>;
-export type IAppBinding = any;
-
-export interface IFumeServer<ConfigType> {
-  registerLogger: (logger: ILogger) => void
-  registerFhirClient: (fhirClient: IFhirClient) => void
-  getFhirClient: () => IFhirClient
-  registerCacheClass: (
-    CacheClass: ICacheClass,
-    cacheClassOptions: Record<string, any>,
-    applyToCaches: IAppCacheKeys[]
-  ) => void
-  registerBinding: (key: string, binding: IAppBinding) => void
-  getCache: () => IAppCache
-  getConfig: () => ConfigType
-  getExpressApp: () => Application
-  warmUp: (serverOptions: ConfigType | undefined) => Promise<void>
-  shutDown: () => Promise<void>
-
-  getFhirPackageIndex: () => IFhirPackageIndex
-  getFhirPackages: () => any
-  transform: (input: any, expression: string, extraBindings?: Record<string, IAppBinding>) => Promise<any>
+/**
+ * HTTP/Express wrapper around a {@link IFumeEngine}.
+ *
+ * The server should not expose engine capabilities directly; downstream consumers
+ * can access the engine via {@link getEngine}.
+ */
+export interface IFumeServer<ConfigType extends IConfig = IConfig> {
+  getExpressApp: () => Application;
+  getEngine: () => IFumeEngine<ConfigType>;
+  registerAppMiddleware: (middleware: RequestHandler) => void;
+  registerBinding: (key: string, binding: unknown) => void;
+  shutDown: () => Promise<void>;
 }

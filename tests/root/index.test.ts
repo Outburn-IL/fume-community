@@ -2,7 +2,7 @@
  * © Copyright Outburn Ltd. 2022-2024 All Rights Reserved
  *   Project name: FUME-COMMUNITY
  */
-import { test } from '@jest/globals';
+import { describe, expect, test } from '@jest/globals';
 import request from 'supertest';
 
 import { getResourceFileContents } from '../utils/getResourceFileContents';
@@ -57,9 +57,10 @@ describe('integration tests', () => {
 
     expect(res.body).toStrictEqual({
       resourceType: 'Bundle',
+      type: 'transaction',
       entry: [
         {
-          fullUrl: 'urn:uuid:74004cf7-9086-5f29-bbd0-8aca59814550',
+          fullUrl: 'urn:uuid:cebe6fb5-574b-5a21-a197-f5ac05959e38',
           resource: {
             resourceType: 'Patient',
             id: '356a192b-7913-504c-9457-4d18c28d46e6',
@@ -71,17 +72,17 @@ describe('integration tests', () => {
             active: true,
             name: [
               {
+                family: 'Rabbit',
                 given: [
                   'Jessica'
-                ],
-                family: 'Rabbit'
+                ]
               }
             ],
             birthDate: '1988-06-22'
           }
         },
         {
-          fullUrl: 'urn:uuid:802ddc31-4422-5364-bff3-c1a9a3b1e21a',
+          fullUrl: 'urn:uuid:78eb3be0-2eed-52bb-97e4-8930e4a8127a',
           resource: {
             resourceType: 'Patient',
             id: '2nd',
@@ -93,22 +94,22 @@ describe('integration tests', () => {
             active: true,
             name: [
               {
+                family: 'Rabbit',
                 given: [
                   'Jessica'
-                ],
-                family: 'Rabbit'
+                ]
               }
             ],
             birthDate: '1988-06-22',
             generalPractitioner: [
               {
-                reference: 'urn:uuid:74004cf7-9086-5f29-bbd0-8aca59814550'
+                reference: 'urn:uuid:cebe6fb5-574b-5a21-a197-f5ac05959e38'
               }
             ]
           }
         },
         {
-          fullUrl: 'urn:uuid:6037a737-7ad4-5b40-803e-3bf43e69892b',
+          fullUrl: 'urn:uuid:96e7310e-b548-52b0-b49e-1e341dffea9c',
           resource: {
             resourceType: 'Patient',
             id: '3rd',
@@ -120,10 +121,10 @@ describe('integration tests', () => {
             active: true,
             name: [
               {
+                family: 'Rabbit',
                 given: [
                   'Jessica'
-                ],
-                family: 'Rabbit'
+                ]
               }
             ],
             birthDate: '1988-06-22'
@@ -139,7 +140,7 @@ describe('integration tests', () => {
 
     const res = await request(globalThis.app).post('/').send(requestBody);
 
-    expect(res.body.message).toBe('Transformation error: value \'F\' is invalid for element Patient.gender. This code is not in the required value set');
+    expect(res.body.code).toBe('F5120');
   });
 
   test('Validate Patient.gender code - correct', async () => {
@@ -167,7 +168,7 @@ describe('integration tests', () => {
 
     const res = await request(globalThis.app).post('/').send(requestBody);
 
-    expect(res.body.message).toBe('Transformation error: Element extension[ext-il-hmo].value is invalid since none of the codings provided are in the required value set');
+    expect(res.body.code).toBe('F5123');
   });
 
   test('Validate Patient.extension codeable - correct', async () => {
@@ -197,7 +198,8 @@ describe('integration tests', () => {
               },
               {
                 code: '402',
-                system: 'http://fhir.health.gov.il/cs/paying-entity-moh'
+                system: 'http://fhir.health.gov.il/cs/paying-entity-moh',
+                display: 'משרד הבטחון'
               }
             ]
           }
@@ -211,7 +213,18 @@ describe('integration tests', () => {
     let correct;
     let wrong;
     // Extension-admin-parent-name: ['extension[role].valueCode']
-    fume = 'InstanceOf: il-core-patient\n* extension[parentName]\n  * extension[given].value = \'משה\'\n  * extension[role].value = value';
+    fume = `
+      InstanceOf: il-core-patient
+      * extension[parentName]
+        * extension[given].value = 'משה'
+        * extension[role].value = value
+      * identifier[il-id].value = '123'
+      * name
+        * given = 'John'
+        * family = 'Doe'
+      * gender = 'unknown'
+      * birthDate = '1985'
+  `;
     correct = await request(globalThis.app).post('/').send({ input: { value: 'FTH' }, fume });
     wrong = await request(globalThis.app).post('/').send({ input: { value: 'father' }, fume });
     expect(correct.body).toStrictEqual({
@@ -235,13 +248,49 @@ describe('integration tests', () => {
           ],
           url: 'http://fhir.health.gov.il/StructureDefinition/ext-administrative-parent-name'
         }
-      ]
+      ],
+      identifier: [
+        {
+          system: 'http://fhir.health.gov.il/identifier/il-national-id',
+          value: '123'
+        }
+      ],
+      name: [
+        {
+          family: 'Doe',
+          given: [
+            'John'
+          ]
+        }
+      ],
+      gender: 'unknown',
+      birthDate: '1985'
     });
-    expect(wrong.body.message).toBe('Transformation error: value \'father\' is invalid for element extension[parentName].extension[role].value. This code is not in the required value set');
+    expect(wrong.body.message).toBe('Value "father" for "extension[parentName].extension[role].value" in "il-core-patient" is not in the required ValueSet.');
 
     // Extension-city-code: ['valueCodeableConcept']
-    // eslint-disable-next-line @typescript-eslint/quotes
-    fume = "InstanceOf: il-core-patient\n* address\n  * city\n    * extension[cityCode]\n      * value\n        * coding\n          * system = 'http://city.codes.org'\n          * code = 'FT'\n        * coding\n          * system = 'http://example.com/towns'\n          * code = 'funkytown'\n        * coding\n          * system = 'http://fhir.health.gov.il/cs/city-symbol'\n          * code = value";
+    fume = `
+    InstanceOf: il-core-patient
+    * identifier[il-id].value = '123'
+    * name
+      * given = 'John'
+      * family = 'Doe'
+    * gender = 'unknown'
+    * birthDate = '1985'
+    * address
+      * city
+        * extension[cityCode]
+          * value
+            * coding
+              * system = 'http://city.codes.org'
+              * code = 'FT'
+            * coding
+              * system = 'http://example.com/towns'
+              * code = 'funkytown'
+            * coding
+              * system = 'http://fhir.health.gov.il/cs/city-symbol'
+              * code = value
+    `;
     correct = await request(globalThis.app).post('/').send({ input: { value: '4000' }, fume });
     wrong = await request(globalThis.app).post('/').send({ input: { value: 'no-city' }, fume });
     expect(correct.body).toStrictEqual({
@@ -269,7 +318,8 @@ describe('integration tests', () => {
                     },
                     {
                       system: 'http://fhir.health.gov.il/cs/city-symbol',
-                      code: '4000'
+                      code: '4000',
+                      display: 'חיפה'
                     }
                   ]
                 }
@@ -277,118 +327,188 @@ describe('integration tests', () => {
             ]
           }
         }
-      ]
+      ],
+      identifier: [
+        {
+          system: 'http://fhir.health.gov.il/identifier/il-national-id',
+          value: '123'
+        }
+      ],
+      name: [
+        {
+          family: 'Doe',
+          given: [
+            'John'
+          ]
+        }
+      ],
+      gender: 'unknown',
+      birthDate: '1985'
     });
-    expect(wrong.body.message).toBe('Transformation error: Element address.city.extension[cityCode].value is invalid since none of the codings provided are in the required value set');
+    expect(wrong.body.message).toBe('CodeableConcept.coding does not contain a Coding from the required ValueSet (3 provided) for "address.city.extension[cityCode].value" in "il-core-patient".');
 
     // Extension-hebrew-date: ['extension[day].valueCodeableConcept', 'extension[month].valueCodeableConcept']
-    // eslint-disable-next-line @typescript-eslint/quotes
-    fume = "InstanceOf: Condition\r\n* onsetDateTime = '2024-06-04T11:52:33.016Z'\r\n  * ($split(value,'-')#$i{$string($i): $}).extension[ext-hebrew-date]\r\n    * extension[day].value\r\n      * coding\r\n        * system = 'http://fhir.health.gov.il/cs/hebrew-date-day'\r\n        * code = `0`\r\n    * extension[month].value\r\n      * coding \r\n        * system = 'http://fhir.health.gov.il/cs/hebrew-date-month'\r\n        * code = `1`\r\n    * extension[year].value = 'התש\"ח'";
+    fume = `
+      InstanceOf: Condition
+      * onsetDateTime = '2024-06-04T11:52:33.016Z'
+        * (($split(value,'-')#$i{$string($i): $})).extension[ext-hebrew-date]
+          * extension[day].value
+            * coding
+              * code = \`0\`
+          * extension[month].value
+            * coding 
+              * code = \`1\`
+          * extension[year].value = 'התש"ח'
+      * subject.reference = 'Patient/123'
+    `;
     correct = await request(globalThis.app).post('/').send({ input: { value: '25-11' }, fume });
     wrong = await request(globalThis.app).post('/').send({ input: { value: '35-19' }, fume });
     expect(correct.body).toStrictEqual({
-      resourceType: 'Condition',
-      onsetDateTime: '2024-06-04T11:52:33.016Z',
-      _onsetDateTime: {
-        extension: [
+      "resourceType": "Condition",
+      "subject": {
+        "reference": "Patient/123"
+      },
+      "onsetDateTime": "2024-06-04T11:52:33.016Z",
+      "_onsetDateTime": {
+        "extension": [
           {
-            url: 'http://fhir.health.gov.il/StructureDefinition/ext-hebrew-date',
-            extension: [
+            "extension": [
               {
-                url: 'day',
-                valueCodeableConcept: {
-                  coding: [
+                "url": "day",
+                "valueCodeableConcept": {
+                  "coding": [
                     {
-                      system: 'http://fhir.health.gov.il/cs/hebrew-date-day',
-                      code: '25'
+                      "system": "http://fhir.health.gov.il/cs/hebrew-date-day",
+                      "code": "25",
+                      "display": "כ\"ה"
                     }
                   ]
                 }
               },
               {
-                url: 'month',
-                valueCodeableConcept: {
-                  coding: [
+                "url": "month",
+                "valueCodeableConcept": {
+                  "coding": [
                     {
-                      system: 'http://fhir.health.gov.il/cs/hebrew-date-month',
-                      code: '11'
+                      "system": "http://fhir.health.gov.il/cs/hebrew-date-month",
+                      "code": "11",
+                      "display": "אב"
                     }
                   ]
                 }
               },
               {
-                url: 'year',
-                valueString: 'התש"ח'
+                "url": "year",
+                "valueString": "התש\"ח"
               }
-            ]
+            ],
+            "url": "http://fhir.health.gov.il/StructureDefinition/ext-hebrew-date"
           }
         ]
       }
     });
-    expect(wrong.body.message).toBe('Transformation error: Element onsetDateTime.extension[ext-hebrew-date].extension[day].value is invalid since none of the codings provided are in the required value set');
+    expect(wrong.body.message).toBe('CodeableConcept.coding does not contain a Coding from the required ValueSet (1 provided) for "onsetDateTime.extension[ext-hebrew-date].extension[day].value" in "Condition".');
 
     // IL-Core-Vital-Signs: ['valueQuantity']
-    // eslint-disable-next-line @typescript-eslint/quotes
-    fume = "InstanceOf: il-core-vital-signs\r\n* status = 'final'\r\n* code.coding\r\n  * system = 'http://loinc.org'\r\n  * code = '8310-5'\r\n* subject.display = 'aaa'\r\n* effectiveDateTime = '2024-06-04T13:36:49.823Z'\r\n* valueQuantity\r\n  * system = 'http://unitsofmeasure.org'\r\n  * code = value\r\n  * value = '100'";
+    fume = `
+      InstanceOf: il-core-vital-signs
+      * status = 'final'
+      * code.coding
+        * system = 'http://loinc.org'
+        * code = '8310-5'
+      * subject.display = 'aaa'
+      * effectiveDateTime = '2024-06-04T13:36:49.823Z'
+      * valueQuantity
+        * system = 'http://unitsofmeasure.org'
+        * code = value
+        * value = '100'
+    `;
     correct = await request(globalThis.app).post('/').send({ input: { value: 'kg' }, fume });
     wrong = await request(globalThis.app).post('/').send({ input: { value: 'parsecs' }, fume });
     expect(correct.body).toStrictEqual({
-      resourceType: 'Observation',
-      meta: {
-        profile: [
-          'http://fhir.health.gov.il/StructureDefinition/il-core-vital-signs'
+      "resourceType": "Observation",
+      "meta": {
+        "profile": [
+          "http://fhir.health.gov.il/StructureDefinition/il-core-vital-signs"
         ]
       },
-      category: [
+      "status": "final",
+      "category": [
         {
-          coding: [
+          "coding": [
             {
-              system: 'http://terminology.hl7.org/CodeSystem/observation-category',
-              code: 'vital-signs'
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "vital-signs",
+              "display": "Vital Signs"
             }
           ]
         }
       ],
-      status: 'final',
-      code: {
-        coding: [
+      "code": {
+        "coding": [
           {
-            system: 'http://loinc.org',
-            code: '8310-5'
+            "system": "http://loinc.org",
+            "code": "8310-5"
           }
         ]
       },
-      subject: {
-        display: 'aaa'
+      "subject": {
+        "display": "aaa"
       },
-      effectiveDateTime: '2024-06-04T13:36:49.823Z',
-      valueQuantity: {
-        system: 'http://unitsofmeasure.org',
-        code: 'kg',
-        value: 100
+      "effectiveDateTime": "2024-06-04T13:36:49.823Z",
+      "valueQuantity": {
+        "value": 100,
+        "unit": "kilogram",
+        "system": "http://unitsofmeasure.org",
+        "code": "kg"
       }
     });
-    expect(wrong.body.message).toBe('Transformation error: The code \'http://unitsofmeasure.org#parsecs\' is invalid for element Observation.valueQuantity. This code is not in the required value set');
+    expect(wrong.body.message).toBe('Quantity unit code (system="http://unitsofmeasure.org", code="parsecs") for "valueQuantity" in "il-core-vital-signs" is not in the required ValueSet.');
 
     // IL-Core-Address: country
-    // eslint-disable-next-line @typescript-eslint/quotes
-    fume = "InstanceOf: il-core-patient\r\n* address\r\n  * country = value";
+    fume = `
+    InstanceOf: il-core-patient
+    * identifier[il-id].value = '000000018'
+    * address
+      * country = value
+    * name
+      * given = 'a'
+      * family = 'b'
+    * gender = 'other'
+    * birthDate = '1990'
+    `;
     correct = await request(globalThis.app).post('/').send({ input: { value: 'ISR' }, fume });
     wrong = await request(globalThis.app).post('/').send({ input: { value: 'lalaland' }, fume });
     expect(correct.body).toStrictEqual({
-      resourceType: 'Patient',
-      meta: {
-        profile: [
-          'http://fhir.health.gov.il/StructureDefinition/il-core-patient'
+      "resourceType": "Patient",
+      "meta": {
+        "profile": [
+          "http://fhir.health.gov.il/StructureDefinition/il-core-patient"
         ]
       },
-      address: [
+      "identifier": [
         {
-          country: 'ISR'
+          "system": "http://fhir.health.gov.il/identifier/il-national-id",
+          "value": "000000018"
+        }
+      ],
+      "name": [
+        {
+          "family": "b",
+          "given": [
+            "a"
+          ]
+        }
+      ],
+      "gender": "other",
+      "birthDate": "1990",
+      "address": [
+        {
+          "country": "ISR"
         }
       ]
     });
-    expect(wrong.body.message).toBe('Transformation error: value \'lalaland\' is invalid for element address.country. This code is not in the required value set');
+    expect(wrong.body.message).toBe('Value "lalaland" for "address.country" in "il-core-patient" is not in the required ValueSet.');
   });
 
   test('Validate Task.intent code', async () => {
@@ -406,10 +526,15 @@ describe('integration tests', () => {
     });
   });
 
-  test('Case 2 - Slices with fixed values appear even if no children are set', async () => {
+  test('Case 3 - Slices with fixed values appear even if no children are set (context undefined)', async () => {
     const mapping = `
-            InstanceOf: il-core-patient
-            * identifier[il-id].value = undefined
+      InstanceOf: il-core-patient
+      * name[Hebrew]
+        * family = 'a'
+      * identifier[enc].value = '1'
+      * (undefined).identifier[il-id].value = '1'
+      * gender = 'unknown'
+      * birthDate = '1985'
         `;
     const requestBody = {
       input: mockInput,
@@ -422,87 +547,27 @@ describe('integration tests', () => {
       meta: {
         profile: [
           'http://fhir.health.gov.il/StructureDefinition/il-core-patient'
-        ]
-      }
-    });
-  });
-
-  test('Case 3 - Slices with fixed values appear even if no children are set', async () => {
-    const mapping = `
-            InstanceOf: il-core-patient
-            * (undefined).identifier[il-id].value = '1'
-        `;
-    const requestBody = {
-      input: mockInput,
-      fume: mapping
-    };
-
-    const res = await request(globalThis.app).post('/').send(requestBody);
-    expect(res.body).toStrictEqual({
-      resourceType: 'Patient',
-      meta: {
-        profile: [
-          'http://fhir.health.gov.il/StructureDefinition/il-core-patient'
-        ]
-      }
-    });
-  });
-
-  test('Case 4 - Profiled FLASH with no rules doesn\'t go through finalize', async () => {
-    const mapping = 'InstanceOf: bp';
-    const requestBody = {
-      input: mockInput,
-      fume: mapping
-    };
-
-    const res = await request(globalThis.app).post('/').send(requestBody);
-    expect(res.body).toStrictEqual({
-      resourceType: 'Observation',
-      meta: {
-        profile: [
-          'http://hl7.org/fhir/StructureDefinition/bp'
         ]
       },
-      category: [
+      identifier: [
         {
-          coding: [
-            {
-              system: 'http://terminology.hl7.org/CodeSystem/observation-category',
-              code: 'vital-signs'
-            }
-          ]
+          system: 'http://fhir.health.gov.il/identifier/encrypted-id-primary-moh',
+          value: '1'
         }
       ],
-      code: {
-        coding: [
-          {
-            system: 'http://loinc.org',
-            code: '85354-9'
-          }
-        ]
-      },
-      component: [
+      name: [
         {
-          code: {
-            coding: [
-              {
-                system: 'http://loinc.org',
-                code: '8480-6'
-              }
-            ]
-          }
-        },
-        {
-          code: {
-            coding: [
-              {
-                system: 'http://loinc.org',
-                code: '8462-4'
-              }
-            ]
-          }
+          extension: [
+            {
+              url: 'http://hl7.org/fhir/StructureDefinition/language',
+              valueCode: 'he'
+            }
+          ],
+          family: 'a'
         }
-      ]
+      ],
+      gender: 'unknown',
+      birthDate: '1985'
     });
   });
 
@@ -578,7 +643,7 @@ describe('integration tests', () => {
     });
   });
 
-  test.skip('Case 8 - Throw runtime error if mandatory element is missing', async () => {
+  test('Case 8 - Throw runtime error if mandatory element is missing', async () => {
     const mapping = `
         InstanceOf: il-core-patient
         * identifier[il-id].value = '000000018'
@@ -592,7 +657,7 @@ describe('integration tests', () => {
     };
 
     const res = await request(globalThis.app).post('/').send(requestBody);
-    expect(res.body.message).toBe('Transformation error: Element \'Patient.birthDate\' has a minimum cardinality of 1, got 0 instead');
+    expect(res.body.message).toBe('The FHIR element "birthDate" is mandatory in "il-core-patient" (minimum 1), but no value was provided.');
   });
 
   test('Case 9 - Automatic conversion of dateTime to date', async () => {
@@ -634,8 +699,12 @@ describe('integration tests', () => {
 
   test('Case 11 - Incorrect value assignment into slices with max cardinality > 1', async () => {
     const mapping = `
-            InstanceOf: il-core-patient
-            * identifier[enc].value = '1'
+      InstanceOf: il-core-patient
+      * name[Hebrew]
+        * family = 'a'
+      * identifier[enc].value = '1'
+      * gender = 'unknown'
+      * birthDate = '1985'
         `;
     const requestBody = {
       input: mockInput,
@@ -655,7 +724,20 @@ describe('integration tests', () => {
           system: 'http://fhir.health.gov.il/identifier/encrypted-id-primary-moh',
           value: '1'
         }
-      ]
+      ],
+      name: [
+        {
+          extension: [
+            {
+              url: 'http://hl7.org/fhir/StructureDefinition/language',
+              valueCode: 'he'
+            }
+          ],
+          family: 'a'
+        }
+      ],
+      gender: 'unknown',
+      birthDate: '1985'
     });
   });
 
@@ -712,7 +794,7 @@ describe('integration tests', () => {
     });
   });
 
-  test.skip('Case 16 - Supply the full path of the element in the cardinality error', async () => {
+  test('Case 16 - Supply the full path of the element in the cardinality error', async () => {
     const mapping = `
             InstanceOf: bp
             * component[SystolicBP].valueQuantity
@@ -724,16 +806,21 @@ describe('integration tests', () => {
     };
 
     const res = await request(globalThis.app).post('/').send(requestBody);
-    expect(res.body.message).toBe('Transformation error: Element \'Observation.component[SystolicBP].valueQuantity.value\' has a minimum cardinality of 1, got 0 instead');
+    expect(res.body.message).toBe('The FHIR element "component[SystolicBP].valueQuantity.value" is mandatory in "bp/component[SystolicBP].value" (minimum 1), but no value was provided.');
   });
 
   test('Case 17 - Nested extension fixed object overrides assigned obj', async () => {
     const mapping = `
-            InstanceOf: il-core-patient
-            * extension[parentName]
-              * extension[given]
-                * url = 'given'
-                * valueString = '1'
+      InstanceOf: il-core-patient
+      * name[Hebrew]
+        * family = 'a'
+      * identifier[il-id].value = '123'
+      * gender = 'unknown'
+      * birthDate = '1985'
+      * extension[parentName]
+        * extension[given]
+          * url = 'given'
+          * valueString = '1'
         `;
     const requestBody = {
       input: mockInput,
@@ -758,11 +845,30 @@ describe('integration tests', () => {
           ],
           url: 'http://fhir.health.gov.il/StructureDefinition/ext-administrative-parent-name'
         }
-      ]
+      ],
+      identifier: [
+        {
+          system: 'http://fhir.health.gov.il/identifier/il-national-id',
+          value: '123'
+        }
+      ],
+      name: [
+        {
+          extension: [
+            {
+              url: 'http://hl7.org/fhir/StructureDefinition/language',
+              valueCode: 'he'
+            }
+          ],
+          family: 'a'
+        }
+      ],
+      gender: 'unknown',
+      birthDate: '1985'
     });
   });
 
-  test.skip('Case 18 - Not all missing mandatory elements are catched', async () => {
+  test('Case 18 - Not all missing mandatory elements are caught', async () => {
     const mapping = `
             InstanceOf: il-core-patient
             * gender = 'unknown'
@@ -775,7 +881,7 @@ describe('integration tests', () => {
     };
 
     const res = await request(globalThis.app).post('/').send(requestBody);
-    expect(res.body).toBe('Transformation error: Element identifier has a minimum cardinality of 1, got 0 instead');
+    expect(res.body.message).toBe('The FHIR element "identifier" is mandatory in "il-core-patient" (minimum 1), but no value was provided.');
   });
 
   test('Case 19 - Wrong type of [x] elements when addressing a specific type', async () => {
@@ -784,6 +890,8 @@ describe('integration tests', () => {
             * valueCodeableConcept
               * coding
                 * code = 'a'
+            * status = 'final'
+            * code.text = 'Test Observation'
         `;
     const requestBody = {
       input: mockInput,
@@ -793,6 +901,10 @@ describe('integration tests', () => {
     const res = await request(globalThis.app).post('/').send(requestBody);
     expect(res.body).toStrictEqual({
       resourceType: 'Observation',
+      status: 'final',
+      code: {
+        text: 'Test Observation'
+      },
       valueCodeableConcept: {
         coding: [
           {
@@ -806,11 +918,18 @@ describe('integration tests', () => {
   test('Case 20 - Wrong type of [x] elements when addressing a specific type', async () => {
     const mapping = `
             InstanceOf: il-core-practitioner
+            * identifier
+              * system = 'urn:ietf:rfc:3986'
+              * value = 'urn:uuid:550e8400-e29b-41d4-a716-446655440000'
+            * name
+              * family = 'Cohen'
+              * given = 'David'
             * qualification
               * extension
                 * url = 'http://fhir.health.gov.il/StructureDefinition/ext-qualification-practice'
                 * valueCodeableConcept.text = 'a'
               * code.text = 'b'
+
         `;
     const requestBody = {
       input: mockInput,
@@ -825,6 +944,20 @@ describe('integration tests', () => {
           'http://fhir.health.gov.il/StructureDefinition/il-core-practitioner'
         ]
       },
+      identifier: [
+        {
+          system: 'urn:ietf:rfc:3986',
+          value: 'urn:uuid:550e8400-e29b-41d4-a716-446655440000'
+        }
+      ],
+      name: [
+        {
+          family: 'Cohen',
+          given: [
+            'David'
+          ]
+        }
+      ],
       qualification: [
         {
           extension: [
@@ -846,7 +979,9 @@ describe('integration tests', () => {
   test('Case 21 - Wrong type of [x] elements when addressing a specific type', async () => {
     const mapping = `
             InstanceOf: Practitioner
-            * extension.valueCodeableConcept.coding.code = 'a'
+            * extension
+              * valueCodeableConcept.coding.code = 'a'
+              * url = 'http://outburn.health/StructureDefinition/ext-practitioner-example'
         `;
     const requestBody = {
       input: mockInput,
@@ -864,7 +999,8 @@ describe('integration tests', () => {
                 code: 'a'
               }
             ]
-          }
+          },
+          url: 'http://outburn.health/StructureDefinition/ext-practitioner-example'
         }
       ]
     });
@@ -873,7 +1009,9 @@ describe('integration tests', () => {
   test('Case 22 - Wrong type of [x] elements when addressing a specific type', async () => {
     const mapping = `
             InstanceOf: Patient
-            * extension.valueCoding.extension.valueAddress.text.extension.valueString.extension.valueDecimal = 12
+            * address.extension[language].value.extension[data-absent-reason].valueCode.extension[data-absent-reason].valueCode.extension
+              * url = 'http://outburn.health/example-extension'
+              * valueDecimal = 12.45
         `;
     const requestBody = {
       input: mockInput,
@@ -883,29 +1021,35 @@ describe('integration tests', () => {
     const res = await request(globalThis.app).post('/').send(requestBody);
     expect(res.body).toStrictEqual({
       resourceType: 'Patient',
-      extension: [
+      address: [
         {
-          valueCoding: {
-            extension: [
-              {
-                valueAddress: {
-                  _text: {
-                    extension: [
-                      {
-                        _valueString: {
-                          extension: [
-                            {
-                              valueDecimal: 12
-                            }
-                          ]
+          extension: [
+            {
+              url: 'http://hl7.org/fhir/StructureDefinition/language',
+              _valueCode: {
+                extension: [
+                  {
+                    url: 'http://hl7.org/fhir/StructureDefinition/data-absent-reason',
+                    _valueCode: {
+                      extension: [
+                        {
+                          url: 'http://hl7.org/fhir/StructureDefinition/data-absent-reason',
+                          _valueCode: {
+                            extension: [
+                              {
+                                url: 'http://outburn.health/example-extension',
+                                valueDecimal: 12.45
+                              }
+                            ]
+                          }
                         }
-                      }
-                    ]
+                      ]
+                    }
                   }
-                }
+                ]
               }
-            ]
-          }
+            }
+          ]
         }
       ]
     });
@@ -913,9 +1057,12 @@ describe('integration tests', () => {
 
   test('Case 23 - Invalid formulation of fixed extension', async () => {
     const mapping = `
-            InstanceOf: il-core-patient
-            * name[Hebrew]
-              * family = 'a'
+      InstanceOf: il-core-patient
+      * name[Hebrew]
+        * family = 'a'
+      * identifier[il-id].value = '123'
+      * gender = 'unknown'
+      * birthDate = '1985'
         `;
     const requestBody = {
       input: mockInput,
@@ -930,6 +1077,12 @@ describe('integration tests', () => {
           'http://fhir.health.gov.il/StructureDefinition/il-core-patient'
         ]
       },
+      identifier: [
+        {
+          system: 'http://fhir.health.gov.il/identifier/il-national-id',
+          value: '123'
+        }
+      ],
       name: [
         {
           extension: [
@@ -940,7 +1093,9 @@ describe('integration tests', () => {
           ],
           family: 'a'
         }
-      ]
+      ],
+      gender: 'unknown',
+      birthDate: '1985'
     });
   });
 
@@ -1089,6 +1244,12 @@ describe('integration tests', () => {
             (
                 $patient := (
                   InstanceOf: il-core-patient
+                  * identifier[il-id].value = '123'
+                  * name
+                    * given = 'John'
+                    * family = 'Doe'
+                  * gender = 'unknown'
+                  * birthDate = '1985'
                 )
             )
         `;
@@ -1104,49 +1265,23 @@ describe('integration tests', () => {
         profile: [
           'http://fhir.health.gov.il/StructureDefinition/il-core-patient'
         ]
-      }
-    });
-  });
-
-  test('Case 27 - Extension URL injected even when no specific extension is addressed', async () => {
-    const mapping1 = `
-            InstanceOf: il-core-patient
-            * address.extension[language].valueCode = 'en'
-        `;
-
-    const mapping2 = `      
-            InstanceOf: il-core-patient
-            * address.extension.valueCode = 'en'
-        `;
-
-    const requestBody1 = {
-      input: mockInput,
-      fume: mapping1
-    };
-
-    const requestBody2 = {
-      input: mockInput,
-      fume: mapping2
-    };
-
-    await request(globalThis.app).post('/').send(requestBody1);
-    const res = await request(globalThis.app).post('/').send(requestBody2);
-    expect(res.body).toStrictEqual({
-      resourceType: 'Patient',
-      meta: {
-        profile: [
-          'http://fhir.health.gov.il/StructureDefinition/il-core-patient'
-        ]
       },
-      address: [
+      identifier: [
         {
-          extension: [
-            {
-              valueCode: 'en'
-            }
+          system: 'http://fhir.health.gov.il/identifier/il-national-id',
+          value: '123'
+        }
+      ],
+      name: [
+        {
+          family: 'Doe',
+          given: [
+            'John'
           ]
         }
-      ]
+      ],
+      gender: 'unknown',
+      birthDate: '1985'
     });
   });
 
@@ -1179,6 +1314,12 @@ describe('integration tests', () => {
   test('Case 29 - value[x] on an invented slice', async () => {
     const mapping = `
             InstanceOf: il-core-patient
+            * identifier[il-id].value = '123'
+            * name
+              * given = 'John'
+              * family = 'Doe'
+            * gender = 'unknown'
+            * birthDate = '1985'
             * address.extension[language].value[x] = 'en'
         `;
     const requestBody = {
@@ -1194,6 +1335,22 @@ describe('integration tests', () => {
           'http://fhir.health.gov.il/StructureDefinition/il-core-patient'
         ]
       },
+      identifier: [
+        {
+          system: 'http://fhir.health.gov.il/identifier/il-national-id',
+          value: '123'
+        }
+      ],
+      name: [
+        {
+          family: 'Doe',
+          given: [
+            'John'
+          ]
+        }
+      ],
+      gender: 'unknown',
+      birthDate: '1985',
       address: [
         {
           extension: [
@@ -1266,14 +1423,14 @@ describe('integration tests', () => {
       type: {
         coding: [
           {
-            system: 'http://snomed.info/sct',
-            code: '119376003',
-            display: 'Tissue specimen (specimen)'
-          },
-          {
             system: 'http://fhir.tasmc.org.il/CodeSystem/tasmc-specimen-type',
             code: '70',
             display: 'Tissue'
+          },
+          {
+            system: 'http://snomed.info/sct',
+            code: '119376003',
+            display: 'Tissue specimen (specimen)'
           }
         ]
       }
