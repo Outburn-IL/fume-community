@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     
 jobs:
-  test:
+  test-full-node:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -17,19 +17,67 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
+      - name: Enable npm cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build
         run: npm run build
       
       - name: Run tests
         run: npm test
+
+  test-http-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [node, docker]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Enable npm cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Build Docker image (docker target)
+        if: ${{ matrix.target == 'docker' }}
+        run: |
+          docker build -t fume-community:test .
+
+      - name: Run HTTP integration tests
+        env:
+          FUME_TEST_TARGET: ${{ matrix.target }}
+          FUME_TEST_DOCKER_IMAGE: fume-community:test
+        run: npm run test:http
       
   merge-check:
-    needs: [test]
+    needs: [test-full-node, test-http-matrix]
     runs-on: ubuntu-latest
     steps:
       - name: Check test status
-        if: ${{ needs.test.result != 'success' }}
+        if: ${{ needs.test-full-node.result != 'success' || needs.test-http-matrix.result != 'success' }}
         run: exit 1 # Exit with a non-zero status code if tests fail
