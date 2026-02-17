@@ -1,91 +1,112 @@
-# Getting Started
+# Getting Started (v3)
 
-# Sandbox
-Before you install FUME, you can play with the mapping language in our interactive public sandbox: [https://try.fume.health](https://try.fume.health).
+Before you install FUME, you can play with the mapping language in the public sandbox: https://try.fume.health
 
-## Initial Setup
+## Docs you will likely want open
 
-Install [Node.js](https://nodejs.org/en/download/). The minimum version is specified in `.nvmrc`.
+- HTTP endpoints + `verbose` mode: [http-api.md](http-api.md)
+- All runtime env vars (server config): [env-vars.md](env-vars.md)
+- v2 → v3 migration notes (library/server embedding): [migration-guide.md](migration-guide.md)
 
-Update to the latest version of `npm`
+## Option A: Deploy with Docker (published image)
 
-```shell
-npm install -g npm@latest
+FUME Community publishes a Docker image:
+
+- `outburnltd/fume-fhir-converter:latest`
+- `outburnltd/fume-fhir-converter:<version>`
+
+Minimal run:
+
+```sh
+docker run --rm -p 42420:42420 outburnltd/fume-fhir-converter:latest
 ```
 
-## Installing FUME and its dependencies
-In the root folder:
-`npm install`
+With configuration via an env file:
 
-## Running the RESTful API server
-- `npm start`
-
-## API instructions:
-POST to the base address of the server a JSON object with input data in 'input' and a mapping (as string) in 'fume'.
-If you have a FHIR server, you can store mappings as StructureMap resources (see an example in the root of the project). When FUME initializes, all the mappings found on the FHIR server become endpoints where you can just POST the input data and recieve the results. The endpoint is in the pattern [FumeServerBase]/Mapping/[StructureMapId].
-
-# Deployment
-
-This section describes how to deploy the server
-
-## Environment Variables
-
-Copy the `.env.example` file to `.env` and edit it to set the environment variables.
-
-**Notes:**
-- Set `FHIR_SERVER_BASE` to your FHIR server endpoint, or `n/a` to disable the server source.
-- Set `MAPPINGS_FOLDER` to a folder path (or `n/a`) to enable or disable file-based mappings/aliases.
-- If both sources are unset or `n/a`, saved-mapping endpoints are disabled and return `405`.
-
-# In a Node.js application
-Install the module into your project:
-- `npm install fume-fhir-converter --save`
-
-Then you can import the module and start using it.
-```
-import fume from 'fume-fhir-converter';
-```
-To initialize, run the async init() function, and pass an options object. At minimum, fhirVersion should be passed, but a FHIR server endpoint is also highly recommended:
-```
-await fume.init({
-    fhirVersion: '4.0.1',
-    fhirServer: 'http://hapi-fhir.outburn.co.il/fhir'
-  });
-```
-Additional options you may find useful:
-- fhirPackages: (string) Comma delimited list of packages to import. For example: il.core.fhir.r4@0.11.0,hl7.fhir.us.core@6.0.0.
-- fhirServerTimeout: (number) In milliseconds
-- searchBundleSize: (number) How many resources the server should put in a single search result page
-- logger: (object) Override the default logger (console.log) with an external one. The object needs to contain three keys: info, warn and error. Each key needs to be a function that can handle inputs of all types.
-- additionalBindings: (object) Extend the functionality of FUME by passing key-value pairs that will become accessible as named paramerters (including functions) inside FUME expressions. E.g. if you pass an object containig a JS function with the key "someFunc", you can call this function from any FUME expression using $someFunc($someArgument)
-
-After init, you can start transforming data using the transform() function. For example, a blood pressure profile:
-
-```
-const map = `
-  Instance: $uuid()
-  InstanceOf: bp
-  * effectiveDateTime = $now()
-  * subject.identifier.value = mrn
-  * component[SystolicBP].valueQuantity.value = systolic
-  * component[DiastolicBP].valueQuantity.value = diastolic
-`;
-const input = {
-  "mrn": "PP875023983",
-  "systolic": 120,
-  "diastolic": 80
-};
-const res = await fume.transform(input, map);
+```sh
+docker run --rm \
+  -p 42420:42420 \
+  --env-file ./.env \
+  outburnltd/fume-fhir-converter:latest
 ```
 
-The results will be an Observation resource populated according to the official HL7 Blood Pressure Profile.
+If you want file-based mappings, mount a folder and point `MAPPINGS_FOLDER` at it:
 
-**NOTE:** Expressions undergo a compilation process when run for the first time. This process may be slow for some complex mappings, but after the first time the compiled function is cached and then reused in subsequent calls, so compilation only happens once per expression.
+```sh
+docker run --rm \
+  -p 42420:42420 \
+  --env-file ./.env \
+  -v "${PWD}/mappings:/usr/src/app/mappings" \
+  outburnltd/fume-fhir-converter:latest
+```
 
-If you don't want FUME to evaluate your expression against an input immediatly, you can use fume.toFunction(expr). This will return an async JS function that you can pass downstream and call later with different inputs, as many times as you wish (Just remember to use the 'await' keyword)
+Then set in `.env`:
 
-# Further Documentation
-## Read the docs at our [documentation website](https://www.fume.health/). 
-## Watch our [video tutorials](https://youtube.com/playlist?list=PL44ht-s6WWPfgVNkibzMj_UB-ex41rl49).
+```dotenv
+MAPPINGS_FOLDER=/usr/src/app/mappings
+```
+
+## Option B: Run the server from source
+
+Prerequisites:
+
+- Install Node.js (minimum is specified in `.nvmrc`).
+
+Install dependencies:
+
+```sh
+npm install
+```
+
+Configure the server:
+
+- Copy `.env.example` → `.env`
+- Or set environment variables in your shell
+
+Start the server:
+
+```sh
+npm start
+```
+
+## Option C: Use as a library (Node)
+
+Install:
+
+```sh
+npm install fume-fhir-converter
+```
+
+Create an engine and call `transform()`:
+
+```ts
+import { FumeEngine } from 'fume-fhir-converter';
+
+const engine = await FumeEngine.create({
+  config: {
+    FHIR_SERVER_BASE: 'n/a',
+    FHIR_VERSION: '4.0.1',
+    FHIR_PACKAGES: 'il.core.fhir.r4@0.14.2'
+  }
+});
+
+const out = await engine.transform(input, expression);
+```
+
+Important: when embedding as a library, FUME does not read `process.env` / `.env` automatically. Pass `config` explicitly.
+
+## Saved mappings: FHIR server + files
+
+FUME can expose “saved mapping” endpoints under `/Mapping/*` when at least one mapping source is configured:
+
+- `FHIR_SERVER_BASE` (StructureMap resources)
+- `MAPPINGS_FOLDER` (file-based mappings; default extension is `*.fume`)
+
+If both sources are unset or `n/a`, ad-hoc evaluation (`POST /`) remains available but `/Mapping/*` returns `405`.
+
+## Further documentation
+
+- Docs site: https://www.fume.health/
+- Video tutorials: https://youtube.com/playlist?list=PL44ht-s6WWPfgVNkibzMj_UB-ex41rl49
 
 

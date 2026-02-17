@@ -1,26 +1,55 @@
-# FUME Community - FHIR Utilized Mapping Engine
+# FUME Community (fume-fhir-converter) — v3
 
-FUME is a sophisticated FHIR&reg; conversion tool.
-Made by [Outburn](https://outburn.co.il) with :heart:
+FUME Community is an open-source FHIR® conversion + mapping engine (and a standalone HTTP server) built around the FUME language.
 
-[Release Notes](https://www.fume.health/docs/release-notes/community)
+## What’s new in v3
 
-The engine has the following main parts:
+This is a major release focused on correctness, diagnostics, and runtime scalability:
 
- * A FUME mapping language interpreter, based on a fusion between JSONata and FHIR Shorthand. See here: [https://www.fume.health/docs/flash](https://www.fume.health/docs/flash)
- * Connection to a FHIR server that enables it to be used as a repository for saved FUME mappings & translation tables
- * FHIR-oriented functions that assist in the transformation to or from FHIR resources
- * RESTful API to run the transformation against a JSON, XML, CSV or HL7 V2 input
+- Better automatic conformance (injecting `system` and `display` values), deeper structural and terminology validations
+- Better diagnostics and behavior-control knobs (validation thresholds, throwLevel, etc.)
+	- `verbose` mode returns a detailed evaluation report
+- Improved caching and concurrency support
+- Syntax improvements in the FUME language
+- Accurate position pointers in errors
+- File-based mappings (`*.fume` files) in addition to server-hosted StructureMap resources
+- Improved performance
 
-You are welcome to play with the mapping language in our interactive public sandbox at [https://try.fume.health](https://try.fume.health).
- 
-Installation & deployment instructions can be found at our [getting started](docs/getting-started.md) page.
+## Quick links
 
-For breaking changes in the next major refactor, see [migration guide](docs/migration-guide.md).
+- Getting started (deployment + usage): [docs/getting-started.md](docs/getting-started.md)
+- Migration guide (v2 → v3): [docs/migration-guide.md](docs/migration-guide.md)
+- Environment variables: [docs/env-vars.md](docs/env-vars.md)
+- HTTP API (endpoints + `verbose` mode): [docs/http-api.md](docs/http-api.md)
+- Sandbox: https://try.fume.health
+- Release notes: https://www.fume.health/docs/release-notes/community
 
-For the complete public server endpoints, see [HTTP API](docs/http-api.md).
+## Use as a library (Node)
 
-For further documentation & examples you can watch our [video tutorials](https://youtube.com/playlist?list=PL44ht-s6WWPfgVNkibzMj_UB-ex41rl49).
+Create a `FumeEngine` and call `transform()`:
 
----
-&copy; 2022-2023 Outburn Ltd. All Rights Reserved.
+```ts
+import { FumeEngine } from 'fume-fhir-converter';
+
+const engine = await FumeEngine.create({
+	config: {
+		FHIR_SERVER_BASE: 'n/a',
+		FHIR_VERSION: '4.0.1',
+		FHIR_PACKAGES: 'il.core.fhir.r4@0.14.2'
+	}
+});
+
+const out = await engine.transform(input, expression);
+```
+
+Note: when embedding as a module, FUME does not read `process.env` / `.env` automatically. Pass `config` explicitly.
+
+## Run as an HTTP server
+
+See [docs/getting-started.md](docs/getting-started.md) for deployment options, including Docker.
+
+The HTTP API is documented here: [docs/http-api.md](docs/http-api.md)
+
+## License
+
+AGPL-3.0

@@ -2,6 +2,11 @@
 
 This document describes the public HTTP surface exposed by the FUME Community server.
 
+Related docs:
+
+- Getting started: [getting-started.md](getting-started.md)
+- Environment variables: [env-vars.md](env-vars.md)
+
 ## Overview
 
 FUME exposes two primary ways to evaluate mappings:
@@ -38,7 +43,7 @@ If an unsupported content type is provided, the request fails with `415 Unsuppor
 
 ## Verbose mode
 
-Certain evaluation endpoints support a `verbose` query parameter (e.g. `?verbose=true`) that returns the engine's full evaluation report instead of the raw result.
+Evaluation endpoints support a `verbose` query parameter (e.g. `?verbose=true`) that returns the engine's full evaluation report instead of the raw result.
 
 ### Query parameter
 

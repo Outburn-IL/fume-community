@@ -80,3 +80,9 @@ If you have a downstream project that:
 
 - `fumeUtils` was removed.
 - Singleton helper modules were removed from the public surface.
+
+## See also
+
+- Getting started: [getting-started.md](getting-started.md)
+- Environment variables: [env-vars.md](env-vars.md)
+- HTTP API: [http-api.md](http-api.md)
