@@ -102,7 +102,7 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
     const { SERVER_PORT } = engine.getConfig();
 
     // mount routes handler
-    const http = createHttpRouter();
+    const http = createHttpRouter({ openApiSpec: options.openApiSpec });
     server.app.use('/', http.routes);
 
     // catch any routes that are not found

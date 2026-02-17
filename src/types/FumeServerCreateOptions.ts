@@ -9,6 +9,9 @@ import type { IConfig } from './Config';
 import type { FumeEngineCreateOptions } from './FumeEngineCreateOptions';
 import type { IFumeServer } from './FumeServer';
 
+export type OpenApiSpec = Record<string, unknown>;
+export type OpenApiSpecFactory = (base: OpenApiSpec) => OpenApiSpec;
+
 export type FumeServerCreateOptions<ConfigType extends IConfig = IConfig> = {
   config: Partial<ConfigType> | ConfigType;
 
@@ -22,4 +25,13 @@ export type FumeServerCreateOptions<ConfigType extends IConfig = IConfig> = {
 
   /** Optional initial app middleware (license gates, auth, etc.). */
   appMiddleware?: RequestHandler;
+
+  /**
+   * Override or extend the OpenAPI spec served at GET /openapi.json and used by /docs.
+   * Can be a static object or a factory function that takes the default spec as input
+   * and returns a modified version.
+   * Useful for adding custom endpoints, metadata, or modifying the spec
+   * without changing the source YAML file.
+   */
+  openApiSpec?: OpenApiSpec | OpenApiSpecFactory;
 };

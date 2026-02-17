@@ -11,9 +11,10 @@ import { version } from '../package.json';
 
 const raw = yaml.load(
   readFileSync(resolve(__dirname, 'openapi.yaml'), 'utf8')
-) as Record<string, unknown>;
+) as { info: Record<string, unknown> } & Record<string, unknown>;
 
-// Inject runtime version
-(raw as any).info.version = version;
-
-export const openApiSpec = raw;
+// Inject runtime version as a new object to avoid mutating the parsed YAML.
+export const openApiSpec = Object.freeze({
+  ...raw,
+  info: { ...raw.info, version }
+});

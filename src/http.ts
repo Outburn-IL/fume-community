@@ -11,9 +11,28 @@ import swaggerUi from 'swagger-ui-express';
 import { version as engineVersion } from '../package.json';
 import type { FumeEngine } from './engine';
 import { openApiSpec } from './openapi';
+import type { OpenApiSpec, OpenApiSpecFactory } from './types/FumeServerCreateOptions';
 import type { DiagnosticEntry, EvaluateVerboseReport } from './types';
 import { getFhirServerEndpoint, hasMappingSources } from './utils/mappingSources';
 import { getRouteParam } from './utils/routeParams';
+
+type CreateHttpRouterOptions = {
+  /** Override or extend the OpenAPI spec served at GET /openapi.json and used by /docs. */
+  openApiSpec?: OpenApiSpec | OpenApiSpecFactory;
+};
+
+// Avoid accidental shared-state mutations between downstream consumers.
+const cloneOpenApiSpec = <T>(spec: T): T => structuredClone(spec);
+
+const resolveOpenApiSpec = (options?: CreateHttpRouterOptions): OpenApiSpec => {
+  const base = cloneOpenApiSpec(openApiSpec as OpenApiSpec);
+  const override = options?.openApiSpec;
+  if (!override) return base;
+  if (typeof override === 'function') {
+    return (override as OpenApiSpecFactory)(base);
+  }
+  return cloneOpenApiSpec(override as OpenApiSpec);
+};
 
 type EngineLocals = { engine: FumeEngine };
 
@@ -566,14 +585,16 @@ const notFound = (_req: Request, res: Response) => {
   res.status(404).json({ message: 'not found' });
 };
 
-export const createHttpRouter = () => {
+export const createHttpRouter = (options?: CreateHttpRouterOptions) => {
   const router = express.Router();
+
+  const effectiveOpenApiSpec = resolveOpenApiSpec(options);
 
   // OpenAPI spec
   router.get('/openapi.json', (_req, res) => {
-    res.json(openApiSpec);
+    res.json(effectiveOpenApiSpec);
   });
-  router.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiSpec));
+  router.use('/docs', swaggerUi.serve, swaggerUi.setup(effectiveOpenApiSpec));
 
   // /Mapping/*
   const mapping = express.Router();
