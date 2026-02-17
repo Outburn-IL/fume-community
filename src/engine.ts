@@ -21,10 +21,9 @@ import type {
   EvaluateVerboseReport,
   FhirPackageIdentifier,
   FhirVersion,
+  FumeEngineCreateOptions,
   IAppBinding,
-  IConfig,
-  FumeEngineCreateOptions
-} from './types';
+  IConfig} from './types';
 import { createNullLogger, withPrefix } from './utils/logging';
 
 interface GlobalFhirContext {
@@ -378,13 +377,16 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
     const cacheMode = 'lazy';
 
-    const packageList: FhirPackageIdentifier[] = FHIR_PACKAGES
-      ? FHIR_PACKAGES.split(',').map((pkg) => {
-        const trimmed = pkg.trim();
-        const [id, version] = trimmed.includes('@') ? trimmed.split('@') : [trimmed, undefined];
-        return { id, version };
+    const packageList: FhirPackageIdentifier[] = (typeof FHIR_PACKAGES === 'string' ? FHIR_PACKAGES : '')
+      .split(',')
+      .map((pkg) => pkg.trim())
+      .filter((pkg) => pkg.length > 0)
+      .map((pkg) => {
+        const [id, versionRaw] = pkg.includes('@') ? pkg.split('@', 2) : [pkg, undefined];
+        const version = typeof versionRaw === 'string' && versionRaw.trim() !== '' ? versionRaw.trim() : undefined;
+        return { id: id.trim(), version };
       })
-      : [];
+      .filter((pkg) => pkg.id.length > 0);
 
     this.getEngineLogger().info({
       packageContext: packageList,
