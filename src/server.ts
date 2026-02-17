@@ -11,11 +11,10 @@ import { FumeEngine } from './engine';
 import { createHttpRouter } from './http';
 import { defaultConfig } from './serverConfig';
 import type {
+  FumeServerCreateOptions,
   IConfig,
   IFumeEngine,
-  IFumeServer,
-  FumeServerCreateOptions
-} from './types';
+  IFumeServer} from './types';
 import { withPrefix } from './utils/logging';
 
 export class FumeServer<ConfigType extends IConfig> implements IFumeServer<ConfigType> {
