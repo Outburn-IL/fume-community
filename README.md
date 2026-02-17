@@ -1,5 +1,5 @@
 # FUME Community (fume-fhir-converter) — v3
-[![npm version](https://img.shields.io/npm/v/fume-fhir-converter.svg)](https://www.npmjs.com/package/fume-fhir-converter)
+[![npm version](https://img.shields.io/npm/v/fume-fhir-converter.svg)](https://www.npmjs.com/package/fume-fhir-converter) [![docker image version](https://img.shields.io/docker/v/outburnltd/fume-fhir-converter?sort=semver&label=docker)](https://hub.docker.com/r/outburnltd/fume-fhir-converter)
 
 FUME Community is an open-source FHIR® conversion + mapping engine (and a standalone HTTP server) built around the FUME language.
 
