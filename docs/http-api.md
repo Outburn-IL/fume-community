@@ -154,8 +154,8 @@ InstanceOf: bp
 * status = 'final'
 * effectiveDateTime = $now()
 * subject.identifier.value = mrn
-* component[SystolicBP].valueQuantity.value = systolic
-* component[DiastolicBP].valueQuantity.value = diastolic
+* component[SystolicBP].value = systolic
+* component[DiastolicBP].value = diastolic
 ```
 
 Input:
@@ -177,8 +177,8 @@ InstanceOf: bp
 * status = 'final'
 * effectiveDateTime = $now()
 * subject.identifier.value = mrn
-* component[SystolicBP].valueQuantity.value = systolic
-* component[DiastolicBP].valueQuantity.value = diastolic
+* component[SystolicBP].value = systolic
+* component[DiastolicBP].value = diastolic
 '@
 
 $body = @{

@@ -20,8 +20,8 @@ InstanceOf: bp
 * status = 'final'
 * effectiveDateTime = $now()
 * subject.identifier.value = mrn
-* component[SystolicBP].valueQuantity.value = systolic
-* component[DiastolicBP].valueQuantity.value = diastolic
+* component[SystolicBP].value = systolic
+* component[DiastolicBP].value = diastolic
 ```
 
 Input:
@@ -121,8 +121,8 @@ InstanceOf: bp
 * status = 'final'
 * effectiveDateTime = $now()
 * subject.identifier.value = mrn
-* component[SystolicBP].valueQuantity.value = systolic
-* component[DiastolicBP].valueQuantity.value = diastolic
+* component[SystolicBP].value = systolic
+* component[DiastolicBP].value = diastolic
 '@
 
 $body = @{
@@ -154,7 +154,15 @@ curl -s \
 ```ts
 import { FumeEngine } from 'fume-fhir-converter';
 
-const expression = `Instance: $uuid()\nInstanceOf: bp\n* status = 'final'\n* effectiveDateTime = $now()\n* subject.identifier.value = mrn\n* component[SystolicBP].valueQuantity.value = systolic\n* component[DiastolicBP].valueQuantity.value = diastolic`;
+const expression = `
+  Instance: $uuid()
+  InstanceOf: bp
+  * status = 'final'
+  * effectiveDateTime = $now()
+  * subject.identifier.value = mrn
+  * component[SystolicBP].value = systolic
+  * component[DiastolicBP].value = diastolic
+`;
 
 const input = { mrn: 'PP875023983', systolic: 120, diastolic: 80 };
 
