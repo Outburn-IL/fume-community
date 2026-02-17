@@ -193,6 +193,27 @@ components:
         mappings:
           - Patient12
           - exampleForRepo
+    RecacheResponseDeprecated:
+      type: object
+      description: Recache result for the deprecated GET /recache endpoint, which includes a deprecation warning.
+      properties:
+        message:
+          type: string
+          example: The following Mappings were loaded to cache
+        mappings:
+          type: array
+          items:
+            type: string
+          description: List of mapping keys loaded into cache
+        deprecated:
+          type: boolean
+          description: Whether the recache endpoint is deprecated (will emit a warning if true)
+      example:
+        message: The following Mappings were loaded to cache
+        mappings:
+          - Patient12
+          - exampleForRepo
+        deprecated: true
   parameters:
     verbose:
       name: verbose
@@ -415,7 +436,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RecacheResponse'
+                $ref: '#/components/schemas/RecacheResponseDeprecated'
         '405':
           description: Method not allowed. No mapping sources configured.
         '500':
