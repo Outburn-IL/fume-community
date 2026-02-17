@@ -195,7 +195,7 @@ components:
           - exampleForRepo
     RecacheResponseDeprecated:
       type: object
-      description: Recache result for the deprecated GET /recache endpoint, which includes a deprecation warning.
+      description: Recache result for the deprecated POST /recache endpoint, which includes a deprecation warning.
       properties:
         message:
           type: string
@@ -219,12 +219,9 @@ components:
       name: verbose
       in: query
       required: false
-      description: When set to `true` or `1`, returns the full evaluation report instead of the raw result.
+      description: When set to `true` (case-insensitive) or `1`, returns the full evaluation report instead of the raw result.
       schema:
         type: string
-        enum:
-          - 'true'
-          - '1'
 paths:
   /:
     get:
