@@ -31,6 +31,7 @@
     "start": "npm run clean && npm run run",
     "eslint:fix": "npx eslint --fix .",
     "test:debug": "node --inspect-brk --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.integration.cjs --runInBand",
+    "test:http": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.http.integration.cjs --runInBand",
     "test:stop-hapi": "cd tests && docker compose stop",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.integration.cjs --runInBand",
     "prepare": "npm run build",

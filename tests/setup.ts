@@ -11,6 +11,12 @@ import path from 'path';
 import { FumeServer } from '../src/server';
 import { FHIR_PACKAGE_CACHE_DIR, LOCAL_FHIR_API } from './config';
 
+const TEST_TARGET = (process.env.FUME_TEST_TARGET ?? 'node').toLowerCase();
+const DOCKER_CONTAINER_NAME = process.env.FUME_TEST_DOCKER_CONTAINER_NAME ?? 'fume_community_test_server';
+const DOCKER_IMAGE = process.env.FUME_TEST_DOCKER_IMAGE ?? 'fume-community:test';
+const DOCKER_BASE_URL = process.env.FUME_TEST_BASE_URL ?? 'http://127.0.0.1:42420';
+const DOCKER_HAPI_API = process.env.FUME_TEST_FHIR_API ?? 'http://host.docker.internal:8080/fhir';
+
 const toErrorMessage = (error: unknown) => {
   if (error instanceof Error) {
     return error.message;
@@ -60,6 +66,48 @@ async function waitForHapiReady (baseUrl: string, opts?: { maxAttempts?: number;
   }
 
   throw new Error('HAPI FHIR server failed to start within timeout');
+}
+
+async function waitForFumeReady (baseUrl: string, opts?: { maxAttempts?: number; delayMs?: number; timeoutMs?: number; containerName?: string }) {
+  const maxAttempts = opts?.maxAttempts ?? 90;
+  const delayMs = opts?.delayMs ?? 1000;
+  const timeoutMs = opts?.timeoutMs ?? 5000;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), timeoutMs);
+      const response = await fetch(`${baseUrl}/health`, { signal: controller.signal });
+      clearTimeout(timeout);
+      if (response.ok) {
+        return;
+      }
+    } catch (e: unknown) {
+      if (attempt === 1) {
+        console.log('Waiting for FUME server to be ready...');
+      }
+      console.error(`Attempt ${attempt} failed:`, toErrorMessage(e));
+    }
+
+    await new Promise(resolve => setTimeout(resolve, delayMs));
+  }
+
+  // If running in container mode, dump logs to help debug CI/local timeouts.
+  if (opts?.containerName) {
+    try {
+      console.error(`FUME container '${opts.containerName}' did not become ready. Dumping docker status/logs...`);
+      try {
+        execSync('docker ps --no-trunc --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"', { stdio: 'inherit' });
+      } catch {
+        // ignore
+      }
+      execSync(`docker logs --tail 200 ${opts.containerName}`, { stdio: 'inherit' });
+    } catch (e: unknown) {
+      console.error('Failed to dump docker logs:', toErrorMessage(e));
+    }
+  }
+
+  throw new Error('FUME server failed to start within timeout');
 }
 
 async function setup () {
@@ -128,10 +176,7 @@ async function setup () {
   };
 
   // Phase 1: Warm-up with DEFAULT public registries (no custom registry URL/TOKEN)
-  console.log('Phase 1: Warming FUME with default registry (no custom URL/TOKEN)...');
-  await deleteCorePackage();
-  const firstServer = await FumeServer.create({
-    config: {
+  const effectiveConfig = {
     SERVER_PORT: 42420,
     FHIR_SERVER_BASE: LOCAL_FHIR_API,
     FHIR_SERVER_AUTH_TYPE: 'NONE',
@@ -141,12 +186,82 @@ async function setup () {
     FHIR_VERSION: '4.0.1',
     FHIR_PACKAGES: 'il.core.fhir.r4@0.14.2,fume.outburn.r4@0.1.1,il.tasmc.fhir.r4@0.1.1',
     FHIR_PACKAGE_CACHE_DIR
+  };
+
+  if (TEST_TARGET === 'docker' || TEST_TARGET === 'container') {
+    console.log(`Phase 1: Using Docker target (image=${DOCKER_IMAGE})...`);
+
+    const dockerConfig = {
+      ...effectiveConfig,
+      // From inside the container, localhost would be the container itself.
+      // We publish HAPI on the host at :8080, so use host.docker.internal.
+      FHIR_SERVER_BASE: DOCKER_HAPI_API
+    };
+
+    // Ensure cache dir exists on host so the volume mount works
+    if (FHIR_PACKAGE_CACHE_DIR) {
+      const hostCacheDir = path.resolve(FHIR_PACKAGE_CACHE_DIR);
+      fs.mkdirSync(hostCacheDir, { recursive: true });
     }
-  });
-  assertCorePackagePresent('Phase 1');
-  // Since we're using Phase 1 server for tests, set global references
-  globalThis.fumeServer = firstServer;
-  globalThis.app = firstServer.getExpressApp();
+
+    // Remove any previous container (avoid port conflicts)
+    try {
+      execSync(`docker rm -f ${DOCKER_CONTAINER_NAME}`, { stdio: 'ignore' });
+    } catch {
+      // ignore
+    }
+
+    const hostCacheDir = FHIR_PACKAGE_CACHE_DIR ? path.resolve(FHIR_PACKAGE_CACHE_DIR) : undefined;
+    const containerCacheDir = '/usr/src/app/tests/.fhir-packages';
+
+    const envParts = [
+      `-e SERVER_PORT=${dockerConfig.SERVER_PORT}`,
+      `-e FHIR_SERVER_BASE=${dockerConfig.FHIR_SERVER_BASE}`,
+      `-e FHIR_SERVER_AUTH_TYPE=${dockerConfig.FHIR_SERVER_AUTH_TYPE}`,
+      `-e FHIR_SERVER_UN=${dockerConfig.FHIR_SERVER_UN}`,
+      `-e FHIR_SERVER_PW=${dockerConfig.FHIR_SERVER_PW}`,
+      `-e FHIR_SERVER_TIMEOUT=${dockerConfig.FHIR_SERVER_TIMEOUT}`,
+      `-e FHIR_VERSION=${dockerConfig.FHIR_VERSION}`,
+      `-e FHIR_PACKAGES=${dockerConfig.FHIR_PACKAGES}`,
+      ...(hostCacheDir ? [`-e FHIR_PACKAGE_CACHE_DIR=${containerCacheDir}`] : [])
+    ];
+
+    const volumeParts = hostCacheDir
+      ? [`-v "${hostCacheDir}":"${containerCacheDir}"`]
+      : [];
+
+    const runCmd = [
+      'docker run -d',
+      `--name ${DOCKER_CONTAINER_NAME}`,
+      '-p 42420:42420',
+      // Ensure host.docker.internal works on Linux (GitHub Actions)
+      '--add-host host.docker.internal:host-gateway',
+      ...envParts,
+      ...volumeParts,
+      DOCKER_IMAGE
+    ].join(' ');
+
+    console.log(`Starting FUME container: ${DOCKER_CONTAINER_NAME}`);
+    execSync(runCmd, { stdio: 'inherit' });
+
+    await waitForFumeReady(DOCKER_BASE_URL, { maxAttempts: 90, delayMs: 1000, timeoutMs: 5000, containerName: DOCKER_CONTAINER_NAME });
+
+    globalThis.fumeServer = undefined;
+    globalThis.app = DOCKER_BASE_URL;
+
+    // In container mode we can't reliably validate the host cache path structure here.
+  } else {
+    console.log('Phase 1: Warming FUME with default registry (no custom URL/TOKEN)...');
+    await deleteCorePackage();
+    const firstServer = await FumeServer.create({
+      config: effectiveConfig
+    });
+    assertCorePackagePresent('Phase 1');
+
+    // Since we're using Phase 1 server for tests, set global references
+    globalThis.fumeServer = firstServer;
+    globalThis.app = firstServer.getExpressApp();
+  }
 
   // Create test Practitioner resource for $literal() test
   console.log('Creating test Practitioner resource...');

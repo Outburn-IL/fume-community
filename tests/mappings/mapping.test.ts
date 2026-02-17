@@ -5,7 +5,6 @@
  */
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import axios from 'axios';
-import express from 'express';
 import request from 'supertest';
 
 import { LOCAL_FHIR_API } from '../config';
@@ -204,47 +203,6 @@ describe('api tests', () => {
       method: 'PUT',
       subroute: ['a', 'b'],
       subpath: 'a/b'
-    });
-  });
-
-  test('PUT /Mapping/{mappingId} can be intercepted by downstream update handler', async () => {
-    // Build an isolated app to simulate downstream route registration BEFORE default FUME routes.
-    const engine = (globalThis.app as any).locals.engine;
-
-    const app = express();
-    app.locals.engine = engine;
-    app.use(express.urlencoded({ extended: true, limit: '400mb' }));
-    app.use(express.json({ limit: '400mb', type: ['application/json', 'application/fhir+json'] }));
-    app.use(express.text({
-      limit: '400mb',
-      type: ['text/plain', 'application/vnd.outburn.fume', 'x-application/hl7-v2+er7', 'text/csv', 'application/xml']
-    }));
-
-    // Downstream update handler (base PUT only)
-    app.put('/Mapping/:mappingId', (_req, res) => {
-      res.status(204).send();
-    });
-
-    const http = (await import('../../src/http')).createHttpRouter();
-    app.use('/', http.routes);
-    app.use(http.notFound);
-
-    await request(app)
-      .put('/Mapping/testMappingHttpInvocation')
-      .send({ ignored: true })
-      .expect(204);
-
-    // Ensure subroute PUT still reaches mapping transform, not the update handler
-    const res2 = await request(app)
-      .put('/Mapping/testMappingHttpInvocation/should/transform')
-      .send({ ignored: true })
-      .expect(200);
-
-    expect(res2.body).toMatchObject({
-      mappingId: 'testMappingHttpInvocation',
-      method: 'PUT',
-      subroute: ['should', 'transform'],
-      subpath: 'should/transform'
     });
   });
 

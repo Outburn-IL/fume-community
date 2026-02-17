@@ -8,4 +8,4 @@ node_modules
 .env.test
 .eslintcache
 tests/.fhir-packages
-mappings
+/mappings/
