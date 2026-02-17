@@ -8,6 +8,171 @@ Before you install FUME, you can play with the mapping language in the public sa
 - All runtime env vars (server config): [env-vars.md](env-vars.md)
 - v2 → v3 migration notes (library/server embedding): [migration-guide.md](migration-guide.md)
 
+## Quick demo: Blood Pressure Observation from JSON
+
+This is a minimal end-to-end example you can run immediately. It takes 3 input fields and produces a fully conformant FHIR Observation (`InstanceOf: bp`) with profile-driven defaults injected (codes, units, etc.).
+
+Expression:
+
+```txt
+Instance: $uuid()
+InstanceOf: bp
+* status = 'final'
+* effectiveDateTime = $now()
+* subject.identifier.value = mrn
+* component[SystolicBP].valueQuantity.value = systolic
+* component[DiastolicBP].valueQuantity.value = diastolic
+```
+
+Input:
+
+```json
+{
+  "mrn": "PP875023983",
+  "systolic": 120,
+  "diastolic": 80
+}
+```
+
+Example output (one run). Note: `id` and `effectiveDateTime` will differ because they come from `$uuid()` and `$now()`:
+
+```json
+{
+  "resourceType": "Observation",
+  "id": "3c91d1da-894c-4e5e-b400-93121a2043e9",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/StructureDefinition/bp"
+    ]
+  },
+  "status": "final",
+  "category": [
+    {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+          "code": "vital-signs",
+          "display": "Vital Signs"
+        }
+      ]
+    }
+  ],
+  "code": {
+    "coding": [
+      {
+        "system": "http://loinc.org",
+        "code": "85354-9"
+      }
+    ]
+  },
+  "subject": {
+    "identifier": {
+      "value": "PP875023983"
+    }
+  },
+  "effectiveDateTime": "2026-02-16T23:50:49.527Z",
+  "component": [
+    {
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "8480-6"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 120,
+        "unit": "millimeter of mercury",
+        "system": "http://unitsofmeasure.org",
+        "code": "mm[Hg]"
+      }
+    },
+    {
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "8462-4"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 80,
+        "unit": "millimeter of mercury",
+        "system": "http://unitsofmeasure.org",
+        "code": "mm[Hg]"
+      }
+    }
+  ]
+}
+```
+
+### Run it via HTTP (ad-hoc expression)
+
+Send the expression and input to `POST /` (see [http-api.md](http-api.md#post-)).
+
+PowerShell:
+
+```powershell
+$expression = @'
+Instance: $uuid()
+InstanceOf: bp
+* status = 'final'
+* effectiveDateTime = $now()
+* subject.identifier.value = mrn
+* component[SystolicBP].valueQuantity.value = systolic
+* component[DiastolicBP].valueQuantity.value = diastolic
+'@
+
+$body = @{
+  fume = $expression
+  input = @{ mrn = 'PP875023983'; systolic = 120; diastolic = 80 }
+  contentType = 'application/json'
+} | ConvertTo-Json -Depth 30
+
+Invoke-RestMethod -Method Post -Uri 'http://localhost:42420/' -ContentType 'application/json' -Body $body
+```
+
+### Run it via HTTP (saved mapping file)
+
+1) Ensure the server has `MAPPINGS_FOLDER` configured (file-based mappings). In Docker this typically means mounting a folder and setting `MAPPINGS_FOLDER` to the container path.
+
+2) Save the expression as a mapping file (example filename: `bpDemo.fume`) in your mappings folder.
+
+3) Post the input JSON directly to the mapping endpoint:
+
+```sh
+curl -s \
+  -H "Content-Type: application/json" \
+  -d '{"mrn":"PP875023983","systolic":120,"diastolic":80}' \
+  http://localhost:42420/Mapping/bpDemo
+```
+
+### Run it via Node (library API)
+
+```ts
+import { FumeEngine } from 'fume-fhir-converter';
+
+const expression = `Instance: $uuid()\nInstanceOf: bp\n* status = 'final'\n* effectiveDateTime = $now()\n* subject.identifier.value = mrn\n* component[SystolicBP].valueQuantity.value = systolic\n* component[DiastolicBP].valueQuantity.value = diastolic`;
+
+const input = { mrn: 'PP875023983', systolic: 120, diastolic: 80 };
+
+const engine = await FumeEngine.create({
+  config: {
+    FHIR_SERVER_BASE: 'n/a',
+    FHIR_VERSION: '4.0.1',
+    FHIR_PACKAGES: ''
+  }
+});
+
+// Note: you can also omit FHIR_PACKAGES (or set it to an empty/whitespace string)
+// to run with only the base R4 package implied by FHIR_VERSION.
+
+const result = await engine.transform(input, expression);
+const verboseReport = await engine.transformVerbose(input, expression);
+```
+
 ## Option A: Deploy with Docker (published image)
 
 FUME Community publishes a Docker image:
@@ -86,9 +251,12 @@ const engine = await FumeEngine.create({
   config: {
     FHIR_SERVER_BASE: 'n/a',
     FHIR_VERSION: '4.0.1',
-    FHIR_PACKAGES: 'il.core.fhir.r4@0.14.2'
+    FHIR_PACKAGES: ''
   }
 });
+
+// Note: you can also omit FHIR_PACKAGES (or set it to an empty/whitespace string)
+// to run with only the base R4 package implied by FHIR_VERSION.
 
 const out = await engine.transform(input, expression);
 ```
