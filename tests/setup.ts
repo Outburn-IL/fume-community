@@ -215,6 +215,7 @@ async function setup () {
     const containerCacheDir = '/usr/src/app/tests/.fhir-packages';
 
     const envParts = [
+      '-e HOME=/tmp',
       `-e SERVER_PORT=${dockerConfig.SERVER_PORT}`,
       `-e FHIR_SERVER_BASE=${dockerConfig.FHIR_SERVER_BASE}`,
       `-e FHIR_SERVER_AUTH_TYPE=${dockerConfig.FHIR_SERVER_AUTH_TYPE}`,
@@ -230,12 +231,20 @@ async function setup () {
       ? [`-v "${hostCacheDir}":"${containerCacheDir}"`]
       : [];
 
+    const userParts: string[] = [];
+    if (hostCacheDir && typeof (process as unknown as { getuid?: () => number }).getuid === 'function' && typeof (process as unknown as { getgid?: () => number }).getgid === 'function') {
+      const uid = (process as unknown as { getuid: () => number }).getuid();
+      const gid = (process as unknown as { getgid: () => number }).getgid();
+      userParts.push(`--user ${uid}:${gid}`);
+    }
+
     const runCmd = [
       'docker run -d',
       `--name ${DOCKER_CONTAINER_NAME}`,
       '-p 42420:42420',
       // Ensure host.docker.internal works on Linux (GitHub Actions)
       '--add-host host.docker.internal:host-gateway',
+      ...userParts,
       ...envParts,
       ...volumeParts,
       DOCKER_IMAGE
