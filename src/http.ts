@@ -588,11 +588,18 @@ const notFound = (_req: Request, res: Response) => {
 export const createHttpRouter = (options?: CreateHttpRouterOptions) => {
   const router = express.Router();
 
-  const effectiveOpenApiSpec = resolveOpenApiSpec(options);
-
   // OpenAPI spec
+  const effectiveOpenApiSpec = resolveOpenApiSpec(options);
+  const openApiOptions = {
+    swaggerOptions: {
+      url: '/api-docs/swagger.json'
+    },
+  };
   router.get('/api-docs/swagger.json', (_req, res) => res.json(effectiveOpenApiSpec));
-  router.use('/api-docs', swaggerUi.serve, swaggerUi.setup(effectiveOpenApiSpec));
+  router.use(
+    '/api-docs',
+    swaggerUi.serveFiles(undefined, openApiOptions), swaggerUi.setup(null, openApiOptions)
+  );
 
   // /Mapping/*
   const mapping = express.Router();
