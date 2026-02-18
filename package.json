@@ -34,6 +34,7 @@
     "eslint:fix": "npx eslint --fix .",
     "test:debug": "node --inspect-brk --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.integration.cjs --runInBand",
     "test:http": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.http.integration.cjs --runInBand",
+    "test:http:docker": "docker build --pull -t fume-community:test . && cross-env FUME_TEST_TARGET=docker FUME_TEST_DOCKER_IMAGE=fume-community:test npm run test:http",
     "test:stop-hapi": "cd tests && docker compose stop",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.integration.cjs --runInBand",
     "prepare": "npm run build",
