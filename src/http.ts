@@ -10,7 +10,7 @@ import swaggerUi from 'swagger-ui-express';
 
 import { version as engineVersion } from '../package.json';
 import type { FumeEngine } from './engine';
-import { openApiSpec } from './openapi';
+import { openApiSpec } from './openapi.generated';
 import type { DiagnosticEntry, EvaluateVerboseReport } from './types';
 import type { OpenApiSpec, OpenApiSpecFactory } from './types/FumeServerCreateOptions';
 import { getFhirServerEndpoint, hasMappingSources } from './utils/mappingSources';
