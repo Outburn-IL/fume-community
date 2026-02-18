@@ -3,7 +3,7 @@ info:
   title: FUME Community API
   version: 0.0.0
   description: |
-    FHIR-Utilized Mapping Engine — Community Edition.  
+    FHIR-Utilized Mapping Engine - Community Edition.  
     Evaluate ad-hoc FUME expressions or execute saved StructureMap mappings.
 tags:
   - name: Server
