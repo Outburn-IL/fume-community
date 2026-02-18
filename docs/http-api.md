@@ -453,13 +453,13 @@ This preserves:
 
 FUME serves an OpenAPI 3.0.3 spec and an interactive Swagger UI out of the box.
 
-### `GET /openapi.json`
+### `GET /api-docs/swagger.json`
 
 Returns the OpenAPI spec as JSON. The `info.version` field is injected at runtime from the package version.
 
-### `GET /docs`
+### `GET /api-docs`
 
-Serves the Swagger UI. Renders the spec from `GET /openapi.json`.
+Serves the Swagger UI. Renders the spec from `GET /api-docs/swagger.json`.
 
 ### Customizing the OpenAPI spec (`openApiSpec`)
 

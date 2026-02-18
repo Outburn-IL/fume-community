@@ -17,7 +17,7 @@ import { getFhirServerEndpoint, hasMappingSources } from './utils/mappingSources
 import { getRouteParam } from './utils/routeParams';
 
 type CreateHttpRouterOptions = {
-  /** Override or extend the OpenAPI spec served at GET /openapi.json and used by /docs. */
+  /** Override or extend the OpenAPI spec served at GET /api-docs/swagger.json and used by /api-docs. */
   openApiSpec?: OpenApiSpec | OpenApiSpecFactory;
 };
 
@@ -591,10 +591,8 @@ export const createHttpRouter = (options?: CreateHttpRouterOptions) => {
   const effectiveOpenApiSpec = resolveOpenApiSpec(options);
 
   // OpenAPI spec
-  router.get('/openapi.json', (_req, res) => {
-    res.json(effectiveOpenApiSpec);
-  });
-  router.use('/docs', swaggerUi.serve, swaggerUi.setup(effectiveOpenApiSpec));
+  router.get('/api-docs/swagger.json', (_req, res) => res.json(effectiveOpenApiSpec));
+  router.use('/api-docs', swaggerUi.serve, swaggerUi.setup(effectiveOpenApiSpec));
 
   // /Mapping/*
   const mapping = express.Router();

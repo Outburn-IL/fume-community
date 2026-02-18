@@ -28,7 +28,7 @@ export type FumeServerCreateOptions<ConfigType extends IConfig = IConfig> = {
   appMiddleware?: RequestHandler;
 
   /**
-   * Override or extend the OpenAPI spec served at GET /openapi.json and used by /docs.
+   * Override or extend the OpenAPI spec served at GET /api-docs/swagger.json and used by /api-docs.
    * Can be a static object or a factory function that takes the default spec as input
    * and returns a modified version.
    * Useful for adding custom endpoints, metadata, or modifying the spec

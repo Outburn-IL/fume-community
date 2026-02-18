@@ -6,13 +6,14 @@ import { describe, expect, test } from '@jest/globals';
 import request from 'supertest';
 
 describe('OpenAPI and docs routes', () => {
-  test('GET /openapi.json returns the OpenAPI spec (with injected version)', async () => {
+  test('GET /api-docs/swagger.json returns the OpenAPI spec (with injected version)', async () => {
     // Jest runs these integration tests in a CommonJS context (via Babel transform)
     // so using `require()` here avoids relying on `import.meta`.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { version } = require('../../package.json') as { version: string };
 
     const res = await request(globalThis.app)
-      .get('/openapi.json')
+      .get('/api-docs/swagger.json')
       .expect(200)
       .expect('Content-Type', /json/);
 
@@ -28,8 +29,8 @@ describe('OpenAPI and docs routes', () => {
     expect(res.body.paths).toBeTruthy();
   });
 
-  test('GET /docs responds with HTML', async () => {
-    const first = await request(globalThis.app).get('/docs');
+  test('GET /api-docs responds with HTML', async () => {
+    const first = await request(globalThis.app).get('/api-docs');
 
     const res =
       first.status >= 300 && first.status < 400 && typeof first.headers.location === 'string'

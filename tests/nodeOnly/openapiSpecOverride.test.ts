@@ -10,7 +10,7 @@ import request from 'supertest';
 import { createHttpRouter } from '../../src/http';
 import type { OpenApiSpec } from '../../src/types';
 
-// The /openapi.json route does not access the engine, so a bare Express app is sufficient.
+// The /api-docs/swagger.json route does not access the engine, so a bare Express app is sufficient.
 const makeApp = (options?: Parameters<typeof createHttpRouter>[0]) => {
   const app = express();
   const { routes, notFound } = createHttpRouter(options);
@@ -33,7 +33,7 @@ describe('OpenAPI spec override', () => {
 
     const app = makeApp({ openApiSpec: customSpec });
 
-    const res = await request(app).get('/openapi.json').expect(200);
+    const res = await request(app).get('/api-docs/swagger.json').expect(200);
 
     expect(res.body.info.title).toBe('Custom API');
     expect(res.body.info.version).toBe('9.9.9');
@@ -59,7 +59,7 @@ describe('OpenAPI spec override', () => {
       })
     });
 
-    const res = await request(app).get('/openapi.json').expect(200);
+    const res = await request(app).get('/api-docs/swagger.json').expect(200);
 
     // New path must be present
     expect(res.body.paths).toHaveProperty('/test/override');
@@ -85,7 +85,7 @@ describe('OpenAPI spec override', () => {
       }
     });
 
-    const res = await request(app).get('/openapi.json').expect(200);
+    const res = await request(app).get('/api-docs/swagger.json').expect(200);
 
     // Factory must have received the default spec with the runtime-injected version
     expect(capturedBase?.info.title).toBe('FUME Community API');
