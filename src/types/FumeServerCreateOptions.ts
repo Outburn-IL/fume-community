@@ -4,12 +4,13 @@
  */
 
 import type { Application, RequestHandler } from 'express';
+import { OpenAPIV3 } from 'openapi-types';
 
 import type { IConfig } from './Config';
 import type { FumeEngineCreateOptions } from './FumeEngineCreateOptions';
 import type { IFumeServer } from './FumeServer';
 
-export type OpenApiSpec = Record<string, unknown>;
+export type OpenApiSpec = OpenAPIV3.Document;
 export type OpenApiSpecFactory = (base: OpenApiSpec) => OpenApiSpec;
 
 export type FumeServerCreateOptions<ConfigType extends IConfig = IConfig> = {

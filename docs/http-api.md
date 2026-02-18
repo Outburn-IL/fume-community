@@ -502,11 +502,11 @@ import type { OpenApiSpec, OpenApiSpecFactory } from 'fume-fhir-converter';
 const extendSpec: OpenApiSpecFactory = (base) => ({
   ...base,
   info: {
-    ...(base.info as Record<string, unknown>),
+    ...base.info,
     title: 'My FUME-based API'
   },
   paths: {
-    ...(base.paths as Record<string, unknown>),
+    ...base.paths,
     '/test/override': {
       get: {
         summary: 'Custom downstream endpoint',

@@ -7,8 +7,8 @@ import { describe, expect, test } from '@jest/globals';
 import express from 'express';
 import request from 'supertest';
 
-import type { OpenApiSpec } from '../../src/types';
 import { createHttpRouter } from '../../src/http';
+import type { OpenApiSpec } from '../../src/types';
 
 // The /openapi.json route does not access the engine, so a bare Express app is sufficient.
 const makeApp = (options?: Parameters<typeof createHttpRouter>[0]) => {
@@ -48,7 +48,7 @@ describe('OpenAPI spec override', () => {
       openApiSpec: (base) => ({
         ...base,
         paths: {
-          ...((base.paths as Record<string, unknown>) ?? {}),
+          ...base.paths,
           '/test/override': {
             get: {
               summary: 'Test override endpoint',
@@ -70,6 +70,7 @@ describe('OpenAPI spec override', () => {
   });
 
   test('factory receives the base spec with the runtime-injected version', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { version } = require('../../package.json') as { version: string };
 
     let capturedBase: OpenApiSpec | undefined;
@@ -79,7 +80,7 @@ describe('OpenAPI spec override', () => {
         capturedBase = base;
         return {
           ...base,
-          info: { ...(base.info as Record<string, unknown>), title: 'Modified Title' }
+          info: { ...base.info, title: 'Modified Title' }
         };
       }
     });
@@ -87,8 +88,8 @@ describe('OpenAPI spec override', () => {
     const res = await request(app).get('/openapi.json').expect(200);
 
     // Factory must have received the default spec with the runtime-injected version
-    expect((capturedBase?.info as Record<string, unknown>)?.title).toBe('FUME Community API');
-    expect((capturedBase?.info as Record<string, unknown>)?.version).toBe(version);
+    expect(capturedBase?.info.title).toBe('FUME Community API');
+    expect(capturedBase?.info.version).toBe(version);
     // Factory's modification must be reflected in the served spec
     expect(res.body.info.title).toBe('Modified Title');
     expect(res.body.info.version).toBe(version);
