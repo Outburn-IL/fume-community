@@ -330,6 +330,13 @@ curl -s \
 
 These routes allow “routing data” to be passed via the URL after the mapping id.
 
+Note on Swagger/OpenAPI:
+
+- OpenAPI cannot represent the Express route shape used here (`/:mappingId/*subroute`).
+- As a result, Swagger UI “Try it out” cannot be used to test the multi-segment
+  form.
+- The OpenAPI spec documents this route only to describe the behavior.
+
 #### `POST /Mapping/{mappingId}/{subRoute1}/{subRoute2}/...`
 
 Same behavior as `POST /Mapping/{mappingId}`.
@@ -441,3 +448,78 @@ This preserves:
 
 - `PUT /Mapping/:mappingId` → update (downstream)
 - `PUT /Mapping/:mappingId/a/b` → transform (FUME)
+
+## OpenAPI spec and Swagger UI
+
+FUME serves an OpenAPI 3.0.3 spec and an interactive Swagger UI out of the box.
+
+### `GET /api-docs/swagger.json`
+
+Returns the OpenAPI spec as JSON. The `info.version` field is injected at runtime from the package version.
+
+### `GET /api-docs`
+
+Serves the Swagger UI. Renders the spec from `GET /api-docs/swagger.json`.
+
+### Customizing the OpenAPI spec (`openApiSpec`)
+
+Downstream projects can override the spec served by these two endpoints by passing `openApiSpec` in `FumeServerCreateOptions`. This is useful for adding custom endpoints to the spec, changing metadata, or replacing the spec entirely.
+
+The option accepts either a **static object** (full replacement) or a **factory function** (extend/modify the base spec).
+
+#### Static replacement
+
+Pass a plain object. It completely replaces the default FUME spec.
+
+```ts
+import { FumeServer } from 'fume-fhir-converter';
+import type { OpenApiSpec } from 'fume-fhir-converter';
+
+const mySpec: OpenApiSpec = {
+  openapi: '3.0.3',
+  info: { title: 'My API', version: '1.0.0' },
+  paths: {
+    '/my-endpoint': {
+      get: { summary: 'My endpoint', responses: { '200': { description: 'OK' } } }
+    }
+  }
+};
+
+const server = await FumeServer.create({
+  config: { SERVER_PORT: 42420 },
+  openApiSpec: mySpec
+});
+```
+
+#### Factory function (extend the base spec)
+
+Pass a function. It receives a clone of the default FUME spec (with the runtime-injected version) and must return the spec to serve. Use this to add paths or change metadata while keeping the built-in FUME endpoints documented.
+
+```ts
+import { FumeServer } from 'fume-fhir-converter';
+import type { OpenApiSpec, OpenApiSpecFactory } from 'fume-fhir-converter';
+
+const extendSpec: OpenApiSpecFactory = (base) => ({
+  ...base,
+  info: {
+    ...base.info,
+    title: 'My FUME-based API'
+  },
+  paths: {
+    ...base.paths,
+    '/test/override': {
+      get: {
+        summary: 'Custom downstream endpoint',
+        responses: { '200': { description: 'OK' } }
+      }
+    }
+  }
+});
+
+const server = await FumeServer.create({
+  config: { SERVER_PORT: 42420 },
+  openApiSpec: extendSpec
+});
+```
+
+The factory receives a **deep clone** of the base spec, so mutations to `base` do not affect the internal default.
