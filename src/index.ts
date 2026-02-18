@@ -20,6 +20,8 @@ export type {
   IConfig,
   IFumeEngine,
   IFumeServer,
+  OpenApiSpec,
+  OpenApiSpecFactory,
 } from './types';
 
 // Re-exported from @outburn/types
