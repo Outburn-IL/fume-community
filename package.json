@@ -27,6 +27,7 @@
     "prebuild": "npm run generate:openapi",
     "build": "npm run clean && tsup",
     "clean": "rimraf dist",
+    "prelint": "npm run generate:openapi",
     "lint": "eslint src",
     "run": "npm run build && node dist/app.cjs",
     "dev": "npm run clean && cross-env NODE_ENV=dev nodemon -w src --exec \"npm run run\"",
