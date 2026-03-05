@@ -69,7 +69,7 @@ describe('OpenAPI spec override', () => {
     expect(res.body.info.title).toBe('FUME Community API');
   });
 
-  test('factory receives the base spec with the runtime-injected version', async () => {
+  test('factory receives the base spec with the build-time-injected version', async () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { version } = require('../../package.json') as { version: string };
 
@@ -87,7 +87,7 @@ describe('OpenAPI spec override', () => {
 
     const res = await request(app).get('/api-docs/swagger.json').expect(200);
 
-    // Factory must have received the default spec with the runtime-injected version
+    // Factory must have received the default spec with the build-time-injected version
     expect(capturedBase?.info.title).toBe('FUME Community API');
     expect(capturedBase?.info.version).toBe(version);
     // Factory's modification must be reflected in the served spec
