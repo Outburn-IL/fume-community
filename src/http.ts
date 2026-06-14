@@ -11,7 +11,7 @@ import { version as engineVersion } from '../package.json';
 import type { FumeEngine } from './engine';
 import { openApiSpec } from './openapi.generated';
 import { createSwaggerUiRouter } from './swaggerUiRouter';
-import type { DiagnosticEntry, EvaluateVerboseReport } from './types';
+import type { DiagnosticEntry, DiagnosticLevel, EvaluateVerboseReport } from './types';
 import type { OpenApiSpec, OpenApiSpecFactory } from './types/FumeServerCreateOptions';
 import { getFhirServerEndpoint, hasMappingSources } from './utils/mappingSources';
 import { getRouteParam } from './utils/routeParams';
@@ -104,6 +104,50 @@ const isVerboseRequested = (req: Request): boolean => {
   return isTruthy(raw);
 };
 
+const diagnosticLevels = new Set<DiagnosticLevel>([
+  'fatal',
+  'invalid',
+  'error',
+  'warning',
+  'notice',
+  'info',
+  'debug'
+]);
+
+const isDiagnosticLevel = (value: unknown): value is DiagnosticLevel => {
+  return typeof value === 'string' && diagnosticLevels.has(value as DiagnosticLevel);
+};
+
+const projectDiagnosticEntry = (entry: unknown): DiagnosticEntry => {
+  const source = (entry ?? {}) as Record<string, unknown>;
+
+  return {
+    code: typeof source.code === 'string' ? source.code : undefined,
+    message: typeof source.message === 'string' ? source.message : undefined,
+    position:
+      typeof source.position === 'number' || typeof source.position === 'string'
+        ? source.position
+        : undefined,
+    start:
+      typeof source.start === 'number' || typeof source.start === 'string'
+        ? source.start
+        : undefined,
+    line:
+      typeof source.line === 'number' || typeof source.line === 'string'
+        ? source.line
+        : undefined,
+    fhirParent: typeof source.fhirParent === 'string' ? source.fhirParent : undefined,
+    fhirElement: typeof source.fhirElement === 'string' ? source.fhirElement : undefined,
+    severity: typeof source.severity === 'number' ? source.severity : 0,
+    level: isDiagnosticLevel(source.level) ? source.level : 'error',
+    timestamp: typeof source.timestamp === 'number' ? source.timestamp : Date.now()
+  };
+};
+
+const normalizeDiagnosticBucket = (entries: unknown): DiagnosticEntry[] => {
+  return Array.isArray(entries) ? entries.map(projectDiagnosticEntry) : [];
+};
+
 const normalizeVerboseReport = (report: EvaluateVerboseReport): EvaluateVerboseReport => {
   const diagnostics = report.diagnostics as EvaluateVerboseReport['diagnostics'] | undefined;
   return {
@@ -111,9 +155,9 @@ const normalizeVerboseReport = (report: EvaluateVerboseReport): EvaluateVerboseR
     status: typeof report.status === 'number' ? report.status : 500,
     result: (report as { result?: unknown }).result,
     diagnostics: {
-      error: Array.isArray(diagnostics?.error) ? diagnostics.error : [],
-      warning: Array.isArray(diagnostics?.warning) ? diagnostics.warning : [],
-      debug: Array.isArray(diagnostics?.debug) ? diagnostics.debug : []
+      error: normalizeDiagnosticBucket(diagnostics?.error),
+      warning: normalizeDiagnosticBucket(diagnostics?.warning),
+      debug: normalizeDiagnosticBucket(diagnostics?.debug)
     },
     executionId: typeof report.executionId === 'string' && report.executionId !== '' ? report.executionId : randomUUID()
   };
