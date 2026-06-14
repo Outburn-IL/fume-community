@@ -130,7 +130,7 @@ describe('verbose=true response wrapper', () => {
               position: 12,
               start: 3,
               line: 1,
-              fhirParent: 'Patient',
+              instanceOf: 'Patient',
               fhirElement: 'identifier',
               severity: 20,
               level: 'error',
