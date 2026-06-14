@@ -120,6 +120,10 @@ const isDiagnosticLevel = (value: unknown): value is DiagnosticLevel => {
 
 const projectDiagnosticEntry = (entry: unknown): DiagnosticEntry => {
   const source = (entry ?? {}) as Record<string, unknown>;
+  const fhirParent =
+    typeof source.fhirParent === 'string'
+      ? source.fhirParent
+      : (typeof source.instanceOf === 'string' ? source.instanceOf : undefined);
 
   return {
     code: typeof source.code === 'string' ? source.code : undefined,
@@ -136,7 +140,7 @@ const projectDiagnosticEntry = (entry: unknown): DiagnosticEntry => {
       typeof source.line === 'number' || typeof source.line === 'string'
         ? source.line
         : undefined,
-    fhirParent: typeof source.fhirParent === 'string' ? source.fhirParent : undefined,
+    fhirParent,
     fhirElement: typeof source.fhirElement === 'string' ? source.fhirElement : undefined,
     severity: typeof source.severity === 'number' ? source.severity : 0,
     level: isDiagnosticLevel(source.level) ? source.level : 'error',

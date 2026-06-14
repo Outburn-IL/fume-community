@@ -86,7 +86,7 @@ components:
         line:
           type: integer
           example: 2
-        instanceOf:
+        fhirParent:
           type: string
           example: Patient
         fhirElement:
