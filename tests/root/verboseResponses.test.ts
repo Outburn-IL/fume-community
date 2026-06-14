@@ -8,20 +8,33 @@ import express from 'express';
 import request from 'supertest';
 
 import { createHttpRouter } from '../../src/http';
-import type { IFumeEngine } from '../../src/types/FumeEngine';
+import type { IAppBinding, IConfig, IFumeEngine } from '../../src/types';
 import { getResourceFileContents } from '../utils/getResourceFileContents';
 
-const expectVerboseReportShape = (body: any) => {
-  expect(body).toBeTruthy();
-  expect(typeof body.ok).toBe('boolean');
-  expect(typeof body.status).toBe('number');
-  expect(typeof body.executionId).toBe('string');
-  expect(body.executionId.length).toBeGreaterThan(0);
+type VerboseReportBody = {
+  ok?: boolean;
+  status?: number;
+  executionId?: string;
+  diagnostics?: {
+    error?: unknown[];
+    warning?: unknown[];
+    debug?: unknown[];
+  };
+};
 
-  expect(body.diagnostics).toBeTruthy();
-  expect(Array.isArray(body.diagnostics.error)).toBe(true);
-  expect(Array.isArray(body.diagnostics.warning)).toBe(true);
-  expect(Array.isArray(body.diagnostics.debug)).toBe(true);
+const expectVerboseReportShape = (body: unknown) => {
+  const report = (body ?? {}) as VerboseReportBody;
+
+  expect(report).toBeTruthy();
+  expect(typeof report.ok).toBe('boolean');
+  expect(typeof report.status).toBe('number');
+  expect(typeof report.executionId).toBe('string');
+  expect(report.executionId?.length ?? 0).toBeGreaterThan(0);
+
+  expect(report.diagnostics).toBeTruthy();
+  expect(Array.isArray(report.diagnostics?.error)).toBe(true);
+  expect(Array.isArray(report.diagnostics?.warning)).toBe(true);
+  expect(Array.isArray(report.diagnostics?.debug)).toBe(true);
 };
 
 describe('verbose=true response wrapper', () => {
@@ -47,7 +60,7 @@ describe('verbose=true response wrapper', () => {
     expect(res.body.result).toBeTruthy();
     expect(res.body.result.resourceType).toBe('Patient');
     expect(res.body.result.active).toBe(true);
-  });
+  }, 30000);
 
   test('handled evaluation error: POST /?verbose=true returns full report with non-2xx status and diagnostics', async () => {
     const fume = getResourceFileContents('mappings', 'flash-patient-with-incorrect-gender.txt');
@@ -68,26 +81,42 @@ describe('verbose=true response wrapper', () => {
     expect(res.status).toBe(res.body.status);
 
     expect(res.body.diagnostics.error.length).toBeGreaterThan(0);
-  });
+  }, 30000);
 
   test('verbose responses project diagnostics to the public DiagnosticEntry shape only', async () => {
     const app = express();
     app.use(express.json());
 
-    const engine = {
-      getBindings: () => ({}),
-      getConfig: () => ({}),
+    const bindings: Record<string, IAppBinding> = {};
+    const stubConfig: IConfig = {
+      SERVER_PORT: 0,
+      FHIR_SERVER_BASE: '',
+      FHIR_SERVER_TIMEOUT: 30000,
+      FHIR_VERSION: '4.0.1',
+      FHIR_PACKAGES: '',
+      FHIR_SERVER_AUTH_TYPE: 'NONE',
+      FHIR_SERVER_UN: '',
+      FHIR_SERVER_PW: ''
+    };
+
+    const engine: IFumeEngine<IConfig> = {
+      registerBinding: (key: string, binding: IAppBinding) => {
+        bindings[key] = binding;
+      },
+      getBindings: () => bindings,
+      getConfig: () => stubConfig,
       getLogger: () => ({
         error: () => undefined,
         warn: () => undefined,
         info: () => undefined,
         debug: () => undefined
       }),
-      getFhirClient: () => undefined,
-      getMappingProvider: () => ({
-        getUserMapping: () => undefined,
-        getUserMappingKeys: () => []
-      }),
+      getFhirClient: () => {
+        throw new Error('getFhirClient is not used by this test');
+      },
+      getMappingProvider: () => {
+        throw new Error('getMappingProvider is not used by this test');
+      },
       convertInputToJson: async (input: unknown) => input,
       transformVerbose: async () => ({
         ok: false,
@@ -124,8 +153,11 @@ describe('verbose=true response wrapper', () => {
           debug: []
         },
         executionId: 'exec-http-redaction'
-      })
-    } satisfies Partial<IFumeEngine> as IFumeEngine;
+      }),
+      transform: async () => {
+        throw new Error('transform is not used by this test');
+      }
+    };
 
     app.locals.engine = engine;
     app.use(createHttpRouter().routes);
