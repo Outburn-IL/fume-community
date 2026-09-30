@@ -55,7 +55,7 @@
     "url": "git+https://github.com/Outburn-IL/fume-community.git"
   },
   "dependencies": {
-    "@outburn/fhir-client": "^1.5.0",
+    "@outburn/fhir-client": "^1.6.0",
     "@outburn/format-converter": "^2.0.1",
     "@outburn/fume-mapping-provider": "^1.1.2",
     "@outburn/structure-navigator": "^1.9.5",
@@ -65,11 +65,11 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "fhir-package-explorer": "^1.9.4",
-    "fhir-package-installer": "^1.13.0",
+    "fhir-package-installer": "^1.13.1",
     "fhir-snapshot-generator": "^2.3.1",
     "fhir-terminology-runtime": "^1.3.0",
     "fs-extra": "^11.3.5",
-    "fumifier": "^2.3.1",
+    "fumifier": "^2.4.0",
     "js-yaml": "^4.1.1",
     "lru-cache": "^11.3.6",
     "openapi-types": "^12.1.3",
