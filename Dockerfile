@@ -1,15 +1,12 @@
-FROM node:20-bookworm AS builder
+FROM node:24-alpine AS builder
 
 LABEL org.opencontainers.image.source=https://github.com/Outburn-IL/fume-community
 LABEL org.opencontainers.image.description="FUME FHIR Conversion & Mapping Engine"
 LABEL org.opencontainers.image.licenses=AGPL-3.0
 LABEL org.opencontainers.image.authors="Outburn Ltd."
 
-# Install build dependencies (for any native deps during npm ci)
-RUN apt-get update -y && apt-get install -y --no-install-recommends \
-        build-essential \
-        g++ \
-    && rm -rf /var/lib/apt/lists/*
+# Install build dependencies for any native dependencies during npm ci.
+RUN apk add --no-cache build-base python3
 
 WORKDIR /usr/src/app
 
@@ -24,7 +21,7 @@ RUN npm run build \
     && npm prune --omit=dev \
     && npm cache clean --force
 
-FROM node:20-bookworm-slim AS runtime
+FROM node:24-alpine AS runtime
 
 WORKDIR /usr/src/app
 ENV NODE_ENV=production
