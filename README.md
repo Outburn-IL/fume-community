@@ -153,6 +153,85 @@ const out = await engine.transform(input, expression);
 
 Note: when embedding as a module, FUME does not read `process.env` / `.env` automatically. Pass `config` explicitly.
 
+### Evaluation contexts
+
+Embedding applications can supply `builtinBindings` and a synchronous
+`evaluationContextFactory` to `FumeEngine.create` (or under `engine` in
+`FumeServer.create`). These APIs let embedding applications define evaluation
+contexts and control binding visibility.
+
+The factory receives `{ builtins, user }`, two fresh, shallow-frozen contexts.
+`builtins` contains format converters, configuration-derived threshold defaults,
+and supplied `builtinBindings`; fumifier's static functions remain the underlying
+base. `user` contains deployment bindings, provider aliases/static values, and a
+snapshot of callable user mappings. Each context has `bindings` and `mappingCache`.
+Nested binding values are not deep-frozen; their owner is responsible for them.
+
+```ts
+const engine = await FumeEngine.create({
+	config: { FHIR_SERVER_BASE: 'n/a', MAPPINGS_FOLDER: 'n/a' },
+	bindings: { deploymentValue: 'user' },
+	evaluationContextFactory({ builtins, user }) {
+		const isolated = {
+			bindings: { ...builtins.bindings, localValue: 'isolated' },
+			mappingCache: builtins.mappingCache
+		};
+		return {
+			default: {
+				bindings: { ...user.bindings, ...builtins.bindings },
+				mappingCache: user.mappingCache
+			},
+			scopes: new Map([['isolated', isolated]])
+		};
+	}
+});
+
+const value = await engine.transform({}, '$localValue', {}, { scopeId: 'isolated' });
+```
+
+`transform` and `transformVerbose` accept an optional fourth argument
+`{ scopeId }`. Unknown IDs fail; scope selection is server-owned and cannot be
+requested through HTTP JSON. Third-argument bindings retain precedence. A scoped
+callee excludes caller lexical variables, while ordinary string-only named
+mappings continue to inherit their caller's context. Use mapping-cache
+`getDefinition` entries with explicit scopes to select a callee context on entry.
+Build references between mutually callable scopes within that factory invocation,
+not in compiled-expression caches.
+
+Call `engine.validateEvaluationContexts()` during synchronous `configureApp` to
+run the same snapshot/factory path at startup. The factory also runs for every
+evaluation, so embedding applications can reject new name collisions after
+provider polling or recache. It must throw on conflicts rather than change targets
+silently. HTTP handlers apply `collectLevel = throwLevel` to every request scope,
+including scopes reached through mapping definitions, without mutating factory
+output. Direct library evaluations retain their configured collection threshold.
+
+### Downstream HTTP execution and disposal
+
+`createMappingExecutionHandler(resolve)` returns an Express handler sharing the
+built-in input conversion, sanitized `$fumeHttpInvocation`, verbose reports, and
+legacy result/error projection. Its resolver returns
+`{ mappingId, expression, scopeId?, subroute }`, or `undefined` for not found;
+it may be asynchronous. `subroute` is an explicit array of captured segments
+excluding the route prefix. Mount it after application authentication/authorization
+middleware in `configureApp`. The resolver must validate its own targets; request
+data is not an evaluation scope or mapping definition.
+
+The handler works without a mapping provider. It executes POST and PUT with a
+nonempty subroute; base PUT calls `next()` so downstream update/404 handling stays
+available. Register only the intended execution methods. Built-in `/Mapping`
+routes still require ordinary mapping sources and retain their existing order.
+
+`server.registerShutdownHook(async () => { /* bounded resource disposal */ })`
+registers a generic resource disposer. `shutDown()` is idempotent, stops accepting
+HTTP connections, starts all hooks without first waiting for active requests, and
+awaits both HTTP close and all hooks. Hooks must bound their own cleanup and revoke
+work that would otherwise keep HTTP requests pending. A failing hook does not
+prevent other hooks from running; shutdown rejects after cleanup settles.
+Registered hooks also run if configuration, router creation, or listener startup
+fails. `configureApp` remains synchronous; perform asynchronous resource loading
+before calling `FumeServer.create`.
+
 ## Run as an HTTP server
 
 See [docs/getting-started.md](docs/getting-started.md) for deployment options, including Docker.
