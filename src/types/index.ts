@@ -6,7 +6,7 @@ export type { ICache } from './Cache';
 export type { IConfig } from './Config';
 export type { ConnectionAuthType, ConnectionConfig, ConnectionsFile } from './ConnectionConfig';
 export type { IAppBinding, IFumeEngine } from './FumeEngine';
-export type { FumeEngineCreateOptions } from './FumeEngineCreateOptions';
+export type { EngineEvaluationContext, EngineEvaluationContexts, EngineEvaluationOptions, EvaluationContextFactory, FumeEngineCreateOptions } from './FumeEngineCreateOptions';
 export type { IFumeServer } from './FumeServer';
 export type { FumeServerCreateOptions, OpenApiSpec, OpenApiSpecFactory } from './FumeServerCreateOptions';
 export type { DiagnosticEntry, DiagnosticLevel, EvaluateVerboseReport, FumeHttpEvaluationError } from './VerboseReport';

@@ -4,10 +4,25 @@
  */
 
 import type { Logger } from '@outburn/types';
-import type { FumifierOptions } from 'fumifier';
+import type { EvaluationScope, FumifierOptions } from 'fumifier';
 
 import type { IConfig } from './Config';
 import type { IAppBinding } from './FumeEngine';
+
+export type EngineEvaluationContext = EvaluationScope;
+export type EngineEvaluationContexts = {
+  default: EngineEvaluationContext;
+  scopes: ReadonlyMap<string, EngineEvaluationContext>;
+};
+export type EvaluationContextFactory = (base: {
+  builtins: EngineEvaluationContext;
+  user: EngineEvaluationContext;
+}) => EngineEvaluationContexts;
+export type EngineEvaluationOptions = {
+  scopeId?: string;
+  /** Server-owned HTTP threshold overlay, applied to every scope in the snapshot. */
+  http?: boolean;
+};
 
 export type FumeEngineCreateOptions<ConfigType extends IConfig = IConfig> = {
   /** Required runtime config (validated & normalized). */
@@ -19,4 +34,8 @@ export type FumeEngineCreateOptions<ConfigType extends IConfig = IConfig> = {
 
   /** Initial global bindings (set once during create). */
   bindings?: Record<string, IAppBinding>;
+  /** Internal/deployment services available when constructing clean scopes. */
+  builtinBindings?: Record<string, IAppBinding>;
+  /** Synchronous factory receiving fresh, shallow-frozen provider/user and built-in snapshots. */
+  evaluationContextFactory?: EvaluationContextFactory;
 };
