@@ -18,5 +18,6 @@ export interface IFumeServer<ConfigType extends IConfig = IConfig> {
   getEngine: () => IFumeEngine<ConfigType>;
   registerAppMiddleware: (middleware: RequestHandler) => void;
   registerBinding: (key: string, binding: unknown) => void;
+  registerShutdownHook: (hook: () => Promise<void>) => void;
   shutDown: () => Promise<void>;
 }
