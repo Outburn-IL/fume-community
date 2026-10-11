@@ -1,6 +1,6 @@
 {
   "name": "fume-fhir-converter",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "description": "FHIR-Utilized Mapping Engine - Community",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
