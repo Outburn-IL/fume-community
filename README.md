@@ -232,6 +232,30 @@ Registered hooks also run if configuration, router creation, or listener startup
 fails. `configureApp` remains synchronous; perform asynchronous resource loading
 before calling `FumeServer.create`.
 
+Inside `configureApp`, a fixed server-owned execution target can be mounted after
+your own authentication/authorization middleware:
+
+```ts
+app.post('/isolated-copy', createMappingExecutionHandler(() => ({
+	mappingId: 'copy',
+	expression: '$',
+	scopeId: 'isolated',
+	subroute: []
+})));
+```
+
+This assumes the `isolated` context registered in the example above. The handler
+does not register a provider mapping, source endpoint, update route or permission.
+Authorize the actual incoming path/method, and resolve only approved server-owned
+targets; never accept an expression/scope definition from untrusted request data.
+HTTP invocation metadata contains `mappingId`, `method`, `subroute`, `subpath`,
+query values and allowlisted headers, not an Express request or service object.
+
+Register bounded disposal hooks while the server is alive. Repeated `shutDown()`
+calls share completion; hooks also clean up partial startup. Stop new resource
+admission in the hook and await real work or revoke it within your own deadline,
+rather than returning while background work still owns HTTP connections.
+
 ## Run as an HTTP server
 
 See [docs/getting-started.md](docs/getting-started.md) for deployment options, including Docker.
