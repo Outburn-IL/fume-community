@@ -63,7 +63,7 @@
     "axios": "^1.20.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1",
+    "express": "^5.3.0",
     "fhir-package-explorer": "^1.9.4",
     "fhir-package-installer": "^1.13.1",
     "fhir-snapshot-generator": "^2.3.1",
