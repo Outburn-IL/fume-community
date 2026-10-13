@@ -8,6 +8,7 @@ import type { FumeMappingProvider } from '@outburn/fume-mapping-provider';
 import type { Logger } from '@outburn/types';
 
 import type { IConfig } from './Config';
+import type { EngineEvaluationOptions } from './FumeEngineCreateOptions';
 import type { EvaluateVerboseReport } from './VerboseReport';
 export type IAppBinding = unknown;
 
@@ -24,6 +25,7 @@ export interface IFumeEngine<ConfigType extends IConfig = IConfig> {
 
   getFhirClient: () => FhirClient;
   getMappingProvider: () => FumeMappingProvider;
+  validateEvaluationContexts: () => void;
 
   convertInputToJson: (input: unknown, contentType?: string) => Promise<unknown>;
 
@@ -39,12 +41,12 @@ export interface IFumeEngine<ConfigType extends IConfig = IConfig> {
    *
    * Note: the HTTP API does not currently allow arbitrary bindings to be provided by clients.
    */
-  transformVerbose: (input: unknown, expression: string, extraBindings?: Record<string, IAppBinding>) => Promise<EvaluateVerboseReport>;
+  transformVerbose: (input: unknown, expression: string, extraBindings?: Record<string, IAppBinding>, options?: EngineEvaluationOptions) => Promise<EvaluateVerboseReport>;
 
   /**
    * Evaluate a mapping and return only the transformed result (throws on fatal/unhandled failures).
    *
    * See `transformVerbose` for how `extraBindings` overrides global bindings (including threshold overrides).
    */
-  transform: (input: unknown, expression: string, extraBindings?: Record<string, IAppBinding>) => Promise<unknown>;
+  transform: (input: unknown, expression: string, extraBindings?: Record<string, IAppBinding>, options?: EngineEvaluationOptions) => Promise<unknown>;
 }

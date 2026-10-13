@@ -19,7 +19,10 @@ import { defaultConfig, parseFumeConfig } from './serverConfig';
 import type {
   ConnectionConfig,
   DiagnosticEntry,
+  EngineEvaluationContexts,
+  EngineEvaluationOptions,
   EvaluateVerboseReport,
+  EvaluationContextFactory,
   FhirPackageIdentifier,
   FhirVersion,
   FumeEngineCreateOptions,
@@ -69,6 +72,8 @@ const defaultGlobalFhirContext = (): GlobalFhirContext => ({
 export class FumeEngine<ConfigType extends IConfig = IConfig> {
   private readonly config: ConfigType;
   private bindings: Record<string, IAppBinding>;
+  private readonly builtinBindings: Record<string, IAppBinding>;
+  private readonly evaluationContextFactory?: EvaluationContextFactory;
   private readonly logger: Logger;
 
   private fhirClient?: FhirClient;
@@ -100,11 +105,15 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     logger: Logger;
     astCache?: NonNullable<FumifierOptions['astCache']>;
     bindings?: Record<string, IAppBinding>;
+    builtinBindings: Record<string, IAppBinding>;
+    evaluationContextFactory?: EvaluationContextFactory;
   }) {
     this.config = Object.freeze({ ...(init.config as unknown as Record<string, unknown>) }) as unknown as ConfigType;
     this.logger = init.logger;
     this.astCache = init.astCache;
     this.bindings = init.bindings ?? {};
+    this.builtinBindings = init.builtinBindings;
+    this.evaluationContextFactory = init.evaluationContextFactory;
   }
 
   public static async create <ConfigType extends IConfig = IConfig> (
@@ -129,16 +138,15 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     };
 
     // Merge order: config-derived defaults first, then user bindings override.
-    const initialBindings: Record<string, IAppBinding> = {
-      ...thresholdDefaults,
-      ...(options.bindings ?? {})
-    };
-
     const engine = new FumeEngine<ConfigType>({
       config: normalizedConfig,
       logger,
       astCache: options.astCache,
-      bindings: initialBindings
+      bindings: options.evaluationContextFactory
+        ? { ...options.bindings }
+        : { ...thresholdDefaults, ...options.builtinBindings, ...options.bindings },
+      builtinBindings: { ...thresholdDefaults, ...options.builtinBindings },
+      evaluationContextFactory: options.evaluationContextFactory
     });
 
     await engine.initialize({ deprecatedStateless });
@@ -162,7 +170,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
   }
 
   public getBindings () {
-    return this.bindings;
+    return this.evaluationContextFactory ? { ...this.builtinBindings, ...this.bindings } : this.bindings;
   }
 
   public getFhirClient (): FhirClient {
@@ -631,7 +639,7 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
             acc[entry.key] = entry.value;
           }
           return acc;
-        }, {} as Record<string, unknown>);
+        }, Object.create(null) as Record<string, unknown>);
       }
     }
 
@@ -643,41 +651,74 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
           acc[key] = entry.value;
         }
         return acc;
-      }, {} as Record<string, unknown>);
+      }, Object.create(null) as Record<string, unknown>);
     }
 
     return {};
   }
 
-  private getEvaluationBindings (extraBindings: Record<string, IAppBinding> = {}): Record<string, unknown> {
-    let bindings: Record<string, unknown> = {};
-
+  private createEvaluationContexts (options: EngineEvaluationOptions = {}): EngineEvaluationContexts {
     const converter = this.getOrCreateFormatConverter();
-    bindings.parseCsv = converter.csvToJson.bind(converter);
-    bindings.v2json = converter.hl7v2ToJson.bind(converter);
-
-    if (this.mappingProvider) {
-      const aliases = this.mappingProvider.getAliases();
-      const staticValues = this.getStaticValueBindings();
-      bindings = {
-        ...aliases,
-        ...staticValues,
-        ...bindings,
-        ...this.bindings,
-        ...extraBindings
-      };
-    } else {
-      bindings = {
-        ...bindings,
-        ...this.bindings,
-        ...extraBindings
-      };
+    const builtinBindings = Object.freeze(Object.assign(Object.create(null), {
+      parseCsv: converter.csvToJson.bind(converter),
+      v2json: converter.hl7v2ToJson.bind(converter),
+      ...this.builtinBindings
+    })) as Record<string, unknown>;
+    const mappings = new Map<string, string>();
+    for (const key of this.mappingProvider?.getUserMappingKeys() ?? []) {
+      const mapping = this.mappingProvider?.getUserMapping(key);
+      if (typeof mapping?.expression !== 'string') throw new Error(`Mapping '${key}' does not contain a valid expression`);
+      mappings.set(key, mapping.expression);
     }
-
-    return bindings;
+    const mappingCache: MappingCacheInterface = Object.freeze({
+      getKeys: async () => [...mappings.keys()],
+      get: async (key: string) => {
+        if (!mappings.has(key)) throw new Error(`Mapping '${key}' not found`);
+        return mappings.get(key)!;
+      }
+    });
+    const userBindings = Object.freeze(Object.assign(Object.create(null),
+      this.mappingProvider?.getAliases() ?? {}, this.getStaticValueBindings(), this.bindings
+    )) as Record<string, unknown>;
+    const builtins = Object.freeze({ bindings: builtinBindings, mappingCache: Object.freeze({ getKeys: async () => [], get: async () => undefined }) });
+    const user = Object.freeze({ bindings: userBindings, mappingCache });
+    const contexts = this.evaluationContextFactory?.({ builtins, user }) ?? {
+      default: { bindings: { ...userBindings, ...builtinBindings, ...this.bindings }, mappingCache },
+      scopes: new Map()
+    };
+    if (options.http) {
+      const snapshots = new Map<EngineEvaluationContexts['default'], EngineEvaluationContexts['default']>();
+      const snapshot = (context: EngineEvaluationContexts['default']): EngineEvaluationContexts['default'] => {
+        const existing = snapshots.get(context);
+        if (existing) return existing;
+        const raw = context.bindings.throwLevel;
+        const parsed = typeof raw === 'string' ? parseInt(raw, 10) : raw;
+        const throwLevel = typeof parsed === 'number' && Number.isFinite(parsed) ? parsed : 30;
+        const cache = context.mappingCache as MappingCacheInterface;
+        const result = {
+          bindings: Object.freeze({ ...context.bindings, collectLevel: throwLevel }),
+          mappingCache: Object.freeze({
+            getKeys: () => cache.getKeys(),
+            get: (key: string) => cache.get(key),
+            ...(cache.getDefinition ? { getDefinition: async (key: string) => {
+              const definition = await cache.getDefinition!(key);
+              return definition?.scope ? { ...definition, scope: snapshot(definition.scope) } : definition;
+            } } : {})
+          })
+        };
+        snapshots.set(context, result);
+        return Object.freeze(result);
+      };
+      return { default: snapshot(contexts.default), scopes: new Map([...contexts.scopes].map(([id, context]) => [id, snapshot(context)])) };
+    }
+    return contexts;
   }
 
-  public async transformVerbose (input: unknown, expression: string, extraBindings: Record<string, IAppBinding> = {}): Promise<EvaluateVerboseReport> {
+  public validateEvaluationContexts (): void {
+    this.createEvaluationContexts();
+  }
+
+  public async transformVerbose (input: unknown, expression: string, extraBindings: Record<string, IAppBinding> = {}, options: EngineEvaluationOptions = {}): Promise<EvaluateVerboseReport> {
     const log = this.getEngineLogger();
     const fumeHttpInvocation = (extraBindings as Record<string, unknown>)?.fumeHttpInvocation as
       | { mappingId?: unknown; method?: unknown; subpath?: unknown }
@@ -692,10 +733,13 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
 
     log.debug?.('Starting transformation (verbose)', invocationMeta);
 
+    const contexts = this.createEvaluationContexts(options);
+    const context = options.scopeId === undefined ? contexts.default : contexts.scopes.get(options.scopeId);
+    if (!context) throw new Error(`Unknown evaluation scope: '${options.scopeId}'`);
     const expr = await this.compileExpression(expression);
-    const bindings = this.getEvaluationBindings(extraBindings);
-
-    const report = await expr.evaluateVerbose(input, bindings);
+    const report = this.evaluationContextFactory || options.scopeId !== undefined
+      ? await expr.evaluateVerbose(input, extraBindings, { evaluationScope: context })
+      : await expr.evaluateVerbose(input, { ...context.bindings, ...extraBindings }, { mappingCache: context.mappingCache });
     log.debug?.('Finished transformation (verbose)', {
       ...invocationMeta,
       executionId: (report as { executionId?: unknown })?.executionId,
@@ -705,9 +749,9 @@ export class FumeEngine<ConfigType extends IConfig = IConfig> {
     return report as EvaluateVerboseReport;
   }
 
-  public async transform (input: unknown, expression: string, extraBindings: Record<string, IAppBinding> = {}) {
+  public async transform (input: unknown, expression: string, extraBindings: Record<string, IAppBinding> = {}, options: EngineEvaluationOptions = {}) {
     try {
-      const report = await this.transformVerbose(input, expression, extraBindings);
+      const report = await this.transformVerbose(input, expression, extraBindings, options);
 
       if (report.ok) {
         return report.result;

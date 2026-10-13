@@ -5,7 +5,7 @@
 
 import type { FumeHttpEvaluationError } from '@outburn/types';
 import { randomUUID } from 'crypto';
-import express, { type NextFunction, type Request, type Response } from 'express';
+import express, { type NextFunction, type Request, type RequestHandler, type Response } from 'express';
 
 import { version as engineVersion } from '../package.json';
 import type { FumeEngine } from './engine';
@@ -35,6 +35,14 @@ const resolveOpenApiSpec = (options?: CreateHttpRouterOptions): OpenApiSpec => {
 };
 
 type EngineLocals = { engine: FumeEngine };
+
+export type MappingExecutionTarget = {
+  mappingId: string;
+  expression: string;
+  scopeId?: string;
+  subroute: readonly string[];
+};
+export type MappingExecutionResolver = (req: Request) => MappingExecutionTarget | undefined | Promise<MappingExecutionTarget | undefined>;
 
 type FumeHttpInvocation = {
   mappingId: string;
@@ -273,34 +281,7 @@ const rootEvaluate = async (req: Request, res: Response) => {
       throw error;
     }
 
-    const baseBindings = engine.getBindings();
-
-    // In non-verbose mode we don't return the diagnostics bag.
-    // Setting collectLevel = throwLevel preserves evaluateVerbose ok/status semantics (all throwables are still collected)
-    // while avoiding collection of non-throwable diagnostics.
-    const effectiveThrowLevel = (() => {
-      const raw = (baseBindings as Record<string, unknown>)?.throwLevel;
-      if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
-      if (typeof raw === 'string') {
-        const parsed = parseInt(raw, 10);
-        if (Number.isFinite(parsed)) return parsed;
-      }
-
-      const fallback = (engine.getConfig() as { FUME_EVAL_THROW_LEVEL?: unknown })?.FUME_EVAL_THROW_LEVEL;
-      if (typeof fallback === 'number' && Number.isFinite(fallback)) return fallback;
-      if (typeof fallback === 'string') {
-        const parsed = parseInt(fallback, 10);
-        if (Number.isFinite(parsed)) return parsed;
-      }
-
-      return 30;
-    })();
-
-    const evaluationBindings = verbose
-      ? baseBindings
-      : { ...baseBindings, collectLevel: effectiveThrowLevel };
-
-    const report = normalizeVerboseReport(await engine.transformVerbose(inputJson, expression, evaluationBindings));
+    const report = normalizeVerboseReport(await engine.transformVerbose(inputJson, expression, {}, { http: true }));
 
     if (verbose) {
       return res.status(report.status).json(report);
@@ -489,8 +470,8 @@ const sanitizeHeaders = (headers: Request['headers']): Record<string, string | s
   return out;
 };
 
-const createFumeHttpInvocation = (req: Request, mappingId: string): FumeHttpInvocation => {
-  const subroute = getSubrouteSegments(req, mappingId);
+const createFumeHttpInvocation = (req: Request, mappingId: string, segments: readonly string[]): FumeHttpInvocation => {
+  const subroute = [...segments];
   return {
     mappingId,
     method: req.method,
@@ -501,37 +482,14 @@ const createFumeHttpInvocation = (req: Request, mappingId: string): FumeHttpInvo
   };
 };
 
-const mappingTransform = async (req: Request, res: Response, next?: NextFunction) => {
+export const createMappingExecutionHandler = (resolve: MappingExecutionResolver): RequestHandler => async (req, res, next) => {
   const engine = getEngine(req);
   const logger = engine.getLogger();
   const verbose = isVerboseRequested(req);
 
   try {
-    const mappingId = getRouteParam(req.params, 'mappingId');
-    if (!mappingId) {
-      res.status(400).json({ message: 'missing mappingId' });
-      return;
-    }
-
-    // PUT is reserved for mapping update when no internal subroute exists.
-    // (FUME Community doesn't implement update, but downstream products can register it.)
-    if (req.method === 'PUT') {
-      const subroute = getSubrouteSegments(req, mappingId);
-      if (subroute.length === 0) {
-        if (next) {
-          next();
-          return;
-        }
-        res.status(404).json({ message: 'not found' });
-        return;
-      }
-    }
-
-    const provider = engine.getMappingProvider();
-    const mapping = provider.getUserMapping(mappingId);
-
+    const mapping = await resolve(req);
     if (!mapping) {
-      logger.error(`Mapping '${mappingId}' not found!`);
       if (verbose) {
         const report = createSyntheticVerboseReport(404, {
           code: 'MAPPING_NOT_FOUND',
@@ -543,6 +501,11 @@ const mappingTransform = async (req: Request, res: Response, next?: NextFunction
       }
 
       res.status(404).json({ message: 'not found' });
+      return;
+    }
+    const { mappingId, scopeId, subroute } = mapping;
+    if (req.method === 'PUT' && subroute.length === 0) {
+      next();
       return;
     }
 
@@ -578,10 +541,10 @@ const mappingTransform = async (req: Request, res: Response, next?: NextFunction
       return;
     }
 
-    const fumeHttpInvocation = createFumeHttpInvocation(req, mappingId);
+    const fumeHttpInvocation = createFumeHttpInvocation(req, mappingId, subroute);
 
     const report = normalizeVerboseReport(
-      await engine.transformVerbose(inputJson, expression, { fumeHttpInvocation } as unknown as Record<string, unknown>)
+      await engine.transformVerbose(inputJson, expression, { fumeHttpInvocation }, { scopeId, http: true })
     );
 
     res.set('Content-Type', 'application/json');
@@ -618,6 +581,25 @@ const mappingTransform = async (req: Request, res: Response, next?: NextFunction
     logger.error({ error });
     res.status(500).json({ message: error });
   }
+};
+
+const executeProviderMapping = createMappingExecutionHandler(req => {
+  const mappingId = getRouteParam(req.params, 'mappingId')!;
+  const mapping = getEngine(req).getMappingProvider().getUserMapping(mappingId);
+  return mapping ? { mappingId, expression: mapping.expression, subroute: getSubrouteSegments(req, mappingId) } : undefined;
+});
+
+const mappingTransform: RequestHandler = (req, res, next) => {
+  const mappingId = getRouteParam(req.params, 'mappingId');
+  if (!mappingId) {
+    res.status(400).json({ message: 'missing mappingId' });
+    return;
+  }
+  if (req.method === 'PUT' && getSubrouteSegments(req, mappingId).length === 0) {
+    next();
+    return;
+  }
+  return executeProviderMapping(req, res, next);
 };
 
 const mappingOperation = async (req: Request, res: Response) => {

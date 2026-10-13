@@ -21,6 +21,8 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
   private readonly app: express.Application;
   private server?: Server;
   private readonly engine: FumeEngine<ConfigType>;
+  private readonly shutdownHooks = new Set<() => Promise<void>>();
+  private shutdownPromise?: Promise<void>;
   private bodyParserCache?: {
     limit: string;
     urlencoded: RequestHandler;
@@ -86,7 +88,9 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
       config: options.config,
       ...(options.engine?.logger ? { logger: options.engine.logger } : {}),
       ...(options.engine?.astCache ? { astCache: options.engine.astCache } : {}),
-      ...(options.engine?.bindings ? { bindings: options.engine.bindings } : {})
+      ...(options.engine?.bindings ? { bindings: options.engine.bindings } : {}),
+      ...(options.engine?.builtinBindings ? { builtinBindings: options.engine.builtinBindings } : {}),
+      ...(options.engine?.evaluationContextFactory ? { evaluationContextFactory: options.engine.evaluationContextFactory } : {})
     });
 
     const server = new FumeServer<ConfigType>(engine);
@@ -97,37 +101,57 @@ export class FumeServer<ConfigType extends IConfig> implements IFumeServer<Confi
 
     // Allow downstream consumers to register routes/middleware BEFORE the built-in router
     // and its trailing 404 handler are mounted.
-    options.configureApp?.(server.app, server);
+    try {
+      options.configureApp?.(server.app, server);
 
-    const { SERVER_PORT } = engine.getConfig();
+      const http = createHttpRouter({ openApiSpec: options.openApiSpec });
+      server.app.use('/', http.routes);
+      server.app.use(http.notFound);
 
-    // mount routes handler
-    const http = createHttpRouter({ openApiSpec: options.openApiSpec });
-    server.app.use('/', http.routes);
-
-    // catch any routes that are not found
-    // This allows consumers to extend the server with their own routes
-    // and still have a default 404 handler
-    server.app.use(http.notFound);
-
-    server.server = server.app.listen(SERVER_PORT);
-    withPrefix(engine.getLogger(), '[server]').info(`FUME server is running on port ${SERVER_PORT}`);
+      server.server = server.app.listen(engine.getConfig().SERVER_PORT);
+      await new Promise<void>((resolve, reject) => {
+        const listener = server.server!;
+        const onError = (error: Error) => {
+          listener.removeListener('listening', onListening);
+          reject(error);
+        };
+        const onListening = () => {
+          listener.removeListener('error', onError);
+          resolve();
+        };
+        listener.once('error', onError);
+        listener.once('listening', onListening);
+      });
+    } catch (error) {
+      await server.shutDown().catch(() => undefined);
+      throw error;
+    }
+    withPrefix(engine.getLogger(), '[server]').info(`FUME server is running on port ${engine.getConfig().SERVER_PORT}`);
 
     return server;
   }
 
-  public async shutDown (): Promise<void> {
-    if (this.server) {
-      await new Promise<void>((resolve, reject) => {
-        this.server?.close((err) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-          resolve();
-        });
+  public registerShutdownHook (hook: () => Promise<void>): void {
+    if (this.shutdownPromise) throw new Error('Server shutdown has already started');
+    this.shutdownHooks.add(hook);
+  }
+
+  public shutDown (): Promise<void> {
+    if (this.shutdownPromise) return this.shutdownPromise;
+    this.shutdownPromise = Promise.resolve().then(async () => {
+      const closing = new Promise<void>((resolve, reject) => {
+        if (!this.server?.listening) return resolve();
+        this.server.close(error => error ? reject(error) : resolve());
       });
-    }
+      const hooks = [...this.shutdownHooks].map(hook => {
+        try { return Promise.resolve(hook()); } catch (error) { return Promise.reject(error); }
+      });
+      this.shutdownHooks.clear();
+      const results = await Promise.allSettled([closing, ...hooks]);
+      const failure = results.find((result): result is PromiseRejectedResult => result.status === 'rejected');
+      if (failure) throw failure.reason;
+    });
+    return this.shutdownPromise;
   }
 
   public registerBinding (key: string, binding: unknown): void {

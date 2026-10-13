@@ -117,6 +117,7 @@ describe('verbose=true response wrapper', () => {
       getMappingProvider: () => {
         throw new Error('getMappingProvider is not used by this test');
       },
+      validateEvaluationContexts: () => undefined,
       convertInputToJson: async (input: unknown) => input,
       transformVerbose: async () => ({
         ok: false,

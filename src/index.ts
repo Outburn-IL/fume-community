@@ -4,6 +4,8 @@
  */
 
 export { FumeEngine } from './engine';
+export type { MappingExecutionResolver, MappingExecutionTarget } from './http';
+export { createMappingExecutionHandler } from './http';
 
 /**
  * Export types
@@ -14,7 +16,11 @@ export type {
   ConnectionsFile,
   DiagnosticEntry,
   DiagnosticLevel,
+  EngineEvaluationContext,
+  EngineEvaluationContexts,
+  EngineEvaluationOptions,
   EvaluateVerboseReport,
+  EvaluationContextFactory,
   FumeEngineCreateOptions,
   FumeHttpEvaluationError,
   FumeServerCreateOptions,
